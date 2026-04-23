@@ -460,25 +460,58 @@ a {
   gap: 14px;
   flex: 1;
   min-width: 0;
-  padding: 12px;
-  border-radius: 22px;
+  position: relative;
+  overflow: hidden;
+  padding: 14px;
+  border-radius: 20px;
   background:
-    linear-gradient(180deg, rgba(86, 53, 29, 0.82), rgba(62, 37, 19, 0.72));
-  border: 1px solid rgba(211, 170, 98, 0.24);
+    radial-gradient(circle at 18% 0%, rgba(255, 217, 145, 0.1), transparent 30%),
+    linear-gradient(90deg, rgba(43, 25, 12, 0.16) 0 2px, transparent 2px 100%),
+    linear-gradient(180deg, rgba(92, 58, 31, 0.94), rgba(58, 34, 17, 0.88));
+  border: 1px solid rgba(224, 178, 100, 0.34);
   box-shadow:
-    inset 0 1px 0 rgba(255, 241, 209, 0.12),
-    inset 0 0 0 1px rgba(73, 43, 22, 0.56);
+    inset 0 1px 0 rgba(255, 241, 209, 0.14),
+    inset 0 0 0 2px rgba(64, 38, 19, 0.6),
+    inset 0 -14px 22px rgba(27, 15, 8, 0.16),
+    0 10px 20px rgba(42, 24, 11, 0.18);
+}
+
+.hero-card-main::before,
+.hero-card-main::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #d5a75a 0%, #8b6130 100%);
+  border: 1px solid rgba(62, 35, 14, 0.62);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 238, 196, 0.38),
+    0 3px 5px rgba(38, 21, 9, 0.22);
+  transform: rotate(45deg);
+  z-index: 2;
+}
+
+.hero-card-main::before {
+  left: 12px;
+}
+
+.hero-card-main::after {
+  right: 12px;
 }
 
 .hero-icon-command {
-  width: 122px;
-  height: 132px;
-  border-radius: 22px;
+  width: 124px;
+  height: 138px;
+  border-radius: 18px;
   background:
-    linear-gradient(180deg, rgba(255, 247, 223, 0.08), rgba(255, 255, 255, 0.02));
+    linear-gradient(135deg, #8c6035 0%, #6d4525 48%, #4b2d17 100%);
   box-shadow:
-    0 0 0 4px rgba(117, 155, 255, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    0 0 0 1px rgba(245, 205, 132, 0.28),
+    0 0 0 5px rgba(65, 38, 19, 0.84),
+    0 9px 14px rgba(34, 20, 10, 0.26),
+    inset 0 1px 0 rgba(255, 237, 196, 0.16);
 }
 
 .hero-icon-scene {
@@ -488,13 +521,13 @@ a {
   overflow: hidden;
   display: grid;
   place-items: end center;
-  border: 3px solid rgba(208, 171, 102, 0.58);
+  border: 3px solid rgba(214, 174, 100, 0.68);
   box-shadow:
-    0 0 0 3px rgba(89, 54, 27, 0.9),
-    0 0 0 7px rgba(56, 33, 17, 0.6),
-    0 12px 20px rgba(52, 31, 16, 0.28),
-    inset 0 0 0 2px rgba(255, 239, 201, 0.12),
-    inset 0 14px 22px rgba(255, 233, 182, 0.05);
+    0 0 0 3px rgba(79, 48, 23, 0.94),
+    0 0 0 8px rgba(42, 25, 12, 0.7),
+    0 12px 20px rgba(35, 20, 9, 0.32),
+    inset 0 0 0 2px rgba(255, 237, 190, 0.14),
+    inset 0 16px 24px rgba(255, 233, 182, 0.05);
   background:
     linear-gradient(135deg, #8b6139 0%, #6d4628 48%, #4f311c 100%);
 }
@@ -502,23 +535,24 @@ a {
 .hero-icon-scene::before {
   content: "";
   position: absolute;
-  inset: 8px;
-  border-radius: 14px;
+  inset: 9px;
+  border-radius: 11px;
   pointer-events: none;
-  border: 1px solid rgba(249, 220, 158, 0.28);
+  border: 1px solid rgba(249, 220, 158, 0.34);
   box-shadow:
-    inset 0 0 0 1px rgba(69, 41, 20, 0.6),
-    inset 0 12px 18px rgba(255, 241, 204, 0.04);
-  z-index: 0;
+    inset 0 0 0 1px rgba(69, 41, 20, 0.62),
+    inset 0 12px 18px rgba(255, 241, 204, 0.05),
+    inset 0 -18px 22px rgba(30, 18, 9, 0.13);
+  z-index: 3;
 }
 
 .hero-icon-scene::after {
   content: "";
   position: absolute;
   left: 50%;
-  bottom: 12px;
-  width: 62px;
-  height: 15px;
+  bottom: 17px;
+  width: 66px;
+  height: 16px;
   border-radius: 999px;
   background:
     radial-gradient(ellipse at center, rgba(35, 21, 10, 0.3) 0%, rgba(35, 21, 10, 0.16) 58%, rgba(35, 21, 10, 0) 100%);
@@ -529,10 +563,13 @@ a {
 
 .hero-scene-backdrop {
   position: absolute;
-  inset: 0;
+  inset: 9px;
+  border-radius: 11px;
+  overflow: hidden;
   z-index: 0;
   pointer-events: none;
   image-rendering: pixelated;
+  background-color: #5c3a22;
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center bottom;
@@ -547,91 +584,70 @@ a {
 
 .hero-icon-scene[data-scene="guild_tavern"] .hero-scene-backdrop,
 .hero-scene-backdrop[data-scene="guild_tavern"] {
-  background: linear-gradient(180deg, #6f4a2b 0 36%, #8d6035 36% 58%, #7a5230 58% 82%, #4b2f1b 82% 100%);
+  background-image: url("./assets/scenes/guild-tavern.svg");
 }
 
 .hero-icon-scene[data-scene="guild_tavern"] .hero-scene-backdrop::before,
 .hero-scene-backdrop[data-scene="guild_tavern"]::before {
-  background:
-    linear-gradient(90deg, transparent 0 12%, #4c311d 12% 18%, transparent 18% 82%, #4c311d 82% 88%, transparent 88% 100%),
-    linear-gradient(180deg, transparent 0 58%, #c79b59 58% 64%, transparent 64% 100%);
+  background: linear-gradient(180deg, rgba(255, 226, 157, 0.08), transparent 48%, rgba(27, 15, 8, 0.18));
 }
 
 .hero-icon-scene[data-scene="guild_tavern"] .hero-scene-backdrop::after,
 .hero-scene-backdrop[data-scene="guild_tavern"]::after {
-  inset: auto 14px 12px auto;
-  width: 14px;
+  inset: auto 0 0 0;
   height: 22px;
-  border-radius: 6px;
-  background:
-    radial-gradient(circle at center 4px, #ffd27a 0 4px, transparent 4px),
-    linear-gradient(180deg, #584027 0%, #3e2918 100%);
-  box-shadow: 0 0 10px rgba(255, 208, 117, 0.24);
+  background: linear-gradient(180deg, transparent, rgba(29, 16, 9, 0.26));
 }
 
 .hero-icon-scene[data-scene="stone_hall"] .hero-scene-backdrop,
 .hero-scene-backdrop[data-scene="stone_hall"] {
-  background: linear-gradient(180deg, #7d8790 0 50%, #6a7580 50% 78%, #4e5863 78% 100%);
+  background-image: url("./assets/scenes/stone-hall.svg");
 }
 
 .hero-icon-scene[data-scene="stone_hall"] .hero-scene-backdrop::before,
 .hero-scene-backdrop[data-scene="stone_hall"]::before {
-  background:
-    linear-gradient(90deg, #a9b0b6 0 8%, transparent 8% 16%, #a9b0b6 16% 24%, transparent 24% 32%, #a9b0b6 32% 40%, transparent 40% 48%, #a9b0b6 48% 56%, transparent 56% 64%, #a9b0b6 64% 72%, transparent 72% 80%, #a9b0b6 80% 88%, transparent 88% 100%),
-    linear-gradient(180deg, transparent 0 18%, #929da6 18% 22%, transparent 22% 42%, #929da6 42% 46%, transparent 46% 66%, #929da6 66% 70%, transparent 70% 100%);
-  opacity: 0.45;
+  background: linear-gradient(180deg, rgba(235, 242, 246, 0.08), transparent 54%, rgba(29, 34, 39, 0.22));
 }
 
 .hero-icon-scene[data-scene="stone_hall"] .hero-scene-backdrop::after,
 .hero-scene-backdrop[data-scene="stone_hall"]::after {
   inset: auto 0 0 0;
   height: 22px;
-  background:
-    linear-gradient(90deg, #737d87 0 16%, #8d979f 16% 32%, #6a737c 32% 48%, #9099a0 48% 64%, #6d767d 64% 80%, #8f989f 80% 100%);
+  background: linear-gradient(180deg, transparent, rgba(30, 36, 42, 0.24));
 }
 
 .hero-icon-scene[data-scene="quest_board"] .hero-scene-backdrop,
 .hero-scene-backdrop[data-scene="quest_board"] {
-  background: linear-gradient(180deg, #d7c79b 0 26%, #8a6a3f 26% 78%, #6f5431 78% 100%);
+  background-image: url("./assets/scenes/quest-board.svg");
 }
 
 .hero-icon-scene[data-scene="quest_board"] .hero-scene-backdrop::before,
 .hero-scene-backdrop[data-scene="quest_board"]::before {
-  inset: 10px 8px 18px;
-  border-radius: 6px;
-  background: linear-gradient(180deg, #b78349 0%, #7b532d 100%);
-  box-shadow:
-    inset 0 0 0 2px rgba(76, 48, 22, 0.54),
-    0 0 0 2px rgba(229, 202, 140, 0.18);
+  background: linear-gradient(180deg, rgba(255, 230, 167, 0.06), transparent 50%, rgba(43, 26, 13, 0.22));
 }
 
 .hero-icon-scene[data-scene="quest_board"] .hero-scene-backdrop::after,
 .hero-scene-backdrop[data-scene="quest_board"]::after {
-  inset: 18px 16px 28px;
-  background:
-    linear-gradient(180deg, #f3e0ae 0 28%, transparent 28% 36%, #f3e0ae 36% 64%, transparent 64% 72%, #f3e0ae 72% 100%);
-  opacity: 0.9;
+  inset: auto 0 0 0;
+  height: 22px;
+  background: linear-gradient(180deg, transparent, rgba(36, 21, 11, 0.26));
 }
 
 .hero-icon-scene[data-scene="town_square"] .hero-scene-backdrop,
 .hero-scene-backdrop[data-scene="town_square"] {
-  background: linear-gradient(180deg, #9fd2ef 0 42%, #88b76e 42% 72%, #a6855e 72% 86%, #7b5f41 86% 100%);
+  background-image: url("./assets/scenes/town-square.svg");
 }
 
 .hero-icon-scene[data-scene="town_square"] .hero-scene-backdrop::before,
 .hero-scene-backdrop[data-scene="town_square"]::before {
-  background:
-    radial-gradient(circle at 18% 28%, #f6f2d0 0 8px, transparent 8px),
-    radial-gradient(circle at 82% 24%, #f6f2d0 0 7px, transparent 7px),
-    linear-gradient(90deg, transparent 0 12%, #5b8b4f 12% 20%, transparent 20% 78%, #5b8b4f 78% 86%, transparent 86% 100%);
+  background: linear-gradient(180deg, rgba(255, 245, 189, 0.08), transparent 52%, rgba(54, 38, 22, 0.2));
 }
 
 .hero-icon-scene[data-scene="town_square"] .hero-scene-backdrop::after,
 .hero-scene-backdrop[data-scene="town_square"]::after {
   inset: auto 0 0 0;
   height: 24px;
-  background:
-    linear-gradient(90deg, #c8b38b 0 14%, #aa916a 14% 28%, #cdb792 28% 42%, #b09772 42% 56%, #c8b28d 56% 70%, #ad936c 70% 84%, #cab48f 84% 100%);
+  background: linear-gradient(180deg, transparent, rgba(53, 38, 23, 0.22));
 }
 
 .hero-command-copy {
@@ -642,10 +658,26 @@ a {
   justify-content: center;
   align-items: flex-start;
   gap: 8px;
-  padding: 8px 2px 8px 10px;
-  border-radius: 18px;
+  position: relative;
+  padding: 18px 8px 14px 14px;
+  border-radius: 16px;
   background:
-    linear-gradient(180deg, rgba(74, 43, 21, 0.3), rgba(54, 31, 15, 0.18));
+    linear-gradient(180deg, rgba(74, 43, 21, 0.46), rgba(42, 24, 12, 0.28));
+  border: 1px solid rgba(214, 170, 96, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 237, 200, 0.08),
+    inset 0 0 0 1px rgba(54, 31, 15, 0.34);
+}
+
+.hero-command-copy::before {
+  content: "登録証";
+  position: absolute;
+  left: 14px;
+  top: 7px;
+  color: rgba(255, 225, 169, 0.58);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
 }
 
 .hero-command-copy .hero-name {
@@ -666,6 +698,7 @@ a {
   word-break: keep-all;
   overflow-wrap: anywhere;
   color: rgba(255, 238, 212, 0.92);
+  text-shadow: 0 2px 4px rgba(35, 19, 9, 0.22);
 }
 
 .hero-command-copy .hero-milestone {
@@ -674,8 +707,8 @@ a {
   padding: 7px 11px;
   border-radius: 999px;
   background:
-    linear-gradient(180deg, rgba(158, 131, 95, 0.54), rgba(120, 91, 61, 0.38));
-  border: 1px solid rgba(237, 201, 139, 0.18);
+    linear-gradient(180deg, rgba(184, 143, 81, 0.56), rgba(113, 78, 41, 0.46));
+  border: 1px solid rgba(237, 201, 139, 0.24);
   color: #fff2d2;
   font-size: 12px;
   font-weight: 900;
@@ -690,6 +723,8 @@ a {
   flex: 0 0 74px;
   min-width: 74px;
   padding-left: 2px;
+  position: relative;
+  z-index: 1;
 }
 
 .hero-status-board {
