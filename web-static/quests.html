@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f2ea" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>クエスト | そらアプリ Web</title>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel panel-game">
+        <div class="quest-flash-overlay" id="questFlashOverlay" aria-hidden="true"></div>
+        <section class="home-command-deck quest-command-deck">
+          <div class="home-command-copy">
+            <p class="home-command-label">ギルド掲示板</p>
+            <h1 class="home-command-title">ギルド依頼掲示板</h1>
+            <p class="home-command-subtitle">ギルドに掲示された依頼を受けて、完了したら報告します。</p>
+          </div>
+          <div class="home-command-signal guild-command-signal">
+            <span>受注中</span>
+            <strong id="questTotalCount">0件</strong>
+            <em>受付中</em>
+          </div>
+        </section>
+
+        <section class="quest-card quest-card-command quest-card-command-board">
+          <div class="section-head section-head-command">
+            <div>
+              <p class="section-kicker">受注クエスト</p>
+              <h2>掲示中の依頼</h2>
+            </div>
+          </div>
+          <section class="list-card list-card-game list-card-command" id="questBoard"></section>
+        </section>
+
+        <nav class="bottom-nav bottom-nav-command">
+          <a href="./index.html"><span class="nav-label">ホーム</span></a>
+          <a class="active" href="./quests.html"><span class="nav-label">依頼</span></a>
+          <a href="./status.html"><span class="nav-label">成長</span></a>
+          <a href="./parent.html"><span class="nav-label">ギルド</span></a>
+        </nav>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+  </html>

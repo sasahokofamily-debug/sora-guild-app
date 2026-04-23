@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f2ea" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>ギルド | そらアプリ Web</title>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel panel-game panel-game-guild">
+        <section class="home-command-deck parent-command-deck">
+          <div class="home-command-copy">
+            <p class="home-command-label">ギルド受付</p>
+            <h1 class="home-command-title">ギルド受付所</h1>
+            <p class="home-command-subtitle">依頼の掲示と報告の受理を行います。</p>
+          </div>
+          <div class="home-command-signal guild-command-signal">
+            <span>掲示中</span>
+            <strong id="activeCount">8件</strong>
+            <em>受付中</em>
+          </div>
+        </section>
+
+        <section class="home-tactical-grid parent-tactical-grid">
+          <article class="home-tactical-card home-tactical-card-highlight">
+            <span>受理待ち</span>
+            <strong id="pendingCount">2件</strong>
+          </article>
+          <article class="home-tactical-card">
+            <span>掲示中</span>
+            <strong id="parentDailyCount">0件</strong>
+          </article>
+        </section>
+
+        <section class="quest-card quest-card-command parent-form-card guild-desk-card">
+          <div class="section-head section-head-command">
+            <div>
+              <p class="section-kicker">掲示</p>
+              <h2>依頼発行</h2>
+            </div>
+            <div class="guild-stamp-badge">発行窓口</div>
+          </div>
+          <form class="quest-form" id="parentQuestForm">
+            <label class="field-block">
+              <span class="field-label">内容</span>
+              <input id="parentQuestTitle" name="title" type="text" maxlength="24" placeholder="例: 漢字ドリル 10分" required />
+            </label>
+
+            <div class="field-row">
+              <label class="field-block">
+                <span class="field-label">分類</span>
+                <select id="parentQuestCategory" name="category">
+                  <option value="宿題">宿題</option>
+                  <option value="お手伝い">お手伝い</option>
+                  <option value="習い事">習い事</option>
+                </select>
+              </label>
+
+              <label class="field-block">
+                <span class="field-label">報酬</span>
+                <select id="parentQuestReward" name="reward">
+                  <option value="EXP 10">EXP 10</option>
+                  <option value="EXP 15">EXP 15</option>
+                  <option value="EXP 20">EXP 20</option>
+                </select>
+              </label>
+            </div>
+
+            <label class="field-block">
+              <span class="field-label">ひとこと</span>
+              <input id="parentQuestDetail" name="detail" type="text" maxlength="40" placeholder="例: 机に向かって10分だけ進める" />
+            </label>
+
+            <button class="primary-button guild-primary-button" type="submit">依頼を掲示する</button>
+            <p class="field-note" id="parentFormStatus">発行した依頼は冒険者画面の依頼一覧に表示されます。</p>
+          </form>
+        </section>
+
+        <section class="quest-card quest-card-command guild-queue-card">
+          <div class="section-head section-head-command">
+            <div>
+              <p class="section-kicker">受理</p>
+              <h2>受理待ち</h2>
+            </div>
+            <div class="guild-stamp-badge guild-stamp-badge-receive">受理窓口</div>
+          </div>
+          <div class="parent-list" id="approvalList">
+            <article class="approval-item">
+              <div>
+                <span class="quest-category">宿題</span>
+                <strong>算数ドリル 10分</strong>
+              </div>
+              <button class="approve-button" type="button">受理</button>
+            </article>
+            <article class="approval-item">
+              <div>
+                <span class="quest-category">お手伝い</span>
+                <strong>食器を片づける</strong>
+              </div>
+              <button class="approve-button" type="button">受理</button>
+            </article>
+          </div>
+        </section>
+
+        <section class="home-dual-panels guild-dual-panels">
+          <section class="quest-card home-panel">
+            <div class="section-head section-head-compact">
+              <h2>定番依頼</h2>
+            </div>
+            <div class="parent-list">
+              <article class="template-item template-item-button template-item-command" data-template-title="漢字ドリル 10分" data-template-category="宿題" data-template-reward="EXP 15">
+                <span class="template-mark">Template</span>
+                <strong>宿題を追加</strong>
+                <p>学習用の依頼をすぐ作成</p>
+              </article>
+              <article class="template-item template-item-button template-item-command" data-template-title="洗濯物をたたむ" data-template-category="お手伝い" data-template-reward="EXP 10">
+                <span class="template-mark">Template</span>
+                <strong>お手伝いを追加</strong>
+                <p>家の役割をすぐ登録</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="quest-card home-panel">
+            <div class="section-head section-head-compact">
+              <h2>発行中の依頼</h2>
+            </div>
+            <div class="parent-list" id="activeQuestList"></div>
+          </section>
+        </section>
+
+        <nav class="bottom-nav bottom-nav-command">
+          <a href="./index.html"><span class="nav-label">ホーム</span></a>
+          <a href="./quests.html"><span class="nav-label">依頼</span></a>
+          <a href="./status.html"><span class="nav-label">成長</span></a>
+          <a class="active" href="./parent.html"><span class="nav-label">ギルド</span></a>
+        </nav>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+  </html>

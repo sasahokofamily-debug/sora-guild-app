@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f2ea" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>そらアプリ Web</title>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel panel-game panel-home-tavern">
+        <section class="home-command-deck home-command-deck-tavern">
+          <div class="home-command-copy">
+            <div class="home-command-row">
+              <p class="home-command-label">ギルド本部</p>
+              <div class="home-command-pill home-command-pill-tavern">
+                <span>達成数</span>
+                <strong id="metricCompleted">0回</strong>
+              </div>
+            </div>
+            <h1 class="home-command-title">冒険者広間</h1>
+          </div>
+        </section>
+
+        <section class="hero-card hero-card-command hero-card-tavern">
+          <div class="hero-card-main">
+            <div class="hero-icon hero-icon-pixel hero-icon-command hero-icon-scene" id="heroIconFrame" data-scene="guild_tavern">
+              <div class="hero-scene-backdrop" id="heroSceneBackdrop" aria-hidden="true"></div>
+              <img src="./icons/hero-lv10.png" alt="冒険者のドット絵" class="pixel-sprite hero-sprite" id="heroSprite" />
+              <div class="hero-gear-layer" id="heroGearLayer" aria-hidden="true"></div>
+              <img src="./icons/sword.png" alt="" class="hero-relic" id="heroRelic" />
+            </div>
+            <div class="hero-command-copy">
+              <p class="hero-name">そら</p>
+              <p class="hero-title" id="heroTitle">冒険者見習い</p>
+              <p class="hero-milestone" id="heroMilestone">初期段階</p>
+            </div>
+          </div>
+          <div class="hero-command-side">
+            <div class="hero-badge hero-badge-command" id="heroLevelBadge">Lv 1</div>
+            <div class="hero-mini-stats">
+              <article class="hero-mini-stat">
+                <span>連続</span>
+                <strong id="metricStreak">1日</strong>
+              </article>
+              <article class="hero-mini-stat">
+                <span>宝箱</span>
+                <strong id="metricChest">0個</strong>
+              </article>
+            </div>
+          </div>
+          <section class="hero-status-board" aria-label="冒険者能力">
+            <article class="hero-status-card hero-status-power">
+              <span class="hero-status-icon" aria-hidden="true">剣</span>
+              <div class="hero-status-copy">
+                <span class="hero-status-name">ちから</span>
+                <strong id="heroStatStrength">1</strong>
+                <span class="hero-status-source">お手伝いで育つ</span>
+              </div>
+              <div class="hero-status-meter" aria-hidden="true"><span id="heroStatStrengthBar" style="width: 8%"></span></div>
+            </article>
+            <article class="hero-status-card hero-status-wisdom">
+              <span class="hero-status-icon" aria-hidden="true">書</span>
+              <div class="hero-status-copy">
+                <span class="hero-status-name">ちせい</span>
+                <strong id="heroStatWisdom">1</strong>
+                <span class="hero-status-source">宿題で育つ</span>
+              </div>
+              <div class="hero-status-meter" aria-hidden="true"><span id="heroStatWisdomBar" style="width: 8%"></span></div>
+            </article>
+            <article class="hero-status-card hero-status-kindness">
+              <span class="hero-status-icon" aria-hidden="true">心</span>
+              <div class="hero-status-copy">
+                <span class="hero-status-name">やさしさ</span>
+                <strong id="heroStatKindness">1</strong>
+                <span class="hero-status-source">助け合いで育つ</span>
+              </div>
+              <div class="hero-status-meter" aria-hidden="true"><span id="heroStatKindnessBar" style="width: 8%"></span></div>
+            </article>
+            <article class="hero-status-card hero-status-clean">
+              <span class="hero-status-icon" aria-hidden="true">清</span>
+              <div class="hero-status-copy">
+                <span class="hero-status-name">せいけつ</span>
+                <strong id="heroStatCleanliness">1</strong>
+                <span class="hero-status-source">身支度で育つ</span>
+              </div>
+              <div class="hero-status-meter" aria-hidden="true"><span id="heroStatCleanlinessBar" style="width: 8%"></span></div>
+            </article>
+          </section>
+        </section>
+
+        <section class="home-tactical-grid home-tactical-grid-simple home-tactical-grid-tavern">
+          <article class="home-tactical-card home-tactical-card-highlight home-tactical-card-tavern">
+            <span>次の冒険者階級</span>
+            <strong id="homeNextStage">旅立ちの騎士</strong>
+          </article>
+          <article class="home-tactical-card home-tactical-card-tavern">
+            <span>ギルド受理待ち</span>
+            <strong id="homePendingApprovals">0件</strong>
+          </article>
+        </section>
+
+        <section class="quest-card home-panel home-panel-compact home-panel-tavern">
+          <div class="section-head section-head-compact">
+            <h2>冒険者階級</h2>
+          </div>
+          <div class="status-progress">
+            <div class="status-progress-head">
+              <span class="quest-category">次の階級まで</span>
+              <strong id="homeNextLevelProgressText">0%</strong>
+            </div>
+            <div class="progress-bar progress-bar-command">
+              <div class="progress-fill" id="homeNextLevelProgressBar" style="width: 0%"></div>
+            </div>
+          </div>
+          <article class="template-item template-item-command home-goal-card home-goal-card-tavern">
+            <strong id="homeGoalTitle">次は旅立ちの騎士</strong>
+            <p id="homeGoalText">今日の依頼を進めて、次の冒険者階級へ近づきましょう。</p>
+          </article>
+        </section>
+
+        <section class="quest-card home-panel home-panel-compact home-panel-tavern">
+          <div class="section-head section-head-compact">
+            <h2>戦利品宝箱</h2>
+          </div>
+          <div class="treasure-card treasure-card-command" id="homeTreasureCard">
+            <div class="treasure-icon-wrap treasure-icon-wrap-command" id="homeTreasureIconWrap">
+              <div class="treasure-icon-chest" id="homeTreasureIcon" aria-hidden="true">
+                <span class="treasure-icon-lid"></span>
+                <span class="treasure-icon-body"></span>
+                <span class="treasure-icon-lock"></span>
+              </div>
+            </div>
+            <div class="treasure-copy">
+              <strong id="homeTreasureTitle">宝箱はまだ閉じています</strong>
+              <p id="homeTreasureText">ギルド受理を3回重ねると、次の宝箱が開きます。</p>
+            </div>
+          </div>
+          <div class="status-progress">
+            <div class="status-progress-head">
+              <span class="quest-category">次の宝箱まで</span>
+              <strong id="homeTreasureProgressText">0 / 3</strong>
+            </div>
+            <div class="progress-bar progress-bar-command">
+              <div class="progress-fill" id="homeTreasureProgressBar" style="width: 0%"></div>
+            </div>
+          </div>
+        </section>
+
+        <nav class="bottom-nav bottom-nav-command">
+          <a class="active" href="./index.html"><span class="nav-label">ホーム</span></a>
+          <a href="./quests.html"><span class="nav-label">依頼</span></a>
+          <a href="./status.html"><span class="nav-label">成長</span></a>
+          <a href="./parent.html"><span class="nav-label">ギルド</span></a>
+        </nav>
+      </section>
+    </main>
+
+    <div class="treasure-modal" id="treasureModal" hidden>
+      <div class="treasure-modal-backdrop" id="treasureModalBackdrop"></div>
+      <section class="treasure-modal-panel">
+        <div class="treasure-modal-burst"></div>
+        <div class="treasure-modal-icon-wrap">
+          <div class="treasure-icon-chest treasure-icon-chest-modal" id="treasureModalIcon" aria-hidden="true">
+            <span class="treasure-icon-lid"></span>
+            <span class="treasure-icon-body"></span>
+            <span class="treasure-icon-lock"></span>
+          </div>
+        </div>
+        <p class="treasure-modal-kicker">宝箱</p>
+        <h2 class="treasure-modal-title" id="treasureModalTitle">宝箱開封</h2>
+        <p class="treasure-modal-text" id="treasureModalText">ギルド受理を重ねた報酬として宝箱が開きます。</p>
+        <button class="primary-button treasure-modal-button" id="treasureModalClose" type="button">閉じる</button>
+      </section>
+    </div>
+
+    <div class="treasure-modal levelup-modal" id="levelUpModal" hidden>
+      <div class="treasure-modal-backdrop" id="levelUpModalBackdrop"></div>
+      <section class="treasure-modal-panel levelup-modal-panel">
+        <div class="treasure-modal-burst levelup-modal-burst"></div>
+        <p class="treasure-modal-kicker">昇格</p>
+        <h2 class="treasure-modal-title" id="levelUpModalTitle">階級上昇</h2>
+        <p class="treasure-modal-text" id="levelUpModalText">新しい称号に到達しました。</p>
+        <button class="primary-button treasure-modal-button" id="levelUpModalClose" type="button">確認</button>
+      </section>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+  </html>

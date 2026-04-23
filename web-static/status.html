@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f2ea" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>成長 | そらアプリ Web</title>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel panel-game panel-game-status">
+        <section class="home-command-deck status-command-deck">
+          <div class="home-command-copy">
+            <p class="home-command-label">成長記録</p>
+            <h1 class="home-command-title">冒険者台帳</h1>
+            <p class="home-command-subtitle">いまの姿と成長だけを確認できます。</p>
+          </div>
+          <div class="home-command-signal">
+            <span>現在階級</span>
+            <strong id="statusHeroLevelBadge">Lv 1</strong>
+          </div>
+        </section>
+
+        <section class="hero-card hero-card-command status-hero-card">
+          <div class="hero-card-main">
+            <div class="hero-icon hero-icon-pixel hero-icon-command" id="statusHeroIconFrame">
+              <img src="./icons/hero-lv10.png" alt="冒険者のドット絵" class="pixel-sprite hero-sprite" id="statusHeroSprite" />
+              <div class="hero-gear-layer" id="statusHeroGearLayer" aria-hidden="true"></div>
+              <img src="./icons/sword.png" alt="" class="hero-relic" id="statusHeroRelic" />
+            </div>
+            <div class="hero-command-copy">
+              <p class="hero-name">そら</p>
+              <p class="hero-title" id="statusHeroTitle">冒険者見習い</p>
+              <p class="hero-milestone" id="statusHeroMilestone">初期段階</p>
+            </div>
+          </div>
+          <div class="hero-command-side">
+            <div class="hero-mini-stats">
+              <article class="hero-mini-stat">
+                <span>称号</span>
+                <strong id="statusTitleText">冒険者見習い</strong>
+              </article>
+              <article class="hero-mini-stat">
+                <span>進行</span>
+                <strong id="nextLevelProgressText">0%</strong>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="quest-card quest-card-command status-evolution-card">
+          <div class="section-head section-head-command">
+            <div>
+              <p class="section-kicker">変化</p>
+              <h2>次の姿</h2>
+            </div>
+          </div>
+          <section class="evolution-board evolution-board-command">
+            <div class="evolution-stage active">
+              <div class="evolution-frame" id="currentEvolutionFrame">
+                <img src="./icons/hero-lv10.png" alt="現在の姿" class="pixel-sprite evolution-sprite" id="currentEvolutionSprite" />
+                <div class="hero-gear-layer hero-gear-layer-evolution" id="currentEvolutionGearLayer" aria-hidden="true"></div>
+              </div>
+              <span class="quest-category">現在</span>
+              <strong id="currentEvolutionLabel">見習い</strong>
+            </div>
+            <div class="evolution-arrow">→</div>
+            <div class="evolution-stage">
+              <div class="evolution-frame evolution-frame-next" id="nextEvolutionFrame">
+                <img src="./icons/hero-lv20.png" alt="次の姿" class="pixel-sprite evolution-sprite" id="nextEvolutionSprite" />
+                <div class="hero-gear-layer hero-gear-layer-evolution" id="nextEvolutionGearLayer" aria-hidden="true"></div>
+              </div>
+              <span class="quest-category">次</span>
+              <strong id="nextEvolutionLabel">騎士</strong>
+            </div>
+          </section>
+          <div class="visual-stage-card visual-stage-card-command">
+            <strong id="visualStageText">第1段階 / 80</strong>
+            <p id="visualStageDescription">受理を重ねると姿が変わります。</p>
+          </div>
+        </section>
+
+        <section class="home-dual-panels">
+          <section class="quest-card home-panel">
+            <div class="section-head section-head-compact">
+              <h2>成長値</h2>
+            </div>
+            <div class="status-grid status-grid-command">
+              <article class="status-card">
+                <span class="quest-category">力</span>
+                <strong id="statPower">1</strong>
+              </article>
+              <article class="status-card">
+                <span class="quest-category">賢さ</span>
+                <strong id="statWisdom">1</strong>
+              </article>
+              <article class="status-card">
+                <span class="quest-category">集中</span>
+                <strong id="statFocus">1</strong>
+              </article>
+              <article class="status-card">
+                <span class="quest-category">優しさ</span>
+                <strong id="statKindness">1</strong>
+              </article>
+              <article class="status-card">
+                <span class="quest-category">素早さ</span>
+                <strong id="statSpeed">1</strong>
+              </article>
+              <article class="status-card">
+                <span class="quest-category">宝箱</span>
+                <strong id="statChest">0</strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="quest-card home-panel">
+            <div class="section-head section-head-compact">
+              <h2>装備</h2>
+            </div>
+            <div class="status-progress">
+              <div class="status-progress-head">
+                <span class="quest-category">次の階級まで</span>
+                <strong id="nextLevelProgressMirror">0%</strong>
+              </div>
+              <div class="progress-bar progress-bar-command">
+                <div class="progress-fill" id="nextLevelProgressBar" style="width: 0%"></div>
+              </div>
+            </div>
+            <div class="parent-list">
+              <article class="template-item template-item-command">
+                <span class="template-mark">装備</span>
+                <strong id="equipmentPrimary">見習いの印</strong>
+                <p id="equipmentPrimaryText">最初のギルド受理を重ねて強くなる</p>
+              </article>
+              <article class="template-item template-item-command">
+                <strong id="equipmentSecondary">継続の勲章</strong>
+                <p id="equipmentSecondaryText">ギルド受理数に応じて輝きが増す</p>
+              </article>
+            </div>
+          </section>
+        </section>
+
+        <nav class="bottom-nav bottom-nav-command">
+          <a href="./index.html"><span class="nav-label">ホーム</span></a>
+          <a href="./quests.html"><span class="nav-label">依頼</span></a>
+          <a class="active" href="./status.html"><span class="nav-label">成長</span></a>
+          <a href="./parent.html"><span class="nav-label">ギルド</span></a>
+        </nav>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+  </html>
