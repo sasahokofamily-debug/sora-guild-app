@@ -4583,8 +4583,74 @@ function renderHomeDailyMission() {
   card.classList.toggle("is-empty", totalCount === 0);
 }
 
+function getBossBattleHTML() {
+  return `
+    <section class="boss-card" data-boss-card aria-labelledby="boss-battle-title">
+      <div class="boss-head">
+        <div>
+          <p class="section-kicker">Boss Battle</p>
+          <h3 id="boss-battle-title">ボス戦</h3>
+        </div>
+        <strong data-boss-defeated-count>討伐 0体</strong>
+      </div>
+      <div class="boss-body">
+        <div class="boss-arena">
+          <span class="boss-badge">BOSS</span>
+          <h4 data-boss-name>現在のボス準備中</h4>
+          <div class="boss-image-frame" aria-hidden="true">
+            <img data-boss-image alt="ボスの姿" hidden>
+            <span data-boss-fallback>魔</span>
+            <strong class="boss-damage-pop" data-boss-damage-pop></strong>
+          </div>
+        </div>
+        <div class="boss-copy">
+          <p>クエスト達成でダメージを与えよう。</p>
+          <div class="boss-hp-row">
+            <span>HP</span>
+            <strong data-boss-hp>準備中</strong>
+          </div>
+          <div class="boss-hp-track" aria-hidden="true">
+            <span data-boss-hp-bar></span>
+          </div>
+          <div class="boss-meta">
+            <span data-boss-attack>攻撃力 -</span>
+            <span data-boss-reward>討伐報酬 準備中</span>
+          </div>
+        </div>
+      </div>
+      <div class="boss-reward-panel" data-boss-reward-panel aria-live="polite" hidden>
+        <p>BOSS DEFEATED!</p>
+        <h4>討伐報酬</h4>
+        <div>
+          <span data-boss-reward-xp>XP +0</span>
+          <span data-boss-reward-gold>Gold +0</span>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function ensureBossBattleCard() {
+  const existingCard = document.querySelector("[data-boss-card]");
+  if (existingCard) {
+    return existingCard;
+  }
+
+  const homeScreen = document.querySelector('[data-screen="home"]');
+  const dailyMissionCard = document.querySelector("[data-home-daily-mission]");
+  if (dailyMissionCard) {
+    dailyMissionCard.insertAdjacentHTML("beforebegin", getBossBattleHTML());
+    return document.querySelector("[data-boss-card]");
+  }
+  if (homeScreen) {
+    homeScreen.insertAdjacentHTML("beforeend", getBossBattleHTML());
+    return document.querySelector("[data-boss-card]");
+  }
+  return null;
+}
+
 function renderBossBattle() {
-  const card = document.querySelector("[data-boss-card]");
+  const card = ensureBossBattleCard();
   if (!card) {
     return;
   }
