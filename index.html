@@ -1,196 +1,832 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#f7f2ea" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <link rel="manifest" href="./manifest.json" />
-    <link rel="icon" href="./icons/icon-192.png" />
-    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-    <link rel="stylesheet" href="./styles.css" />
-    <title>そらアプリ Web</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#6b4f2a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="そらクエスト">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>そらクエスト</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./assets/icons/pwa-icon-192.png">
+    <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <main class="shell">
-      <section class="panel panel-game panel-home-tavern">
-        <section class="home-command-deck home-command-deck-tavern">
-          <div class="home-command-copy">
-            <div class="home-command-row">
-              <p class="home-command-label">ギルド本部</p>
-              <div class="home-command-pill home-command-pill-tavern">
-                <span>達成数</span>
-                <strong id="metricCompleted">0回</strong>
+    <div class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">Fantasy Guild Log</p>
+          <h1>そらクエスト</h1>
+        </div>
+        <div class="parent-mode-tools" data-parent-mode-only hidden>
+          <span>ギルドマスター管理中</span>
+          <button class="parent-mode-exit" type="button" data-parent-mode-exit>解除</button>
+        </div>
+      </header>
+
+      <main class="screen-stack">
+        <section class="screen is-active" id="home" data-screen="home" aria-labelledby="home-title">
+          <div class="panel hero-panel">
+            <div class="character-frame">
+              <img class="character-image" data-character-image src="./assets/characters/str-stage-1.png" alt="冒険者の姿" hidden>
+              <div class="character-orb">
+                <span data-character-fallback>勇者</span>
               </div>
             </div>
-            <h1 class="home-command-title">冒険者広間</h1>
+            <div class="adventurer-copy">
+              <p class="section-kicker">称号</p>
+              <h2 id="home-title" data-title-name>一歩目の見習い</h2>
+              <p class="equipped-title-line">装備称号：<strong data-equipped-title-name>称号未装備</strong></p>
+              <p class="sub-title-line">サブ称号：<strong data-sub-title-name>バランスの冒険者</strong></p>
+              <p class="character-type-line">現在タイプ：<strong data-character-type>勇者タイプ</strong></p>
+              <p class="character-type-desc" data-character-type-desc>行動力で道を切りひらく冒険者。</p>
+              <p class="character-evolution-line">進化段階：<strong data-character-stage>stage1 見習い</strong></p>
+              <p class="character-evolution-line">次の進化：<strong data-character-next-stage>あと14Lv</strong></p>
+              <p class="daily-word" data-title-desc>はじめての挑戦をした</p>
+            </div>
           </div>
+
+          <div class="xp-panel" data-level-panel>
+            <div class="xp-label-row">
+              <span data-xp-progress>Lv1 / 0XP進行中</span>
+              <strong data-xp-next>あと 100 XP</strong>
+            </div>
+            <div class="xp-track" aria-label="経験値の進捗">
+              <div class="xp-fill" data-xp-fill></div>
+            </div>
+            <div class="gain-float-layer" data-gain-float-layer aria-hidden="true"></div>
+          </div>
+
+          <div class="stat-grid">
+            <article class="stat-card">
+              <span>レベル</span>
+              <strong data-level>1</strong>
+            </article>
+            <article class="stat-card">
+              <span>経験値</span>
+              <strong><span data-xp>0</span><span class="stat-unit">XP</span></strong>
+            </article>
+            <article class="stat-card">
+              <span>ゴールド</span>
+              <strong><span data-gold>0</span><span class="stat-unit">G</span></strong>
+            </article>
+          </div>
+
+          <div class="streak-panel" aria-label="連続達成記録">
+            <div>
+              <span>連続達成</span>
+              <strong data-streak-current>0日</strong>
+            </div>
+            <div>
+              <span>最高記録</span>
+              <strong data-streak-best>0日</strong>
+            </div>
+            <div>
+              <span>連続ログイン</span>
+              <strong data-login-streak>0日</strong>
+            </div>
+          </div>
+
+          <section class="daily-mission-card" data-home-daily-mission aria-labelledby="home-daily-mission-title">
+            <div class="daily-mission-head">
+              <div>
+                <p class="section-kicker">Mission</p>
+                <h3 id="home-daily-mission-title">今日の任務</h3>
+              </div>
+              <strong data-home-daily-count>0 / 0</strong>
+            </div>
+            <div class="daily-mission-track" aria-hidden="true">
+              <span data-home-daily-bar></span>
+            </div>
+            <p data-home-daily-message>今日やる分を確認しましょう。</p>
+            <button class="daily-mission-action" type="button" data-open-guild hidden>ギルドへ行く</button>
+          </section>
+
+          <section class="boss-card" data-boss-card aria-labelledby="boss-battle-title">
+            <div class="boss-head">
+              <div>
+                <p class="section-kicker">Boss Battle</p>
+                <h3 id="boss-battle-title">ボス戦</h3>
+              </div>
+              <strong data-boss-defeated-count>討伐 0体</strong>
+            </div>
+            <div class="boss-body">
+              <div class="boss-arena">
+                <span class="boss-badge">BOSS</span>
+                <h4 data-boss-name>スライムキング</h4>
+                <div class="boss-image-frame" aria-hidden="true">
+                  <img data-boss-image alt="ボスの姿" hidden>
+                  <span data-boss-fallback>魔</span>
+                  <strong class="boss-damage-pop" data-boss-damage-pop></strong>
+                </div>
+              </div>
+              <div class="boss-copy">
+                <p>クエスト達成でダメージを与えよう。</p>
+                <div class="boss-hp-row">
+                  <span>HP</span>
+                  <strong data-boss-hp>50 / 50</strong>
+                </div>
+                <div class="boss-hp-track" aria-hidden="true">
+                  <span data-boss-hp-bar></span>
+                </div>
+                <div class="boss-meta">
+                  <span data-boss-attack>攻撃力 1</span>
+                  <span data-boss-reward>討伐報酬 XP +30 / Gold +20</span>
+                </div>
+              </div>
+            </div>
+            <div class="boss-reward-panel" data-boss-reward-panel aria-live="polite" hidden>
+              <p>BOSS DEFEATED!</p>
+              <h4>討伐報酬</h4>
+              <div>
+                <span data-boss-reward-xp>XP +0</span>
+                <span data-boss-reward-gold>Gold +0</span>
+              </div>
+            </div>
+          </section>
+
+          <div class="app-reminder-card" data-home-reminder>
+            <span data-home-reminder-text>今日の任務を確認しましょう。</span>
+          </div>
+
+          <section class="parent-note-card" aria-labelledby="parent-note-title">
+            <div class="parent-note-head">
+              <div>
+                <p class="section-kicker">Note</p>
+                <h3 id="parent-note-title">今日のひとこと</h3>
+              </div>
+              <span data-parent-note-date>今日</span>
+            </div>
+            <p class="parent-note-text" data-parent-note-text>今日のひとことはまだありません</p>
+            <form class="parent-note-form" data-parent-note-form data-parent-mode-only hidden>
+              <label>
+                親メモ
+                <textarea name="note" rows="3" maxlength="120" placeholder="例：今日は音読まで自分からできたね！" data-parent-note-input></textarea>
+              </label>
+              <div class="parent-note-actions">
+                <button class="quest-manage-button" type="submit">保存</button>
+                <button class="quest-manage-button is-secondary" type="button" data-parent-note-clear>削除</button>
+              </div>
+              <p class="form-message" data-parent-note-message aria-live="polite"></p>
+            </form>
+          </section>
+
+          <section class="recent-achievements" aria-labelledby="recent-achievements-title">
+            <div class="mini-section-heading">
+              <p class="section-kicker">Badge</p>
+              <h3 id="recent-achievements-title">最近の実績</h3>
+            </div>
+            <div class="recent-achievement-list" data-recent-achievement-list></div>
+          </section>
+
+          <section class="today-quests" aria-labelledby="today-quests-title">
+            <div class="mini-section-heading">
+              <p class="section-kicker">Today</p>
+              <h3 id="today-quests-title">今日のクエスト</h3>
+            </div>
+            <div class="today-progress-card" data-today-progress>
+              <div class="today-progress-head">
+                <span>今日の達成</span>
+                <strong data-today-progress-count>0 / 0</strong>
+              </div>
+              <div class="today-progress-track" aria-hidden="true">
+                <span data-today-progress-bar></span>
+              </div>
+              <p data-today-progress-message>今日のクエストを確認しましょう。</p>
+            </div>
+            <div class="today-quest-list" data-today-quest-list></div>
+          </section>
+
         </section>
 
-        <section class="hero-card hero-card-command hero-card-tavern">
-          <div class="hero-card-main">
-            <div class="hero-icon hero-icon-pixel hero-icon-command hero-icon-scene" id="heroIconFrame" data-scene="guild_tavern">
-              <div class="hero-scene-backdrop" id="heroSceneBackdrop" aria-hidden="true"></div>
-              <img src="./icons/hero-lv10.png" alt="冒険者のドット絵" class="pixel-sprite hero-sprite" id="heroSprite" />
-              <div class="hero-gear-layer" id="heroGearLayer" aria-hidden="true"></div>
-              <img src="./icons/sword.png" alt="" class="hero-relic" id="heroRelic" />
-            </div>
-            <div class="hero-command-copy">
-              <p class="hero-name">そら</p>
-              <p class="hero-title" id="heroTitle">冒険者見習い</p>
-              <p class="hero-milestone" id="heroMilestone">初期段階</p>
-            </div>
+        <section class="screen" id="quests" data-screen="quests" aria-labelledby="quests-title">
+          <div class="section-heading">
+            <p class="section-kicker">Quest Board</p>
+            <h2 id="quests-title">クエスト</h2>
           </div>
-          <div class="hero-command-side">
-            <div class="hero-badge hero-badge-command" id="heroLevelBadge">Lv 1</div>
-            <div class="hero-mini-stats">
-              <article class="hero-mini-stat">
-                <span>連続</span>
-                <strong id="metricStreak">1日</strong>
+          <div class="quest-category-tabs" role="tablist" aria-label="クエストカテゴリ">
+            <button class="is-active" type="button" role="tab" aria-selected="true" data-quest-category-tab="daily_required">毎日クエスト</button>
+            <button type="button" role="tab" aria-selected="false" data-quest-category-tab="challenge">チャレンジ</button>
+          </div>
+          <div class="quest-category-progress" aria-label="クエストカテゴリ別の達成率">
+            <article data-quest-category-summary="daily_required">
+              <span>毎日クエスト</span>
+              <strong data-quest-category-count="daily_required">0 / 0</strong>
+              <div class="quest-category-track" aria-hidden="true"><i data-quest-category-bar="daily_required"></i></div>
+              <p data-quest-category-message="daily_required">今日やる分を進めましょう。</p>
+            </article>
+            <article data-quest-category-summary="challenge">
+              <span>チャレンジ</span>
+              <strong data-quest-category-count="challenge">0 / 0</strong>
+              <div class="quest-category-track" aria-hidden="true"><i data-quest-category-bar="challenge"></i></div>
+              <p data-quest-category-message="challenge">できたら挑戦の追加依頼です。</p>
+            </article>
+          </div>
+          <div class="quest-list" data-quest-list></div>
+        </section>
+
+        <section class="screen" id="growth" data-screen="growth" aria-labelledby="growth-title">
+          <div class="section-heading">
+            <p class="section-kicker">Record</p>
+            <h2 id="growth-title">成長記録</h2>
+          </div>
+          <div class="record-list">
+            <article class="record-row">
+              <span>現在レベル</span>
+              <strong data-record-level>1</strong>
+            </article>
+            <article class="record-row">
+              <span>累計経験値</span>
+              <strong><span data-record-xp>0</span><span class="record-unit">XP</span></strong>
+            </article>
+            <article class="record-row">
+              <span>累計ゴールド</span>
+              <strong><span data-record-gold>0</span><span class="record-unit">G</span></strong>
+            </article>
+            <article class="record-row">
+              <span>完了クエスト数</span>
+              <strong><span data-record-completed>0</span><span class="record-unit">件</span></strong>
+            </article>
+          </div>
+
+          <section class="growth-panel" aria-labelledby="stats-title">
+            <div class="mini-section-heading">
+              <p class="section-kicker">Status</p>
+              <h3 id="stats-title">能力値</h3>
+            </div>
+            <div class="ability-grid">
+              <article class="ability-card ability-str" data-stat-card="STR">
+                <span>STR</span>
+                <strong data-stat-str>0</strong>
+                <small><strong>力</strong><em>体を動かす力</em></small>
               </article>
-              <article class="hero-mini-stat">
-                <span>宝箱</span>
-                <strong id="metricChest">0個</strong>
+              <article class="ability-card ability-int" data-stat-card="INT">
+                <span>INT</span>
+                <strong data-stat-int>0</strong>
+                <small><strong>賢さ</strong><em>考える力</em></small>
+              </article>
+              <article class="ability-card ability-end" data-stat-card="END">
+                <span>END</span>
+                <strong data-stat-end>0</strong>
+                <small><strong>忍耐力</strong><em>続ける力</em></small>
+              </article>
+              <article class="ability-card ability-dex" data-stat-card="DEX">
+                <span>DEX</span>
+                <strong data-stat-dex>0</strong>
+                <small><strong>器用さ</strong><em>工夫する力</em></small>
               </article>
             </div>
-          </div>
-          <section class="hero-status-board" aria-label="冒険者能力">
-            <article class="hero-status-card hero-status-power">
-              <span class="hero-status-icon" aria-hidden="true">剣</span>
-              <div class="hero-status-copy">
-                <span class="hero-status-name">ちから</span>
-                <strong id="heroStatStrength">1</strong>
-                <span class="hero-status-source">お手伝いで育つ</span>
+            <p class="ability-sub-title">現在のサブ称号：<strong data-record-sub-title>バランスの冒険者</strong></p>
+          </section>
+
+          <section class="growth-panel" aria-labelledby="today-growth-title">
+            <div class="mini-section-heading">
+              <p class="section-kicker">Today</p>
+              <h3 id="today-growth-title">今日の成長</h3>
+            </div>
+            <div class="growth-summary-grid">
+              <article>
+                <span>達成</span>
+                <strong><span data-today-completed>0</span><span class="growth-unit">件</span></strong>
+              </article>
+              <article>
+                <span>獲得XP</span>
+                <strong><span data-today-xp>0</span><span class="growth-unit">XP</span></strong>
+              </article>
+              <article>
+                <span>獲得Gold</span>
+                <strong><span data-today-gold>0</span><span class="growth-unit">G</span></strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="growth-panel weekly-report-panel" aria-labelledby="weekly-report-title">
+            <div class="mini-section-heading">
+              <p class="section-kicker">Weekly</p>
+              <h3 id="weekly-report-title">週間レポート</h3>
+            </div>
+            <p class="weekly-empty" data-weekly-empty hidden>今週の記録はまだありません</p>
+            <div class="growth-summary-grid weekly-report-grid">
+              <article>
+                <span>達成</span>
+                <strong><span data-weekly-completed>0</span><span class="growth-unit">件</span></strong>
+              </article>
+              <article>
+                <span>獲得XP</span>
+                <strong><span data-weekly-xp>0</span><span class="growth-unit">XP</span></strong>
+              </article>
+              <article>
+                <span>獲得Gold</span>
+                <strong><span data-weekly-gold>0</span><span class="growth-unit">G</span></strong>
+              </article>
+            </div>
+            <div class="weekly-detail-list">
+              <article>
+                <span>伸びたステータス</span>
+                <strong data-weekly-stat-growth>まだありません</strong>
+              </article>
+              <article>
+                <span>連続ログイン</span>
+                <strong data-weekly-login-streak>0日</strong>
+              </article>
+            </div>
+            <div class="weekly-report-send" data-parent-mode-only hidden>
+              <button class="quest-manage-button" type="button" data-weekly-report-send>週間レポートを送信</button>
+              <p class="form-message weekly-send-message" data-weekly-send-message aria-live="polite"></p>
+            </div>
+          </section>
+
+          <section class="growth-panel growth-chart-panel" aria-labelledby="growth-chart-title">
+            <div class="mini-section-heading">
+              <p class="section-kicker">Chart</p>
+              <h3 id="growth-chart-title">成長グラフ</h3>
+            </div>
+            <div class="chart-tabs" role="group" aria-label="成長グラフの切り替え">
+              <button class="is-active" type="button" data-growth-chart-mode="xp">XP</button>
+              <button type="button" data-growth-chart-mode="gold">Gold</button>
+              <button type="button" data-growth-chart-mode="stat">ステータス</button>
+            </div>
+            <p class="growth-chart-empty" data-growth-chart-empty>記録がたまるとグラフが表示されます</p>
+            <div class="growth-chart-frame" data-growth-chart-frame hidden>
+              <svg class="growth-chart-svg" viewBox="0 0 320 160" role="img" aria-label="成長の推移" data-growth-chart-svg></svg>
+              <div class="growth-chart-meta">
+                <span data-growth-chart-label>XPの推移</span>
+                <strong data-growth-chart-latest>0</strong>
               </div>
-              <div class="hero-status-meter" aria-hidden="true"><span id="heroStatStrengthBar" style="width: 8%"></span></div>
-            </article>
-            <article class="hero-status-card hero-status-wisdom">
-              <span class="hero-status-icon" aria-hidden="true">書</span>
-              <div class="hero-status-copy">
-                <span class="hero-status-name">ちせい</span>
-                <strong id="heroStatWisdom">1</strong>
-                <span class="hero-status-source">宿題で育つ</span>
+            </div>
+          </section>
+
+          <section class="growth-panel" aria-labelledby="growth-streak-title">
+            <div class="mini-section-heading">
+              <p class="section-kicker">Streak</p>
+              <h3 id="growth-streak-title">連続達成</h3>
+            </div>
+            <div class="growth-summary-grid growth-summary-grid-two">
+              <article>
+                <span>現在</span>
+                <strong><span data-record-streak-current>0</span><span class="growth-unit">日</span></strong>
+              </article>
+              <article>
+                <span>最高記録</span>
+                <strong><span data-record-streak-best>0</span><span class="growth-unit">日</span></strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="growth-panel" aria-labelledby="next-goal-title">
+            <div class="mini-section-heading">
+              <p class="section-kicker">Next</p>
+              <h3 id="next-goal-title">次の目標</h3>
+            </div>
+            <div class="growth-goal">
+              <strong data-goal-xp>あと100XP</strong>
+              <span data-goal-count>あと3回くらいでレベルアップ</span>
+            </div>
+          </section>
+
+          <section class="growth-panel" aria-labelledby="activity-log-title">
+            <div class="mini-section-heading">
+              <p class="section-kicker">Log</p>
+              <h3 id="activity-log-title">最近の活動ログ</h3>
+            </div>
+            <div class="activity-log-list" data-activity-log-list></div>
+          </section>
+
+          <section class="growth-panel" aria-labelledby="title-history-title">
+            <div class="mini-section-heading">
+              <p class="section-kicker">Title</p>
+              <h3 id="title-history-title">称号履歴</h3>
+            </div>
+            <div class="title-history-list">
+              <article>
+                <span>現在の称号</span>
+                <strong data-current-title-record>一歩目の見習い</strong>
+              </article>
+              <article>
+                <span>前の称号</span>
+                <strong data-previous-title-record>まだありません</strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="growth-panel" aria-labelledby="collectible-title-title">
+            <div class="mini-section-heading achievement-heading">
+              <div>
+                <p class="section-kicker">Title Collection</p>
+                <h3 id="collectible-title-title">称号コレクション</h3>
               </div>
-              <div class="hero-status-meter" aria-hidden="true"><span id="heroStatWisdomBar" style="width: 8%"></span></div>
+              <strong data-collectible-title-count>0 / 0</strong>
+            </div>
+            <article class="current-title-showcase">
+              <span>現在の称号</span>
+              <strong data-current-collectible-title>称号未獲得</strong>
+              <p data-current-collectible-title-desc>称号を獲得すると、ここに表示されます。</p>
             </article>
-            <article class="hero-status-card hero-status-kindness">
-              <span class="hero-status-icon" aria-hidden="true">心</span>
-              <div class="hero-status-copy">
-                <span class="hero-status-name">やさしさ</span>
-                <strong id="heroStatKindness">1</strong>
-                <span class="hero-status-source">助け合いで育つ</span>
+            <div class="collectible-title-list" data-collectible-title-list></div>
+          </section>
+
+          <section class="growth-panel" aria-labelledby="achievement-title">
+            <div class="mini-section-heading achievement-heading">
+              <div>
+                <p class="section-kicker">Adventure Log</p>
+                <h3 id="achievement-title">実績図鑑</h3>
               </div>
-              <div class="hero-status-meter" aria-hidden="true"><span id="heroStatKindnessBar" style="width: 8%"></span></div>
-            </article>
-            <article class="hero-status-card hero-status-clean">
-              <span class="hero-status-icon" aria-hidden="true">清</span>
-              <div class="hero-status-copy">
-                <span class="hero-status-name">せいけつ</span>
-                <strong id="heroStatCleanliness">1</strong>
-                <span class="hero-status-source">身支度で育つ</span>
-              </div>
-              <div class="hero-status-meter" aria-hidden="true"><span id="heroStatCleanlinessBar" style="width: 8%"></span></div>
-            </article>
+              <strong data-achievement-count>0 / 100</strong>
+            </div>
+            <div class="achievement-list" data-achievement-list></div>
           </section>
         </section>
 
-        <section class="home-tactical-grid home-tactical-grid-simple home-tactical-grid-tavern">
-          <article class="home-tactical-card home-tactical-card-highlight home-tactical-card-tavern">
-            <span>次の冒険者階級</span>
-            <strong id="homeNextStage">旅立ちの騎士</strong>
-          </article>
-          <article class="home-tactical-card home-tactical-card-tavern">
-            <span>ギルド受理待ち</span>
-            <strong id="homePendingApprovals">0件</strong>
-          </article>
+        <section class="screen" id="rewards" data-screen="rewards" aria-labelledby="rewards-title">
+          <div class="section-heading">
+            <p class="section-kicker">Reward</p>
+            <h2 id="rewards-title">ご褒美交換</h2>
+          </div>
+          <section class="reward-shop" aria-labelledby="reward-shop-title">
+            <div class="mini-section-heading">
+              <p class="section-kicker">Exchange</p>
+              <h3 id="reward-shop-title">ギルドショップ</h3>
+              <p class="reward-shop-lead" data-reward-shop-gold>所持Gold：0G</p>
+            </div>
+            <div class="reward-shop-list" data-reward-shop-list></div>
+          </section>
         </section>
 
-        <section class="quest-card home-panel home-panel-compact home-panel-tavern">
-          <div class="section-head section-head-compact">
-            <h2>冒険者階級</h2>
+        <section class="screen" id="admin-auth" data-screen="admin-auth" aria-labelledby="admin-auth-title">
+          <div class="section-heading">
+            <p class="section-kicker">Parent Check</p>
+            <h2 id="admin-auth-title">保護者確認</h2>
           </div>
-          <div class="status-progress">
-            <div class="status-progress-head">
-              <span class="quest-category">次の階級まで</span>
-              <strong id="homeNextLevelProgressText">0%</strong>
-            </div>
-            <div class="progress-bar progress-bar-command">
-              <div class="progress-fill" id="homeNextLevelProgressBar" style="width: 0%"></div>
-            </div>
-          </div>
-          <article class="template-item template-item-command home-goal-card home-goal-card-tavern">
-            <strong id="homeGoalTitle">次は旅立ちの騎士</strong>
-            <p id="homeGoalText">今日の依頼を進めて、次の冒険者階級へ近づきましょう。</p>
-          </article>
+          <form class="panel parent-auth-panel" data-parent-auth-form>
+            <h3>ギルド管理を開く</h3>
+            <p>保護者用PINを入力してください。</p>
+            <label>
+              PIN
+              <input type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="PINを入力" data-parent-pin>
+            </label>
+            <p class="auth-message" data-parent-auth-message aria-live="polite"></p>
+            <button class="auth-submit-button" type="submit">解除する</button>
+          </form>
         </section>
 
-        <section class="quest-card home-panel home-panel-compact home-panel-tavern">
-          <div class="section-head section-head-compact">
-            <h2>戦利品宝箱</h2>
+        <section class="screen" id="admin" data-screen="admin" aria-labelledby="admin-title">
+          <div class="section-heading">
+            <p class="section-kicker">Guild Master</p>
+            <h2 id="admin-title">ギルド管理</h2>
           </div>
-          <div class="treasure-card treasure-card-command" id="homeTreasureCard">
-            <div class="treasure-icon-wrap treasure-icon-wrap-command" id="homeTreasureIconWrap">
-              <div class="treasure-icon-chest" id="homeTreasureIcon" aria-hidden="true">
-                <span class="treasure-icon-lid"></span>
-                <span class="treasure-icon-body"></span>
-                <span class="treasure-icon-lock"></span>
+          <div class="panel admin-panel">
+            <h3>保護者の方へ</h3>
+            <p>
+              宿題やお手伝いをクエストとして完了し、経験値とゴールドで日々の取り組みを記録する最小版です。
+              進行状況はこの端末のブラウザに保存されます。
+            </p>
+          </div>
+          <div class="dev-tools" data-dev-tools aria-label="開発確認用ツール" hidden>
+            <span>開発確認用</span>
+            <button class="dev-test-button" type="button" data-dev-level-up>Lv+1 テスト</button>
+          </div>
+          <section class="admin-section admin-section-quests" aria-labelledby="admin-quest-section-title">
+            <div class="admin-section-heading">
+              <p class="section-kicker">Quest</p>
+              <h3 id="admin-quest-section-title">クエスト管理</h3>
+            </div>
+          <button class="quest-create-toggle" type="button" data-toggle-quest-create aria-expanded="false" hidden>新しいクエスト追加</button>
+          <form class="future-form quest-create-form" data-quest-create-form aria-label="クエスト追加フォーム" hidden>
+            <h3>新しいクエスト追加</h3>
+            <label>
+              クエスト種別
+              <select name="type">
+                <option value="normal">通常クエスト</option>
+                <option value="urgent">緊急クエスト</option>
+                <option value="boss">ボスクエスト</option>
+              </select>
+            </label>
+            <label>
+              クエスト分類
+              <select name="category">
+                <option value="daily_required">毎日クエスト</option>
+                <option value="challenge">チャレンジクエスト</option>
+              </select>
+            </label>
+            <label>
+              優先度
+              <select name="priority">
+                <option value="high">高</option>
+                <option value="medium" selected>中</option>
+                <option value="low">低</option>
+              </select>
+            </label>
+            <label>
+              繰り返し設定
+              <select name="frequency">
+                <option value="daily">毎日</option>
+                <option value="weekly">毎週</option>
+                <option value="weekday">曜日指定</option>
+                <option value="once">単発</option>
+              </select>
+            </label>
+            <fieldset class="weekday-picker" data-weekday-picker>
+              <legend>表示する曜日</legend>
+              <div class="weekday-options">
+                <label><input type="checkbox" name="scheduleDays" value="0" checked><span>日</span></label>
+                <label><input type="checkbox" name="scheduleDays" value="1" checked><span>月</span></label>
+                <label><input type="checkbox" name="scheduleDays" value="2" checked><span>火</span></label>
+                <label><input type="checkbox" name="scheduleDays" value="3" checked><span>水</span></label>
+                <label><input type="checkbox" name="scheduleDays" value="4" checked><span>木</span></label>
+                <label><input type="checkbox" name="scheduleDays" value="5" checked><span>金</span></label>
+                <label><input type="checkbox" name="scheduleDays" value="6" checked><span>土</span></label>
               </div>
+            </fieldset>
+            <label>
+              成長する能力
+              <select name="stat">
+                <option value="STR">力</option>
+                <option value="INT">賢さ</option>
+                <option value="END">忍耐力</option>
+                <option value="DEX">器用さ</option>
+              </select>
+            </label>
+            <label>
+              クエスト名
+              <input type="text" name="title" placeholder="例：明日の準備をする" required>
+            </label>
+            <label>
+              説明
+              <textarea name="description" rows="3" placeholder="例：時間割を見て、持ち物をそろえる。"></textarea>
+            </label>
+            <div class="reward-input-grid">
+              <label>
+                XP
+                <input type="number" name="xp" inputmode="numeric" min="1" max="999" placeholder="40" required>
+              </label>
+              <label>
+                Gold
+                <input type="number" name="gold" inputmode="numeric" min="0" max="999" placeholder="0" required>
+              </label>
             </div>
-            <div class="treasure-copy">
-              <strong id="homeTreasureTitle">宝箱はまだ閉じています</strong>
-              <p id="homeTreasureText">ギルド受理を3回重ねると、次の宝箱が開きます。</p>
+            <p class="form-message" data-quest-create-message aria-live="polite"></p>
+            <button type="submit">クエストを追加</button>
+          </form>
+          <section class="future-form quest-manage-panel" aria-labelledby="quest-manage-title">
+            <h3 id="quest-manage-title">クエスト一覧</h3>
+            <div class="managed-quest-list" data-managed-quest-list></div>
+          </section>
+          </section>
+          <section class="admin-section admin-section-notifications" aria-labelledby="admin-notification-section-title">
+            <div class="admin-section-heading">
+              <p class="section-kicker">Notice</p>
+              <h3 id="admin-notification-section-title">通知設定</h3>
             </div>
-          </div>
-          <div class="status-progress">
-            <div class="status-progress-head">
-              <span class="quest-category">次の宝箱まで</span>
-              <strong id="homeTreasureProgressText">0 / 3</strong>
+            <section class="future-form notification-settings-panel" aria-labelledby="notification-settings-title">
+              <h3 id="notification-settings-title">GAS通知</h3>
+              <div class="notification-setting-list">
+                <article>
+                  <span>ご褒美交換通知</span>
+                  <strong data-notify-url-label>設定済み</strong>
+                </article>
+                <article>
+                  <span>週間レポート通知</span>
+                  <strong data-weekly-report-url-label>設定済み</strong>
+                </article>
+              </div>
+              <p>通知URLはアプリ内の定数で管理しています。メール通知と週間レポート送信は既存設定を使用します。</p>
+            </section>
+          <section class="admin-section admin-section-login-bonus" aria-labelledby="login-bonus-settings-title">
+            <div class="admin-section-heading">
+              <p class="section-kicker">Login Bonus</p>
+              <h3 id="login-bonus-settings-title">ログインボーナス設定</h3>
             </div>
-            <div class="progress-bar progress-bar-command">
-              <div class="progress-fill" id="homeTreasureProgressBar" style="width: 0%"></div>
+          <form class="future-form login-bonus-settings-form" data-login-bonus-settings-form aria-label="ログインボーナス設定フォーム">
+            <p>アプリを開いた日に付与するXPとGold、連続ログイン時の追加ボーナスを調整できます。</p>
+            <label class="setting-check">
+              <input type="checkbox" name="dailyEnabled">
+              <span>ログインボーナスON</span>
+            </label>
+            <div class="reward-input-grid">
+              <label>
+                1日ログイン XP
+                <input type="number" name="dailyXp" inputmode="numeric" min="0" max="999" placeholder="5" required>
+              </label>
+              <label>
+                1日ログイン Gold
+                <input type="number" name="dailyGold" inputmode="numeric" min="0" max="999" placeholder="5" required>
+              </label>
             </div>
-          </div>
+            <label class="setting-check">
+              <input type="checkbox" name="streakEnabled">
+              <span>連続ログインボーナスON</span>
+            </label>
+            <label>
+              連続ログイン何日ごと
+              <input type="number" name="streakIntervalDays" inputmode="numeric" min="1" max="365" placeholder="7" required>
+            </label>
+            <div class="reward-input-grid">
+              <label>
+                追加XP
+                <input type="number" name="streakXp" inputmode="numeric" min="0" max="999" placeholder="20" required>
+              </label>
+              <label>
+                追加Gold
+                <input type="number" name="streakGold" inputmode="numeric" min="0" max="999" placeholder="20" required>
+              </label>
+            </div>
+            <p class="form-message" data-login-bonus-settings-message aria-live="polite"></p>
+            <button type="submit">設定を保存</button>
+          </form>
+          <form class="future-form daily-clear-bonus-settings-form" data-daily-clear-bonus-settings-form aria-label="今日の冒険クリア設定フォーム">
+            <h3>今日の冒険クリア設定</h3>
+            <p>今日表示されている毎日クエストをすべて達成したときのクリアボーナスです。</p>
+            <label class="setting-check">
+              <input type="checkbox" name="enabled">
+              <span>クリアボーナスON</span>
+            </label>
+            <div class="reward-input-grid">
+              <label>
+                クリアボーナス XP
+                <input type="number" name="xp" inputmode="numeric" min="0" max="999" placeholder="0" required>
+              </label>
+              <label>
+                クリアボーナス Gold
+                <input type="number" name="gold" inputmode="numeric" min="0" max="999" placeholder="10" required>
+              </label>
+            </div>
+            <p class="form-message" data-daily-clear-bonus-settings-message aria-live="polite"></p>
+            <button type="submit">設定を保存</button>
+          </form>
+          </section>
+          <section class="future-form weekly-report-admin-panel" data-parent-mode-only aria-labelledby="weekly-report-admin-title" hidden>
+            <h3 id="weekly-report-admin-title">週間レポート送信</h3>
+            <p>現在の週間レポートをGoogle Apps Scriptへ送信します。GAS連携のテストに使えます。</p>
+            <button class="quest-manage-button" type="button" data-weekly-report-send>週間レポートを送信</button>
+            <p class="form-message weekly-send-message" data-weekly-send-message aria-live="polite"></p>
+          </section>
+          </section>
+          <section class="admin-section admin-section-rewards" aria-labelledby="admin-reward-section-title">
+            <div class="admin-section-heading">
+              <p class="section-kicker">Reward</p>
+              <h3 id="admin-reward-section-title">ご褒美管理</h3>
+            </div>
+          <form class="future-form reward-create-form" data-reward-create-form aria-label="ご褒美追加フォーム">
+            <h3>ご褒美追加</h3>
+            <label>
+              ご褒美名
+              <input type="text" name="name" placeholder="例：ゲーム15分" required>
+            </label>
+            <label>
+              必要Gold
+              <input type="number" name="cost" inputmode="numeric" min="1" max="9999" placeholder="100" required>
+            </label>
+            <p class="form-message" data-reward-create-message aria-live="polite"></p>
+            <button type="submit">ご褒美を追加</button>
+          </form>
+          <section class="future-form reward-manage-panel" aria-labelledby="reward-manage-title">
+            <h3 id="reward-manage-title">ご褒美一覧</h3>
+            <div class="managed-reward-list" data-managed-reward-list></div>
+          </section>
+          <section class="future-form reward-history-panel" aria-labelledby="reward-history-title">
+            <h3 id="reward-history-title">交換履歴</h3>
+            <div class="reward-history-list" data-reward-history-list></div>
+          </section>
+          </section>
+          <section class="admin-section admin-section-data" aria-labelledby="admin-data-section-title">
+            <div class="admin-section-heading">
+              <p class="section-kicker">Data</p>
+              <h3 id="admin-data-section-title">データ管理</h3>
+            </div>
+          <form class="future-form pin-change-form" data-parent-mode-only data-pin-change-form aria-label="PIN変更フォーム" hidden>
+            <h3>PIN変更</h3>
+            <p>親モードに入るためのPINを変更できます。4桁の数字で設定してください。</p>
+            <label>
+              現在のPIN
+              <input type="password" name="currentPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="現在のPIN" required>
+            </label>
+            <label>
+              新しいPIN
+              <input type="password" name="newPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="4桁の数字" required>
+            </label>
+            <label>
+              新しいPIN（確認）
+              <input type="password" name="confirmPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="もう一度入力" required>
+            </label>
+            <p class="form-message" data-pin-change-message aria-live="polite"></p>
+            <button type="submit">PINを変更</button>
+          </form>
+          <section class="future-form backup-panel" aria-labelledby="backup-title">
+            <h3 id="backup-title">データ保管</h3>
+            <p>この端末に保存されているプレイヤーデータ、クエスト、ご褒美、実績、設定をJSONファイルとして保管・復元できます。</p>
+            <div class="backup-actions">
+              <button class="quest-manage-button" type="button" data-backup-download>バックアップ作成</button>
+              <button class="quest-manage-button is-secondary" type="button" data-backup-import>復元ファイルを選ぶ</button>
+            </div>
+            <input class="backup-file-input" type="file" accept="application/json,.json" data-backup-file hidden>
+            <p class="form-message backup-message" data-backup-message aria-live="polite"></p>
+          </section>
+          <section class="future-form reset-panel" data-parent-mode-only aria-labelledby="reset-title" hidden>
+            <h3 id="reset-title">データリセット</h3>
+            <p class="reset-warning">先にバックアップを取ることをおすすめします。リセット後は元に戻せません。</p>
+            <label>
+              リセット対象
+              <select data-reset-target>
+                <option value="quest-completions">クエスト完了状態だけリセット</option>
+                <option value="progress">Gold / XP / レベルをリセット</option>
+                <option value="achievements">実績バッジをリセット</option>
+                <option value="login">ログインボーナス / 連続ログインをリセット</option>
+                <option value="all">すべてのデータをリセット</option>
+              </select>
+            </label>
+            <button class="quest-manage-button is-danger" type="button" data-admin-reset-execute>選択したデータをリセット</button>
+            <p class="form-message reset-message" data-reset-message aria-live="polite"></p>
+          </section>
+          </section>
         </section>
+      </main>
 
-        <nav class="bottom-nav bottom-nav-command">
-          <a class="active" href="./index.html"><span class="nav-label">ホーム</span></a>
-          <a href="./quests.html"><span class="nav-label">依頼</span></a>
-          <a href="./status.html"><span class="nav-label">成長</span></a>
-          <a href="./parent.html"><span class="nav-label">ギルド</span></a>
-        </nav>
-      </section>
-    </main>
-
-    <div class="treasure-modal" id="treasureModal" hidden>
-      <div class="treasure-modal-backdrop" id="treasureModalBackdrop"></div>
-      <section class="treasure-modal-panel">
-        <div class="treasure-modal-burst"></div>
-        <div class="treasure-modal-icon-wrap">
-          <div class="treasure-icon-chest treasure-icon-chest-modal" id="treasureModalIcon" aria-hidden="true">
-            <span class="treasure-icon-lid"></span>
-            <span class="treasure-icon-body"></span>
-            <span class="treasure-icon-lock"></span>
+      <div class="reward-toast" data-reward-toast aria-live="polite"></div>
+      <div class="app-reminder-toast" data-app-reminder-toast aria-live="polite"></div>
+      <div class="login-bonus-toast" data-login-bonus-toast aria-live="polite"></div>
+      <div class="achievement-toast" data-achievement-toast aria-live="polite"></div>
+      <div class="clear-toast" data-clear-toast aria-live="polite"></div>
+      <div class="daily-clear-toast" data-daily-clear-toast aria-live="polite"></div>
+      <div class="boss-toast" data-boss-toast aria-live="polite"></div>
+      <div class="level-up-toast" data-level-up-toast aria-live="polite">レベルアップ！</div>
+      <div class="evolution-toast" data-evolution-toast aria-live="polite"></div>
+      <div class="evolution-modal" data-evolution-modal aria-live="polite" hidden>
+        <div class="evolution-modal-card" role="status">
+          <span class="evolution-spark evolution-spark-a"></span>
+          <span class="evolution-spark evolution-spark-b"></span>
+          <span class="evolution-spark evolution-spark-c"></span>
+          <p class="section-kicker">Class Up</p>
+          <img class="evolution-modal-image" data-evolution-modal-image alt="進化した冒険者の姿" hidden>
+          <strong data-evolution-modal-title>進化！</strong>
+          <span data-evolution-modal-stage>新しい姿になりました</span>
+        </div>
+      </div>
+      <div class="onboarding-modal" data-onboarding-modal hidden>
+        <div class="onboarding-card" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+          <button class="onboarding-skip" type="button" data-onboarding-skip>スキップ</button>
+          <p class="section-kicker" data-onboarding-kicker>Guild Start</p>
+          <h3 id="onboarding-title" data-onboarding-title>毎日のクエストで成長しよう</h3>
+          <p data-onboarding-text>宿題やお手伝いをクエストとして達成すると、XP・Gold・能力値が育ちます。</p>
+          <div class="onboarding-dots" data-onboarding-dots aria-hidden="true"></div>
+          <div class="onboarding-actions">
+            <button class="onboarding-back" type="button" data-onboarding-prev>戻る</button>
+            <button class="onboarding-next" type="button" data-onboarding-next>次へ</button>
           </div>
         </div>
-        <p class="treasure-modal-kicker">宝箱</p>
-        <h2 class="treasure-modal-title" id="treasureModalTitle">宝箱開封</h2>
-        <p class="treasure-modal-text" id="treasureModalText">ギルド受理を重ねた報酬として宝箱が開きます。</p>
-        <button class="primary-button treasure-modal-button" id="treasureModalClose" type="button">閉じる</button>
-      </section>
+      </div>
+      <div class="complete-confirm" data-complete-confirm hidden>
+        <div class="complete-confirm-card" role="dialog" aria-modal="true" aria-labelledby="complete-confirm-title">
+          <p class="section-kicker">Quest Clear</p>
+          <h3 id="complete-confirm-title" data-complete-confirm-title>このクエストを達成しますか？</h3>
+          <p>達成するとXP、Gold、能力値が増えます。</p>
+          <div class="complete-confirm-actions">
+            <button class="complete-confirm-yes" type="button" data-complete-confirm-yes>はい</button>
+            <button class="complete-confirm-cancel" type="button" data-complete-confirm-cancel>キャンセル</button>
+          </div>
+        </div>
+      </div>
+
+      <nav class="bottom-nav" aria-label="主要画面">
+        <button class="nav-item is-active" type="button" data-nav="home" aria-controls="home">
+          <span class="nav-icon">
+            <img class="nav-icon-image icon-home" src="assets/icons/nav-home.png" alt="" data-nav-icon-image>
+            <span class="nav-icon-fallback">家</span>
+          </span>
+          <span>ホーム</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="quests" aria-controls="quests">
+          <span class="nav-icon">
+            <img class="nav-icon-image icon-quest" src="assets/icons/nav-quest.png" alt="" data-nav-icon-image>
+            <span class="nav-icon-fallback">書</span>
+          </span>
+          <span class="nav-badge" data-quest-nav-badge hidden>0</span>
+          <span>クエスト</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="growth" aria-controls="growth">
+          <span class="nav-icon">
+            <img class="nav-icon-image icon-growth" src="assets/icons/nav-growth.png" alt="" data-nav-icon-image>
+            <span class="nav-icon-fallback">星</span>
+          </span>
+          <span>成長</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="rewards" aria-controls="rewards">
+          <span class="nav-icon">
+            <img class="nav-icon-image icon-reward" src="assets/icons/nav-reward.png" alt="" data-nav-icon-image>
+            <span class="nav-icon-fallback">宝</span>
+          </span>
+          <span>ご褒美</span>
+        </button>
+        <button class="nav-item" type="button" data-nav="admin" aria-controls="admin">
+          <span class="nav-icon">
+            <img class="nav-icon-image icon-guild" src="assets/icons/nav-guild.png" alt="" data-nav-icon-image>
+            <span class="nav-icon-fallback">鍵</span>
+          </span>
+          <span>ギルド</span>
+        </button>
+      </nav>
     </div>
 
-    <div class="treasure-modal levelup-modal" id="levelUpModal" hidden>
-      <div class="treasure-modal-backdrop" id="levelUpModalBackdrop"></div>
-      <section class="treasure-modal-panel levelup-modal-panel">
-        <div class="treasure-modal-burst levelup-modal-burst"></div>
-        <p class="treasure-modal-kicker">昇格</p>
-        <h2 class="treasure-modal-title" id="levelUpModalTitle">階級上昇</h2>
-        <p class="treasure-modal-text" id="levelUpModalText">新しい称号に到達しました。</p>
-        <button class="primary-button treasure-modal-button" id="levelUpModalClose" type="button">確認</button>
-      </section>
-    </div>
-
-    <script src="./app.js"></script>
+    <script src="app.js" defer></script>
   </body>
-  </html>
+</html>
