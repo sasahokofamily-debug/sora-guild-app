@@ -3436,12 +3436,16 @@ function handleBackupFileChange(event) {
     return;
   }
 
-  const input = event.currentTarget;
+  const input = event.target;
   const file = input.files?.[0];
   if (!file) {
     return;
   }
 
+  console.log("[そらクエスト] セーブデータファイル選択", {
+    fileName: file.name,
+    fileSize: file.size,
+  });
   const reader = new FileReader();
   reader.addEventListener("load", () => {
     restoreBackupFromText(String(reader.result || ""));
@@ -5948,7 +5952,11 @@ document.addEventListener("click", (event) => {
       showParentAuth();
       return;
     }
-    document.querySelector("[data-backup-file]")?.click();
+    const backupFileInput = document.querySelector("[data-backup-file]");
+    if (backupFileInput) {
+      backupFileInput.value = "";
+      backupFileInput.click();
+    }
     return;
   }
 
