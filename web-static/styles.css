@@ -3823,6 +3823,154 @@ body.modal-open {
   line-height: 1.4;
 }
 
+.boss-card-static {
+  display: grid !important;
+  visibility: visible !important;
+  gap: 14px;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 16px 0;
+  padding: 16px;
+  overflow: visible;
+  border: 1px solid rgba(205, 172, 110, 0.38);
+  border-radius: 18px;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 50% 34%, rgba(196, 73, 62, 0.16), transparent 160px),
+    radial-gradient(circle at 50% 56%, rgba(240, 201, 107, 0.24), transparent 180px),
+    linear-gradient(180deg, rgba(255, 250, 238, 0.98), rgba(247, 238, 220, 0.95));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 14px 28px rgba(90, 60, 33, 0.12);
+  opacity: 1 !important;
+}
+
+.boss-card-static-head,
+.boss-card-static-hp > div {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.boss-card-static-head h2,
+.boss-card-static-arena h3,
+.boss-card-static-reward {
+  margin: 0;
+}
+
+.boss-card-static-head h2 {
+  font-size: clamp(20px, 6vw, 28px);
+  line-height: 1.1;
+}
+
+.boss-card-static-head strong,
+.boss-card-static-reward {
+  border: 1px solid rgba(205, 172, 110, 0.38);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(255, 248, 233, 0.74);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.boss-card-static-arena {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.boss-card-static-badge {
+  border: 1px solid rgba(240, 201, 107, 0.78);
+  border-radius: 999px;
+  padding: 4px 12px;
+  color: #fff8e6;
+  background: linear-gradient(180deg, #7b3846, #542632 58%, #8f5d26);
+  box-shadow: 0 0 14px rgba(196, 73, 62, 0.22);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.boss-card-static-arena h3 {
+  font-size: clamp(22px, 7vw, 32px);
+  line-height: 1.12;
+  text-align: center;
+}
+
+.boss-card-static-image {
+  display: grid;
+  place-items: center;
+  width: min(62vw, 168px);
+  max-width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(205, 172, 110, 0.42);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 232, 143, 0.34), transparent 76px),
+    radial-gradient(circle at 50% 64%, rgba(196, 73, 62, 0.18), transparent 90px);
+  box-shadow: 0 14px 28px rgba(90, 60, 33, 0.14);
+}
+
+.boss-card-static-image img,
+.boss-card-static-image span {
+  grid-area: 1 / 1;
+}
+
+.boss-card-static-image img {
+  width: 96%;
+  height: 96%;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 14px rgba(32, 18, 12, 0.28));
+}
+
+.boss-card-static-image span {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  color: #fff8e6;
+  background: linear-gradient(180deg, #7b3846, #412438);
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.boss-card-static-image img:not([hidden]) + span {
+  display: none;
+}
+
+.boss-card-static-hp {
+  display: grid;
+  gap: 8px;
+}
+
+.boss-card-static-hp span,
+.boss-card-static-hp strong {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.boss-card-static-track {
+  height: 15px;
+  overflow: hidden;
+  border: 1px solid rgba(83, 48, 36, 0.34);
+  border-radius: 999px;
+  background: rgba(56, 37, 31, 0.24);
+  box-shadow: inset 0 2px 5px rgba(59, 33, 26, 0.2);
+}
+
+.boss-card-static-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255, 247, 223, 0.36), transparent 42%),
+    linear-gradient(90deg, #7f2730, #c4493e 48%, #f0c96b);
+}
+
 @media (max-width: 360px) {
   .shell {
     padding: 16px 12px 28px;
