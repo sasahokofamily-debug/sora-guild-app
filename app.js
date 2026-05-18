@@ -41,10 +41,15 @@ const DEFAULT_DAILY_CLEAR_BONUS_SETTINGS = {
 };
 const BOSS_DEFINITIONS = [
   { id: "slime-king", name: "スライムキング", maxHp: 50, rewardXp: 30, rewardGold: 20, image: "./assets/bosses/boss-1-slime-king.png" },
-  { id: "goblin-captain", name: "ゴブリン隊長", maxHp: 100, rewardXp: 60, rewardGold: 40 },
-  { id: "baby-dragon", name: "ドラゴンの子ども", maxHp: 200, rewardXp: 120, rewardGold: 80 },
-  { id: "ancient-guardian", name: "古代の守護者", maxHp: 400, rewardXp: 220, rewardGold: 140 },
-  { id: "dark-lord", name: "闇の魔王", maxHp: 800, rewardXp: 420, rewardGold: 260 },
+  { id: "mischief-goblin", name: "いたずらゴブリン", maxHp: 80, rewardXp: 45, rewardGold: 28 },
+  { id: "mushroom-mage", name: "キノコまじん", maxHp: 120, rewardXp: 65, rewardGold: 38 },
+  { id: "ice-bat", name: "こおりコウモリ", maxHp: 180, rewardXp: 90, rewardGold: 52 },
+  { id: "desert-scorpion", name: "砂漠のサソリ", maxHp: 260, rewardXp: 120, rewardGold: 68 },
+  { id: "forest-troll", name: "森のトロル", maxHp: 380, rewardXp: 160, rewardGold: 92 },
+  { id: "baby-dragon", name: "ベビードラゴン", maxHp: 550, rewardXp: 220, rewardGold: 125 },
+  { id: "iron-golem", name: "鉄のゴーレム", maxHp: 750, rewardXp: 300, rewardGold: 165 },
+  { id: "ancient-guardian", name: "古代の守護者", maxHp: 1000, rewardXp: 410, rewardGold: 220 },
+  { id: "dark-lord", name: "闇の魔王", maxHp: 1500, rewardXp: 650, rewardGold: 320 },
 ];
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 const EVERYDAY_SCHEDULE_DAYS = [0, 1, 2, 3, 4, 5, 6];
@@ -633,8 +638,16 @@ function getBossInfo(defeatedCount = 0) {
     maxHp: baseBoss.maxHp * round,
     rewardXp: baseBoss.rewardXp * round,
     rewardGold: baseBoss.rewardGold * round,
+    isPoweredUp: round > 1,
     image: baseBoss.image || `./assets/bosses/${baseBoss.id}.png`,
   };
+}
+
+function getBossDisplayName(boss) {
+  if (!boss) {
+    return "";
+  }
+  return boss.isPoweredUp ? `強化版 ${boss.name}` : boss.name;
 }
 
 function normalizeBossState(rawState = {}) {
@@ -4582,7 +4595,7 @@ function renderBossBattle() {
   const image = document.querySelector("[data-boss-image]");
   const fallback = document.querySelector("[data-boss-fallback]");
 
-  setText("[data-boss-name]", boss.name);
+  setText("[data-boss-name]", getBossDisplayName(boss));
   setText("[data-boss-hp]", `${bossState.currentHp} / ${boss.maxHp}`);
   setText("[data-boss-attack]", `攻撃力 ${getPlayerAttackDamage()}`);
   setText("[data-boss-reward]", `討伐報酬 XP +${boss.rewardXp} / Gold +${boss.rewardGold}`);
@@ -4593,7 +4606,7 @@ function renderBossBattle() {
   }
 
   if (image) {
-    image.alt = `${boss.name}の姿`;
+    image.alt = `${getBossDisplayName(boss)}の姿`;
     image.onerror = () => {
       image.hidden = true;
       if (fallback) {
@@ -5270,7 +5283,7 @@ function playBossSpawnAnimation(nextBoss) {
   }
   if (nextBoss) {
     enqueueToast(toast, {
-      message: `新たなボスが現れた！ ${nextBoss.name}`,
+      message: `新たなボスが現れた！ ${getBossDisplayName(nextBoss)}`,
       duration: 1500,
       timerName: "boss",
       beforeShow: (element) => element.classList.add("is-spawn"),
@@ -5287,8 +5300,8 @@ function showBossBattleFeedback(result) {
   const toast = document.querySelector("[data-boss-toast]");
   const rewardText = result.defeated ? formatBonusRewardText(result.rewardXp || 0, result.rewardGold || 0) : "";
   const message = result.defeated
-    ? `ボス討伐！ ${result.boss.name}を倒した！${rewardText ? ` ${rewardText}` : ""}`
-    : `${result.boss.name}に${result.damage}ダメージ！`;
+    ? `ボス討伐！ ${getBossDisplayName(result.boss)}を倒した！${rewardText ? ` ${rewardText}` : ""}`
+    : `${getBossDisplayName(result.boss)}に${result.damage}ダメージ！`;
 
   playBossDamageAnimation(result.defeated);
   if (result.defeated) {
