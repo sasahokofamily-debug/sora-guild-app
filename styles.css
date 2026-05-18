@@ -1279,8 +1279,10 @@ h3 {
 }
 
 .boss-card {
-  display: grid;
+  display: grid !important;
   gap: 14px;
+  width: 100%;
+  max-width: 100%;
   margin-top: 16px;
   padding: 15px;
   color: var(--muted);
@@ -1289,6 +1291,7 @@ h3 {
     radial-gradient(circle at 50% 52%, rgba(241, 210, 122, 0.22), transparent 10rem),
     var(--surface-bg-image),
     var(--paper-texture);
+  overflow: visible;
   transition: filter 220ms ease, transform 220ms ease, box-shadow 220ms ease;
 }
 
@@ -5956,6 +5959,33 @@ h3 {
   .achievement-category-list,
   .collectible-title-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 679px) {
+  #home .boss-card {
+    display: grid !important;
+    width: 100%;
+    max-width: 100%;
+    margin: 16px auto 0;
+    overflow: visible;
+  }
+
+  #home .boss-body,
+  #home .boss-copy,
+  #home .boss-arena {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  #home .boss-image-frame {
+    width: min(62vw, 168px);
+    max-width: 100%;
+  }
+
+  #home .boss-meta {
+    justify-content: center;
   }
 }
 
