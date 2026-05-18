@@ -1814,7 +1814,7 @@ function getQuestTypeLabel(type) {
     return "緊急";
   }
   if (type === "boss") {
-    return "BOSS";
+    return "仲間";
   }
   return "";
 }
@@ -3996,7 +3996,7 @@ function renderQuestManager() {
             <select name="type">
               <option value="normal"${quest.type === "normal" ? " selected" : ""}>通常クエスト</option>
               <option value="urgent"${quest.type === "urgent" ? " selected" : ""}>緊急クエスト</option>
-              <option value="boss"${quest.type === "boss" ? " selected" : ""}>ボスクエスト</option>
+              <option value="boss"${quest.type === "boss" ? " selected" : ""}>仲間クエスト</option>
             </select>
           </label>
           <label>
@@ -4648,23 +4648,23 @@ function getBossBattleHTML() {
     <section class="boss-card" data-boss-card aria-labelledby="boss-battle-title">
       <div class="boss-head">
         <div>
-          <p class="section-kicker">Boss Battle</p>
-          <h3 id="boss-battle-title">ボス戦</h3>
+          <p class="section-kicker">Ally Quest</p>
+          <h3 id="boss-battle-title">仲間チャレンジ</h3>
         </div>
-        <strong data-boss-defeated-count>討伐 0体</strong>
+        <strong data-boss-defeated-count>仲間 0体</strong>
       </div>
       <div class="boss-body">
         <div class="boss-arena">
-          <span class="boss-badge">BOSS</span>
-          <h4 data-boss-name>現在のボス準備中</h4>
+          <span class="boss-badge">ALLY</span>
+          <h4 data-boss-name>仲間候補を探しています</h4>
           <div class="boss-image-frame" aria-hidden="true">
-            <img data-boss-image alt="ボスの姿" hidden>
+            <img data-boss-image alt="仲間候補の姿" hidden>
             <span data-boss-fallback>魔</span>
             <strong class="boss-damage-pop" data-boss-damage-pop></strong>
           </div>
         </div>
         <div class="boss-copy">
-          <p>クエスト達成でダメージを与えよう。</p>
+          <p>クエスト達成で少しずつ仲良くなろう。</p>
           <div class="boss-hp-row">
             <span>HP</span>
             <strong data-boss-hp>準備中</strong>
@@ -4673,14 +4673,14 @@ function getBossBattleHTML() {
             <span data-boss-hp-bar></span>
           </div>
           <div class="boss-meta">
-            <span data-boss-attack>攻撃力 -</span>
-            <span data-boss-reward>討伐報酬 準備中</span>
+            <span data-boss-attack>なかよし力 -</span>
+            <span data-boss-reward>仲間ボーナス 準備中</span>
           </div>
         </div>
       </div>
       <div class="boss-reward-panel" data-boss-reward-panel aria-live="polite" hidden>
-        <p>BOSS DEFEATED!</p>
-        <h4>討伐報酬</h4>
+        <p>NEW ALLY!</p>
+        <h4>仲間ボーナス</h4>
         <div>
           <span data-boss-reward-xp>XP +0</span>
           <span data-boss-reward-gold>Gold +0</span>
@@ -4723,9 +4723,9 @@ function renderBossBattle() {
 
   setText("[data-boss-name]", getBossDisplayName(boss));
   setText("[data-boss-hp]", `${bossState.currentHp} / ${boss.maxHp}`);
-  setText("[data-boss-attack]", `攻撃力 ${getPlayerAttackDamage()}`);
-  setText("[data-boss-reward]", `討伐報酬 XP +${boss.rewardXp} / Gold +${boss.rewardGold}`);
-  setText("[data-boss-defeated-count]", `討伐 ${bossState.defeatedCount}体`);
+  setText("[data-boss-attack]", `なかよし力 ${getPlayerAttackDamage()}`);
+  setText("[data-boss-reward]", `仲間ボーナス XP +${boss.rewardXp} / Gold +${boss.rewardGold}`);
+  setText("[data-boss-defeated-count]", `仲間 ${bossState.defeatedCount}体`);
   const hpBar = document.querySelector("[data-boss-hp-bar]");
   if (hpBar) {
     hpBar.style.width = `${hpPercent}%`;
@@ -5372,7 +5372,7 @@ function showBossDamagePop(damage) {
     return;
   }
 
-  damagePop.textContent = `-${damage} ダメージ`;
+  damagePop.textContent = `+${damage} きずな`;
   damagePop.classList.remove("is-visible");
   void damagePop.offsetWidth;
   damagePop.classList.add("is-visible");
@@ -5409,7 +5409,7 @@ function playBossSpawnAnimation(nextBoss) {
   }
   if (nextBoss) {
     enqueueToast(toast, {
-      message: `新たなボスが現れた！ ${getBossDisplayName(nextBoss)}`,
+      message: `新しい仲間候補が現れた！ ${getBossDisplayName(nextBoss)}`,
       duration: 1500,
       timerName: "boss",
       beforeShow: (element) => element.classList.add("is-spawn"),
@@ -5426,8 +5426,8 @@ function showBossBattleFeedback(result) {
   const toast = document.querySelector("[data-boss-toast]");
   const rewardText = result.defeated ? formatBonusRewardText(result.rewardXp || 0, result.rewardGold || 0) : "";
   const message = result.defeated
-    ? `ボス討伐！ ${getBossDisplayName(result.boss)}を倒した！${rewardText ? ` ${rewardText}` : ""}`
-    : `${getBossDisplayName(result.boss)}に${result.damage}ダメージ！`;
+    ? `${getBossDisplayName(result.boss)}が仲間になった！${rewardText ? ` ${rewardText}` : ""}`
+    : `${getBossDisplayName(result.boss)}と少し仲良くなった！`;
 
   playBossDamageAnimation(result.defeated);
   if (result.defeated) {

@@ -1301,7 +1301,7 @@ h3 {
 }
 
 .boss-card::after {
-  content: "ボス討伐！";
+  content: "仲間になった！";
   position: absolute;
   top: 48%;
   left: 50%;

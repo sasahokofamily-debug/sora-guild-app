@@ -91,23 +91,23 @@
           <section class="boss-card" data-boss-card aria-labelledby="boss-battle-title">
             <div class="boss-head">
               <div>
-                <p class="section-kicker">Boss Battle</p>
-                <h3 id="boss-battle-title">ボス戦</h3>
+                <p class="section-kicker">Ally Quest</p>
+                <h3 id="boss-battle-title">仲間チャレンジ</h3>
               </div>
-              <strong data-boss-defeated-count>討伐 0体</strong>
+              <strong data-boss-defeated-count>仲間 0体</strong>
             </div>
             <div class="boss-body">
               <div class="boss-arena">
-                <span class="boss-badge">BOSS</span>
+                <span class="boss-badge">ALLY</span>
                 <h4 data-boss-name>スライムキング</h4>
                 <div class="boss-image-frame" aria-hidden="true">
-                  <img data-boss-image alt="ボスの姿" hidden>
+                  <img data-boss-image alt="仲間候補の姿" hidden>
                   <span data-boss-fallback>魔</span>
                   <strong class="boss-damage-pop" data-boss-damage-pop></strong>
                 </div>
               </div>
               <div class="boss-copy">
-                <p>クエスト達成でダメージを与えよう。</p>
+                <p>クエスト達成で少しずつ仲良くなろう。</p>
                 <div class="boss-hp-row">
                   <span>HP</span>
                   <strong data-boss-hp>50 / 50</strong>
@@ -116,14 +116,14 @@
                   <span data-boss-hp-bar></span>
                 </div>
                 <div class="boss-meta">
-                  <span data-boss-attack>攻撃力 1</span>
-                  <span data-boss-reward>討伐報酬 XP +30 / Gold +20</span>
+                  <span data-boss-attack>なかよし力 1</span>
+                  <span data-boss-reward>仲間ボーナス XP +30 / Gold +20</span>
                 </div>
               </div>
             </div>
             <div class="boss-reward-panel" data-boss-reward-panel aria-live="polite" hidden>
-              <p>BOSS DEFEATED!</p>
-              <h4>討伐報酬</h4>
+              <p>NEW ALLY!</p>
+              <h4>仲間ボーナス</h4>
               <div>
                 <span data-boss-reward-xp>XP +0</span>
                 <span data-boss-reward-gold>Gold +0</span>
@@ -499,7 +499,7 @@
               <select name="type">
                 <option value="normal">通常クエスト</option>
                 <option value="urgent">緊急クエスト</option>
-                <option value="boss">ボスクエスト</option>
+                <option value="boss">仲間クエスト</option>
               </select>
             </label>
             <label>
