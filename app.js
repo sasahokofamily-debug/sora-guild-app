@@ -3277,6 +3277,7 @@ function createBackupData() {
 
   return {
     app: "sora-quest",
+    type: "save-data",
     version: 1,
     exportedAt: new Date().toISOString(),
     storage,
@@ -3284,7 +3285,7 @@ function createBackupData() {
 }
 
 function getBackupFileName() {
-  return `guild-app-backup-${getDateKey()}.json`;
+  return `sora-quest-save-data-${getDateKey()}.json`;
 }
 
 function downloadBackup() {
@@ -3303,7 +3304,7 @@ function downloadBackup() {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
-  setBackupMessage("バックアップを作成しました");
+  setBackupMessage("セーブデータをエクスポートしました");
 }
 
 function normalizeBackupStorage(parsedBackup) {
@@ -3345,23 +3346,23 @@ function restoreBackupFromText(text) {
   try {
     parsedBackup = JSON.parse(text);
   } catch {
-    setBackupMessage("バックアップファイルを読み込めませんでした", true);
+    setBackupMessage("セーブデータファイルを読み込めませんでした", true);
     return;
   }
 
   const storage = normalizeBackupStorage(parsedBackup);
   if (!storage) {
-    setBackupMessage("そらクエストのバックアップではありません", true);
+    setBackupMessage("そらクエストのセーブデータではありません", true);
     return;
   }
   if (!isValidBackupStorage(storage)) {
-    setBackupMessage("バックアップの中身が壊れている可能性があります", true);
+    setBackupMessage("セーブデータの中身が壊れている可能性があります", true);
     return;
   }
 
-  const confirmed = window.confirm("現在のデータをバックアップ内容で上書きします。よろしいですか？");
+  const confirmed = window.confirm("現在のデータを選択したセーブデータで上書きします。よろしいですか？");
   if (!confirmed) {
-    setBackupMessage("復元をキャンセルしました");
+    setBackupMessage("インポートをキャンセルしました");
     return;
   }
 
@@ -3370,7 +3371,7 @@ function restoreBackupFromText(text) {
     localStorage.setItem(key, value);
   });
 
-  sessionStorage.setItem(BACKUP_RESTORE_MESSAGE_KEY, "復元しました");
+  sessionStorage.setItem(BACKUP_RESTORE_MESSAGE_KEY, "セーブデータをインポートしました");
   window.location.reload();
 }
 

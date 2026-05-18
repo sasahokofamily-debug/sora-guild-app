@@ -713,11 +713,11 @@
             <button type="submit">PINを変更</button>
           </form>
           <section class="future-form backup-panel" aria-labelledby="backup-title">
-            <h3 id="backup-title">データ保管</h3>
-            <p>この端末に保存されているプレイヤーデータ、クエスト、ご褒美、実績、設定をJSONファイルとして保管・復元できます。</p>
+            <h3 id="backup-title">セーブデータ保管</h3>
+            <p>この端末に保存されているプレイヤーデータ、クエスト、ご褒美、実績、設定をJSONファイルとしてエクスポート・インポートできます。</p>
             <div class="backup-actions">
-              <button class="quest-manage-button" type="button" data-backup-download>バックアップ作成</button>
-              <button class="quest-manage-button is-secondary" type="button" data-backup-import>復元ファイルを選ぶ</button>
+              <button class="quest-manage-button" type="button" data-backup-download data-save-export>セーブデータをエクスポート</button>
+              <button class="quest-manage-button is-secondary" type="button" data-backup-import data-save-import>セーブデータをインポート</button>
             </div>
             <input class="backup-file-input" type="file" accept="application/json,.json" data-backup-file hidden>
             <p class="form-message backup-message" data-backup-message aria-live="polite"></p>
