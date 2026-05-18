@@ -105,6 +105,36 @@ const BACKUP_STORAGE_KEYS = [
   CHARACTER_STAGE_KEY,
   PARENT_PIN_KEY,
 ];
+const RAW_STRING_BACKUP_KEYS = new Set([
+  WEEKLY_REPORT_SENT_WEEK_KEY,
+  DAILY_CLEAR_BONUS_DATE_KEY,
+]);
+const BACKUP_STORAGE_KEY_ALIASES = {
+  player: STORAGE_KEY,
+  progress: STORAGE_KEY,
+  playerData: STORAGE_KEY,
+  quests: QUESTS_KEY,
+  customQuests: LEGACY_CUSTOM_QUESTS_KEY,
+  rewards: REWARDS_KEY,
+  rewardHistory: REWARD_HISTORY_KEY,
+  achievements: ACHIEVEMENTS_KEY,
+  titles: STORAGE_KEY,
+  weeklyReports: WEEKLY_REPORT_HISTORY_KEY,
+  weeklyReportHistory: WEEKLY_REPORT_HISTORY_KEY,
+  lastWeeklyReportSentWeek: WEEKLY_REPORT_SENT_WEEK_KEY,
+  notes: PARENT_NOTES_KEY,
+  parentNotes: PARENT_NOTES_KEY,
+  hasSeenOnboarding: ONBOARDING_KEY,
+  loginBonusSettings: LOGIN_BONUS_SETTINGS_KEY,
+  dailyClearBonusSettings: DAILY_CLEAR_BONUS_SETTINGS_KEY,
+  dailyClearBonusDate: DAILY_CLEAR_BONUS_DATE_KEY,
+  bossData: BOSS_STATE_KEY,
+  bossState: BOSS_STATE_KEY,
+  bgmEnabled: BGM_ENABLED_KEY,
+  sfxEnabled: SFX_ENABLED_KEY,
+  characterStage: CHARACTER_STAGE_KEY,
+  parentPin: PARENT_PIN_KEY,
+};
 
 const defaultProgress = {
   name: "そら",
@@ -3307,6 +3337,14 @@ function downloadBackup() {
   setBackupMessage("セーブデータをエクスポートしました");
 }
 
+function normalizeBackupValue(key, value, fromAlias = false) {
+  if (fromAlias && key === PARENT_PIN_KEY && typeof value === "string") {
+    return JSON.stringify(value);
+  }
+
+  return typeof value === "string" ? value : JSON.stringify(value);
+}
+
 function normalizeBackupStorage(parsedBackup) {
   const storage = parsedBackup?.storage && typeof parsedBackup.storage === "object" ? parsedBackup.storage : parsedBackup;
   if (!storage || typeof storage !== "object" || Array.isArray(storage)) {
@@ -3317,7 +3355,12 @@ function normalizeBackupStorage(parsedBackup) {
   BACKUP_STORAGE_KEYS.forEach((key) => {
     if (Object.prototype.hasOwnProperty.call(storage, key)) {
       const value = storage[key];
-      normalizedStorage[key] = typeof value === "string" ? value : JSON.stringify(value);
+      normalizedStorage[key] = normalizeBackupValue(key, value);
+    }
+  });
+  Object.entries(BACKUP_STORAGE_KEY_ALIASES).forEach(([sourceKey, targetKey]) => {
+    if (Object.prototype.hasOwnProperty.call(storage, sourceKey) && !Object.prototype.hasOwnProperty.call(normalizedStorage, targetKey)) {
+      normalizedStorage[targetKey] = normalizeBackupValue(targetKey, storage[sourceKey], true);
     }
   });
 
@@ -3329,7 +3372,7 @@ function isValidBackupStorage(storage) {
     if (!BACKUP_STORAGE_KEYS.includes(key) || typeof value !== "string") {
       return false;
     }
-    if (key === WEEKLY_REPORT_SENT_WEEK_KEY) {
+    if (RAW_STRING_BACKUP_KEYS.has(key)) {
       return true;
     }
     try {
@@ -3350,6 +3393,14 @@ function restoreBackupFromText(text) {
     return;
   }
 
+  const sourceStorage =
+    parsedBackup?.storage && typeof parsedBackup.storage === "object" && !Array.isArray(parsedBackup.storage)
+      ? parsedBackup.storage
+      : parsedBackup;
+  const importedKeys =
+    sourceStorage && typeof sourceStorage === "object" && !Array.isArray(sourceStorage)
+      ? Object.keys(sourceStorage)
+      : [];
   const storage = normalizeBackupStorage(parsedBackup);
   if (!storage) {
     setBackupMessage("そらクエストのセーブデータではありません", true);
@@ -3370,8 +3421,12 @@ function restoreBackupFromText(text) {
   Object.entries(storage).forEach(([key, value]) => {
     localStorage.setItem(key, value);
   });
+  console.log("[そらクエスト] セーブデータ復元", {
+    importedKeys,
+    restoredKeys: Object.keys(storage),
+  });
 
-  sessionStorage.setItem(BACKUP_RESTORE_MESSAGE_KEY, "セーブデータをインポートしました");
+  sessionStorage.setItem(BACKUP_RESTORE_MESSAGE_KEY, "復元しました");
   window.location.reload();
 }
 
