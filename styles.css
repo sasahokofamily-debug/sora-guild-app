@@ -5191,6 +5191,58 @@ h3 {
   line-height: 1.4;
 }
 
+.ally-profile {
+  display: grid;
+  gap: 5px;
+  margin: 9px 0 0;
+}
+
+.ally-profile div {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 7px;
+}
+
+.ally-profile dt {
+  display: inline-flex;
+  justify-content: center;
+  border: 1px solid rgba(201, 154, 53, 0.28);
+  border-radius: 999px;
+  padding: 2px 6px;
+  color: var(--wood-dark);
+  background: rgba(241, 210, 122, 0.26);
+  font-size: 0.62rem;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.ally-profile dd {
+  margin: 0;
+  color: rgba(48, 29, 20, 0.82);
+  font-size: 0.72rem;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.ally-card blockquote {
+  margin: 9px 0 0;
+  border-left: 3px solid rgba(201, 154, 53, 0.48);
+  padding: 6px 8px;
+  color: rgba(75, 51, 38, 0.9);
+  background: rgba(255, 247, 223, 0.42);
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.ally-profile-locked {
+  margin-top: 8px;
+  color: rgba(75, 51, 38, 0.72);
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
 .ally-card small {
   display: block;
   margin-top: 7px;

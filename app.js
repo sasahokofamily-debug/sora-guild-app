@@ -40,16 +40,126 @@ const DEFAULT_DAILY_CLEAR_BONUS_SETTINGS = {
   gold: 10,
 };
 const BOSS_DEFINITIONS = [
-  { id: "slime-king", name: "スライムキング", description: "ぷるんと元気な最初の仲間候補。", maxHp: 50, rewardXp: 30, rewardGold: 20, image: "./assets/bosses/boss-1-slime-king.png" },
-  { id: "mischief-goblin", name: "いたずらゴブリン", description: "いたずら好きだけど、仲良くなると頼もしい。", maxHp: 80, rewardXp: 45, rewardGold: 28, image: "./assets/bosses/boss-2-goblin-trickster.png" },
-  { id: "mushroom-mage", name: "キノコまじん", description: "森の知恵を持つ、ふしぎな魔法使い。", maxHp: 120, rewardXp: 65, rewardGold: 38, image: "./assets/bosses/boss-3-mushroom-mage.png" },
-  { id: "ice-bat", name: "こおりコウモリ", description: "ひんやりした洞窟から来た夜の案内役。", maxHp: 180, rewardXp: 90, rewardGold: 52, image: "./assets/bosses/boss-4-frost-bat.png" },
-  { id: "desert-scorpion", name: "砂漠のサソリ", description: "砂漠を越える強さを教えてくれる仲間。", maxHp: 260, rewardXp: 120, rewardGold: 68, image: "./assets/bosses/boss-5-desert-scorpion.png" },
-  { id: "forest-troll", name: "森のトロル", description: "大きな体で、みんなを守ってくれる森の友だち。", maxHp: 380, rewardXp: 160, rewardGold: 92, image: "./assets/bosses/boss-6-forest-troll.png" },
-  { id: "baby-dragon", name: "ベビードラゴン", description: "小さな翼に大きな勇気を秘めている。", maxHp: 550, rewardXp: 220, rewardGold: 125, image: "./assets/bosses/boss-7-baby-dragon.png" },
-  { id: "iron-golem", name: "鉄のゴーレム", description: "こつこつ努力する力に反応して動き出す守護者。", maxHp: 750, rewardXp: 300, rewardGold: 165, image: "./assets/bosses/boss-8-iron-golem.png" },
-  { id: "ancient-guardian", name: "古代の守護者", description: "長い冒険を見守ってきた古の仲間。", maxHp: 1000, rewardXp: 410, rewardGold: 220, image: "./assets/bosses/boss-9-ancient-guardian.png" },
-  { id: "dark-lord", name: "闇の魔王", description: "最後に心を開く、強大な力を持つ仲間候補。", maxHp: 1500, rewardXp: 650, rewardGold: 320, image: "./assets/bosses/boss-10-dark-lord.png" },
+  {
+    id: "slime-king",
+    name: "スライムキング",
+    description: "ぷるぷる王国から来た、やさしいスライムの王さま。",
+    specialty: "みんなを元気にすること",
+    favorite: "きれいな水",
+    quote: "今日もぷるっとがんばろう！",
+    maxHp: 50,
+    rewardXp: 30,
+    rewardGold: 20,
+    image: "./assets/bosses/boss-1-slime-king.png",
+  },
+  {
+    id: "mischief-goblin",
+    name: "いたずらゴブリン",
+    description: "いたずら好きだけど、本当は友だち思いの小さな冒険者。",
+    specialty: "ひらめきで近道を見つけること",
+    favorite: "小さな宝物",
+    quote: "次はどんな作戦でいく？",
+    maxHp: 80,
+    rewardXp: 45,
+    rewardGold: 28,
+    image: "./assets/bosses/boss-2-goblin-trickster.png",
+  },
+  {
+    id: "mushroom-mage",
+    name: "キノコまじん",
+    description: "森の知恵を持つ、ふしぎな魔法使い。",
+    specialty: "静かに考えて答えを見つけること",
+    favorite: "雨上がりの森",
+    quote: "あせらず考えれば、道は見えるよ。",
+    maxHp: 120,
+    rewardXp: 65,
+    rewardGold: 38,
+    image: "./assets/bosses/boss-3-mushroom-mage.png",
+  },
+  {
+    id: "ice-bat",
+    name: "こおりコウモリ",
+    description: "ひんやりした洞窟から来た夜の案内役。",
+    specialty: "暗い場所でも道を見つけること",
+    favorite: "冷たい風",
+    quote: "しずかに進めば、こわくないよ。",
+    maxHp: 180,
+    rewardXp: 90,
+    rewardGold: 52,
+    image: "./assets/bosses/boss-4-frost-bat.png",
+  },
+  {
+    id: "desert-scorpion",
+    name: "砂漠のサソリ",
+    description: "砂漠を越える強さを教えてくれる仲間。",
+    specialty: "あきらめずに進むこと",
+    favorite: "夕焼けの砂丘",
+    quote: "一歩ずつ進めば、遠くまで行ける。",
+    maxHp: 260,
+    rewardXp: 120,
+    rewardGold: 68,
+    image: "./assets/bosses/boss-5-desert-scorpion.png",
+  },
+  {
+    id: "forest-troll",
+    name: "森のトロル",
+    description: "大きな体で、みんなを守ってくれる森の友だち。",
+    specialty: "重いものを運ぶこと",
+    favorite: "木の実のスープ",
+    quote: "だいじょうぶ、ぼくが支えるよ。",
+    maxHp: 380,
+    rewardXp: 160,
+    rewardGold: 92,
+    image: "./assets/bosses/boss-6-forest-troll.png",
+  },
+  {
+    id: "baby-dragon",
+    name: "ベビードラゴン",
+    description: "まだ小さいけれど、勇気いっぱいのドラゴン。",
+    specialty: "火を吹く練習",
+    favorite: "あたたかい場所",
+    quote: "ぼくも一緒に強くなる！",
+    maxHp: 550,
+    rewardXp: 220,
+    rewardGold: 125,
+    image: "./assets/bosses/boss-7-baby-dragon.png",
+  },
+  {
+    id: "iron-golem",
+    name: "鉄のゴーレム",
+    description: "こつこつ努力する力に反応して動き出す守護者。",
+    specialty: "同じ作業を正確に続けること",
+    favorite: "磨かれた歯車",
+    quote: "積み重ねは、強い鎧になる。",
+    maxHp: 750,
+    rewardXp: 300,
+    rewardGold: 165,
+    image: "./assets/bosses/boss-8-iron-golem.png",
+  },
+  {
+    id: "ancient-guardian",
+    name: "古代の守護者",
+    description: "長い冒険を見守ってきた古の仲間。",
+    specialty: "大切な約束を守ること",
+    favorite: "古い地図",
+    quote: "今日の努力は、未来を守る力になる。",
+    maxHp: 1000,
+    rewardXp: 410,
+    rewardGold: 220,
+    image: "./assets/bosses/boss-9-ancient-guardian.png",
+  },
+  {
+    id: "dark-lord",
+    name: "闇の魔王",
+    description: "最後に心を開く、強大な力を持つ仲間候補。",
+    specialty: "大きな目標に向き合うこと",
+    favorite: "星のない夜空",
+    quote: "その努力、たしかに見届けたぞ。",
+    maxHp: 1500,
+    rewardXp: 650,
+    rewardGold: 320,
+    image: "./assets/bosses/boss-10-dark-lord.png",
+  },
 ];
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 const EVERYDAY_SCHEDULE_DAYS = [0, 1, 2, 3, 4, 5, 6];
@@ -5711,6 +5821,15 @@ function renderAllyCollection() {
   list.innerHTML = "";
   BOSS_DEFINITIONS.forEach((ally, index) => {
     const unlocked = index < alliedCount;
+    const profileHtml = unlocked
+      ? `
+        <dl class="ally-profile">
+          <div><dt>得意</dt><dd>${escapeHtml(ally.specialty)}</dd></div>
+          <div><dt>好き</dt><dd>${escapeHtml(ally.favorite)}</dd></div>
+        </dl>
+        <blockquote>${escapeHtml(ally.quote)}</blockquote>
+      `
+      : `<p class="ally-profile-locked">仲間になるとプロフィールが読めます。</p>`;
     const item = document.createElement("article");
     item.className = `ally-card${unlocked ? " is-unlocked" : " is-locked"}`;
     item.innerHTML = `
@@ -5722,6 +5841,7 @@ function renderAllyCollection() {
         <span class="ally-card-status">${unlocked ? "なかまになった！" : "未発見"}</span>
         <h4>${escapeHtml(unlocked ? ally.name : "???")}</h4>
         <p>${escapeHtml(unlocked ? ally.description : "クエストを重ねると、いつか出会える仲間です。")}</p>
+        ${profileHtml}
         <small>仲間になった日：${unlocked ? "記録なし" : "まだ"}</small>
       </div>
     `;
