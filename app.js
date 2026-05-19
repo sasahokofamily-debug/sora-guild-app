@@ -41,15 +41,15 @@ const DEFAULT_DAILY_CLEAR_BONUS_SETTINGS = {
 };
 const BOSS_DEFINITIONS = [
   { id: "slime-king", name: "スライムキング", maxHp: 50, rewardXp: 30, rewardGold: 20, image: "./assets/bosses/boss-1-slime-king.png" },
-  { id: "mischief-goblin", name: "いたずらゴブリン", maxHp: 80, rewardXp: 45, rewardGold: 28 },
-  { id: "mushroom-mage", name: "キノコまじん", maxHp: 120, rewardXp: 65, rewardGold: 38 },
-  { id: "ice-bat", name: "こおりコウモリ", maxHp: 180, rewardXp: 90, rewardGold: 52 },
-  { id: "desert-scorpion", name: "砂漠のサソリ", maxHp: 260, rewardXp: 120, rewardGold: 68 },
-  { id: "forest-troll", name: "森のトロル", maxHp: 380, rewardXp: 160, rewardGold: 92 },
-  { id: "baby-dragon", name: "ベビードラゴン", maxHp: 550, rewardXp: 220, rewardGold: 125 },
-  { id: "iron-golem", name: "鉄のゴーレム", maxHp: 750, rewardXp: 300, rewardGold: 165 },
-  { id: "ancient-guardian", name: "古代の守護者", maxHp: 1000, rewardXp: 410, rewardGold: 220 },
-  { id: "dark-lord", name: "闇の魔王", maxHp: 1500, rewardXp: 650, rewardGold: 320 },
+  { id: "mischief-goblin", name: "いたずらゴブリン", maxHp: 80, rewardXp: 45, rewardGold: 28, image: "./assets/bosses/boss-2-goblin-trickster.png" },
+  { id: "mushroom-mage", name: "キノコまじん", maxHp: 120, rewardXp: 65, rewardGold: 38, image: "./assets/bosses/boss-3-mushroom-mage.png" },
+  { id: "ice-bat", name: "こおりコウモリ", maxHp: 180, rewardXp: 90, rewardGold: 52, image: "./assets/bosses/boss-4-frost-bat.png" },
+  { id: "desert-scorpion", name: "砂漠のサソリ", maxHp: 260, rewardXp: 120, rewardGold: 68, image: "./assets/bosses/boss-5-desert-scorpion.png" },
+  { id: "forest-troll", name: "森のトロル", maxHp: 380, rewardXp: 160, rewardGold: 92, image: "./assets/bosses/boss-6-forest-troll.png" },
+  { id: "baby-dragon", name: "ベビードラゴン", maxHp: 550, rewardXp: 220, rewardGold: 125, image: "./assets/bosses/boss-7-baby-dragon.png" },
+  { id: "iron-golem", name: "鉄のゴーレム", maxHp: 750, rewardXp: 300, rewardGold: 165, image: "./assets/bosses/boss-8-iron-golem.png" },
+  { id: "ancient-guardian", name: "古代の守護者", maxHp: 1000, rewardXp: 410, rewardGold: 220, image: "./assets/bosses/boss-9-ancient-guardian.png" },
+  { id: "dark-lord", name: "闇の魔王", maxHp: 1500, rewardXp: 650, rewardGold: 320, image: "./assets/bosses/boss-10-dark-lord.png" },
 ];
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 const EVERYDAY_SCHEDULE_DAYS = [0, 1, 2, 3, 4, 5, 6];
