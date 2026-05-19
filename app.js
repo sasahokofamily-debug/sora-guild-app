@@ -6223,18 +6223,18 @@ function renderAllyCollection() {
         </dl>
         <blockquote>${escapeHtml(ally.quote)}</blockquote>
       `
-      : `<p class="ally-profile-locked">仲間になるとプロフィールが読めます。</p>`;
+      : `<p class="ally-profile-locked">あと少しで出会えるかも...</p>`;
     const item = document.createElement("article");
     item.className = `ally-card${unlocked ? " is-unlocked" : " is-locked"}`;
     item.innerHTML = `
       <div class="ally-card-image" aria-hidden="true">
         <img src="${escapeHtml(ally.image)}" alt="" loading="lazy" onerror="this.hidden=true">
-        <span>${escapeHtml((ally.name || "?").slice(0, 1))}</span>
+        <span>${unlocked ? escapeHtml((ally.name || "?").slice(0, 1)) : "???"}</span>
       </div>
       <div class="ally-card-copy">
-        <span class="ally-card-status">${unlocked ? "なかまになった！" : "未発見"}</span>
-        <h4>${escapeHtml(unlocked ? ally.name : "???")}</h4>
-        <p>${escapeHtml(unlocked ? ally.description : "クエストを重ねると、いつか出会える仲間です。")}</p>
+        ${unlocked ? `<span class="ally-card-status">なかまになった！</span>` : ""}
+        <h4>${escapeHtml(unlocked ? ally.name : "？？？")}</h4>
+        <p>${escapeHtml(unlocked ? ally.description : "まだ出会っていない仲間です。")}</p>
         ${profileHtml}
         <small>仲間になった日：${unlocked ? unlockedDate : "まだ"}</small>
       </div>
