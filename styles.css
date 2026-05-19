@@ -1278,6 +1278,151 @@ h3 {
   display: none;
 }
 
+.summer-event-card {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: 11px;
+  margin-top: 16px;
+  border: 1px solid rgba(201, 154, 53, 0.56);
+  border-radius: 10px;
+  padding: 14px;
+  color: var(--wood-dark);
+  background:
+    radial-gradient(circle at 12% 16%, rgba(255, 219, 81, 0.42), transparent 4.8rem),
+    radial-gradient(circle at 88% 18%, rgba(89, 181, 214, 0.24), transparent 7rem),
+    radial-gradient(circle at 82% 100%, rgba(67, 151, 199, 0.16), transparent 8rem),
+    var(--parchment-card-bg);
+  box-shadow:
+    var(--paper-inner-shadow),
+    0 10px 24px rgba(32, 18, 12, 0.18),
+    0 0 18px rgba(241, 210, 122, 0.12);
+  overflow: hidden;
+}
+
+.summer-event-card[hidden] {
+  display: none;
+}
+
+.summer-event-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.26), transparent 36%),
+    repeating-linear-gradient(135deg, rgba(255, 219, 81, 0.05) 0 1px, transparent 1px 8px);
+  pointer-events: none;
+}
+
+.summer-event-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.summer-event-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.summer-event-head .section-kicker {
+  margin: 0 0 3px;
+  color: #2f86a5;
+  text-shadow: none;
+}
+
+.summer-event-head h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.08rem;
+  font-weight: 950;
+  line-height: 1.2;
+}
+
+.summer-event-head strong {
+  display: inline-flex;
+  border: 1px solid rgba(47, 134, 165, 0.24);
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #1f5e79;
+  background: rgba(220, 245, 255, 0.56);
+  font-size: 0.72rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.summer-event-card p {
+  margin: 0;
+  color: rgba(75, 51, 38, 0.88);
+  font-size: 0.82rem;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.summer-event-progress-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: rgba(75, 51, 38, 0.86);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.summer-event-progress-row strong {
+  color: var(--navy);
+  font-size: 1.08rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.summer-event-track {
+  height: 11px;
+  overflow: hidden;
+  border: 1px solid rgba(47, 134, 165, 0.24);
+  border-radius: 999px;
+  background: rgba(53, 100, 117, 0.14);
+  box-shadow: inset 0 2px 4px rgba(59, 33, 26, 0.16);
+}
+
+.summer-event-track span {
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #45a6d4, #f1d25a 56%, #f7a744);
+  box-shadow: 0 0 12px rgba(241, 210, 122, 0.42);
+  transition: width 420ms ease;
+}
+
+.summer-event-rewards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.summer-event-rewards span {
+  display: inline-flex;
+  border: 1px solid rgba(201, 154, 53, 0.28);
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: rgba(48, 29, 20, 0.84);
+  background: rgba(255, 247, 223, 0.52);
+  font-size: 0.68rem;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.summer-event-card.is-complete {
+  border-color: rgba(241, 210, 122, 0.72);
+  box-shadow:
+    var(--paper-inner-shadow),
+    0 12px 26px rgba(32, 18, 12, 0.18),
+    0 0 22px rgba(241, 210, 122, 0.24);
+}
+
 .boss-card {
   display: grid !important;
   position: relative;

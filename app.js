@@ -163,6 +163,18 @@ const BOSS_DEFINITIONS = [
 ];
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 const EVERYDAY_SCHEDULE_DAYS = [0, 1, 2, 3, 4, 5, 6];
+const SUMMER_EVENT_START = { month: 7, day: 20 };
+const SUMMER_EVENT_END = { month: 8, day: 31 };
+const SUMMER_EVENT_CHALLENGE_TARGET = 40;
+const SUMMER_EVENT_ALLY = {
+  id: "sunflower-fairy",
+  name: "ひまわりフェアリー",
+  description: "夏の光から生まれた、明るく元気な小さな妖精。",
+  specialty: "みんなを明るい気持ちにすること",
+  favorite: "ひまわり畑と青空",
+  quote: "夏の冒険、いっしょに咲かせよう！",
+  image: "./assets/bosses/ally-sunflower-fairy.png",
+};
 const STAT_KEYS = ["STR", "INT", "END", "DEX"];
 const RECENT_STAT_HISTORY_LIMIT = 10;
 const RECENT_STAT_BONUS = 5;
@@ -1168,6 +1180,48 @@ function getDateKey(date = new Date()) {
   const month = String(monthValue).padStart(2, "0");
   const day = String(dayValue).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function getYearDateKey(year, month, day) {
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function getSummerEventRange(date = new Date()) {
+  const { year } = getJapanDateParts(date);
+  return {
+    start: getYearDateKey(year, SUMMER_EVENT_START.month, SUMMER_EVENT_START.day),
+    end: getYearDateKey(year, SUMMER_EVENT_END.month, SUMMER_EVENT_END.day),
+  };
+}
+
+function isDateKeyInRange(dateKey, start, end) {
+  return typeof dateKey === "string" && dateKey >= start && dateKey <= end;
+}
+
+function isSummerEventActive(date = new Date()) {
+  const today = getDateKey(date);
+  const { start, end } = getSummerEventRange(date);
+  return isDateKeyInRange(today, start, end);
+}
+
+function getSummerEventProgress(date = new Date()) {
+  const { start, end } = getSummerEventRange(date);
+  const eventLogs = progress.activityLog.filter((item) => isDateKeyInRange(item.dateKey, start, end));
+  const attendanceDays = new Set(eventLogs.map((item) => item.dateKey)).size;
+  const totalDays = getDayDifference(start, end) + 1;
+  const challengeCount = eventLogs.length;
+
+  return {
+    start,
+    end,
+    challengeCount,
+    attendanceDays,
+    totalDays,
+    target: SUMMER_EVENT_CHALLENGE_TARGET,
+    progressPercent: Math.max(0, Math.min(100, Math.round((challengeCount / SUMMER_EVENT_CHALLENGE_TARGET) * 100))),
+    completed: challengeCount >= SUMMER_EVENT_CHALLENGE_TARGET,
+    perfectAttendance: attendanceDays >= totalDays,
+  };
 }
 
 function getWeekKey(date = new Date()) {
@@ -2819,6 +2873,16 @@ const ACHIEVEMENTS = [
     (ctx) => ({ current: Math.min(ctx.questTotal, 100), target: 100, unit: "回" }),
     { category: "special", conditionType: "questAndLevel", targetValue: 100 },
   ),
+  makeAchievement(
+    "summer-perfect-attendance",
+    "夏休み皆勤賞",
+    "夏のあいだ、毎日ギルドで冒険した証",
+    "7/20〜8/31に毎日1つ以上クエスト達成",
+    "🌻",
+    (ctx) => ctx.summerPerfectAttendance,
+    (ctx) => ({ current: ctx.summerAttendanceDays, target: ctx.summerEventTotalDays, unit: "日" }),
+    { category: "special", conditionType: "summerAttendance", targetValue: 43 },
+  ),
   ...[1, 2, 3, 4, 5, 6, 0].map((weekday) =>
     makeAchievement(
       `weekday-${weekday}`,
@@ -2868,6 +2932,7 @@ const COLLECTIBLE_TITLES = [
   makeCollectibleTitle("night-effort", "夜の努力家", "夜にも落ち着いて進めた証。", "夜のクエスト10回", "🌙", (ctx) => ctx.nightQuestCount >= 10, (ctx) => ({ current: ctx.nightQuestCount, target: 10, unit: "回" })),
   makeCollectibleTitle("balanced-adventurer", "バランス冒険者", "4つの力をバランスよく伸ばした証。", "全ステータス20到達", "⚖️", (ctx) => Math.min(...STAT_KEYS.map((stat) => Number(ctx.stats[stat] || 0))) >= 20, (ctx) => ({ current: Math.min(...STAT_KEYS.map((stat) => Number(ctx.stats[stat] || 0))), target: 20, unit: "" })),
   makeCollectibleTitle("challenge-specialist", "追加依頼の達人", "できたら挑戦を積み重ねた証。", "チャレンジ50回達成", "⚔️", (ctx) => ctx.challengeTotal >= 50, (ctx) => ({ current: ctx.challengeTotal, target: 50, unit: "回" })),
+  makeCollectibleTitle("summer-adventure-king", "夏の冒険王", "夏休みの特別な冒険を走りきった証。", "夏のチャレンジ40回", "🌻", (ctx) => ctx.summerEventCompleted, (ctx) => ({ current: ctx.summerChallengeCount, target: SUMMER_EVENT_CHALLENGE_TARGET, unit: "回" })),
 ];
 
 const activeAchievementIds = new Set(ACHIEVEMENTS.map((achievement) => achievement.id));
@@ -2897,6 +2962,7 @@ function getAchievementContext() {
   );
   const morningQuestCount = progress.activityLog.filter((item) => Number(item.completedHour) < 12).length;
   const nightQuestCount = progress.activityLog.filter((item) => Number(item.completedHour) >= 18).length;
+  const summerEventProgress = getSummerEventProgress();
   const weekendQuestCount = progress.activityLog.filter((item) => {
     const date = new Date(`${item.dateKey}T00:00:00`);
     if (Number.isNaN(date.getTime())) {
@@ -2929,6 +2995,11 @@ function getAchievementContext() {
     morningQuestCount,
     nightQuestCount,
     weekendQuestCount,
+    summerChallengeCount: summerEventProgress.challengeCount,
+    summerAttendanceDays: summerEventProgress.attendanceDays,
+    summerEventTotalDays: summerEventProgress.totalDays,
+    summerPerfectAttendance: summerEventProgress.perfectAttendance,
+    summerEventCompleted: summerEventProgress.completed,
     todayCompleted: todayGrowth.completed,
     hasMorningQuest: progress.activityLog.some((item) => item.completedHour < 12),
     hasNightQuest: progress.activityLog.some((item) => item.completedHour >= 18),
@@ -5824,13 +5895,15 @@ function renderAllyCollection() {
 
   bossState = normalizeBossState(bossState);
   const alliedCount = Math.min(BOSS_DEFINITIONS.length, Math.max(0, bossState.defeatedCount || 0));
+  const summerEventProgress = getSummerEventProgress();
+  const summerAllyUnlocked = summerEventProgress.completed;
+  const totalAllyCount = BOSS_DEFINITIONS.length + 1;
   if (count) {
-    count.textContent = `${alliedCount} / ${BOSS_DEFINITIONS.length}`;
+    count.textContent = `${alliedCount + (summerAllyUnlocked ? 1 : 0)} / ${totalAllyCount}`;
   }
 
   list.innerHTML = "";
-  BOSS_DEFINITIONS.forEach((ally, index) => {
-    const unlocked = index < alliedCount;
+  const appendAllyCard = (ally, unlocked, unlockedDate = "記録なし") => {
     const profileHtml = unlocked
       ? `
         <dl class="ally-profile">
@@ -5852,11 +5925,43 @@ function renderAllyCollection() {
         <h4>${escapeHtml(unlocked ? ally.name : "???")}</h4>
         <p>${escapeHtml(unlocked ? ally.description : "クエストを重ねると、いつか出会える仲間です。")}</p>
         ${profileHtml}
-        <small>仲間になった日：${unlocked ? "記録なし" : "まだ"}</small>
+        <small>仲間になった日：${unlocked ? unlockedDate : "まだ"}</small>
       </div>
     `;
     list.append(item);
+  };
+
+  BOSS_DEFINITIONS.forEach((ally, index) => {
+    appendAllyCard(ally, index < alliedCount);
   });
+  appendAllyCard(SUMMER_EVENT_ALLY, summerAllyUnlocked, summerEventProgress.end);
+}
+
+function renderSummerEventCard() {
+  const card = document.querySelector("[data-summer-event-card]");
+  if (!card) {
+    return;
+  }
+
+  const active = isSummerEventActive();
+  card.hidden = !active;
+  if (!active) {
+    return;
+  }
+
+  const eventProgress = getSummerEventProgress();
+  const startMonth = Number(eventProgress.start.slice(5, 7));
+  const startDay = Number(eventProgress.start.slice(8, 10));
+  const endMonth = Number(eventProgress.end.slice(5, 7));
+  const endDay = Number(eventProgress.end.slice(8, 10));
+  const progressBar = document.querySelector("[data-summer-event-bar]");
+
+  setText("[data-summer-event-period]", `${startMonth}/${startDay}〜${endMonth}/${endDay}`);
+  setText("[data-summer-event-count]", `${eventProgress.challengeCount} / ${eventProgress.target}`);
+  if (progressBar) {
+    progressBar.style.width = `${eventProgress.progressPercent}%`;
+  }
+  card.classList.toggle("is-complete", eventProgress.completed);
 }
 
 function renderRecentAchievements() {
@@ -5951,6 +6056,7 @@ function render() {
   renderCharacter(level);
   renderQuests();
   renderHomeDailyMission();
+  renderSummerEventCard();
   renderBossBattle();
   renderAppReminder();
   renderParentNote();
