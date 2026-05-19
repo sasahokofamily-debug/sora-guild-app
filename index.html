@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#6b4f2a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="そらクエスト">
+    <meta name="application-name" content="そらクエスト">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>そらクエスト</title>
     <link rel="manifest" href="./manifest.json">
@@ -17,7 +18,7 @@
       <header class="app-header">
         <div>
           <p class="eyebrow">Fantasy Guild Log</p>
-          <h1>そらクエスト</h1>
+          <h1 data-app-name>そらクエスト</h1>
         </div>
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
@@ -37,6 +38,7 @@
             <div class="adventurer-copy">
               <p class="section-kicker">称号</p>
               <h2 id="home-title" data-title-name>一歩目の見習い</h2>
+              <p class="adventurer-name-line">冒険者：<strong data-child-name>そら</strong></p>
               <p class="equipped-title-line">装備称号：<strong data-equipped-title-name>称号未装備</strong></p>
               <p class="sub-title-line">サブ称号：<strong data-sub-title-name>バランスの冒険者</strong></p>
               <p class="character-type-line">現在タイプ：<strong data-character-type>勇者タイプ</strong></p>
@@ -612,6 +614,20 @@
               <p class="section-kicker">Notice</p>
               <h3 id="admin-notification-section-title">通知設定</h3>
             </div>
+            <form class="future-form app-settings-form" data-app-settings-form aria-label="アプリ名設定フォーム">
+              <h3>アプリ名設定</h3>
+              <p>子どもの名前と、画面に表示するアプリ名を変更できます。通知や週間レポートの名前にも使われます。</p>
+              <label>
+                子どもの名前
+                <input type="text" name="childName" placeholder="そら" maxlength="20" required>
+              </label>
+              <label>
+                アプリ表示名
+                <input type="text" name="appDisplayName" placeholder="そらクエスト" maxlength="30" required>
+              </label>
+              <p class="form-message" data-app-settings-message aria-live="polite"></p>
+              <button type="submit">名前設定を保存</button>
+            </form>
             <section class="future-form notification-settings-panel" aria-labelledby="notification-settings-title">
               <h3 id="notification-settings-title">GAS通知</h3>
               <div class="notification-setting-list">

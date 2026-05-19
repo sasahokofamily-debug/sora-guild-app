@@ -11,6 +11,7 @@ const LOGIN_BONUS_SETTINGS_KEY = "sora_guild_app_login_bonus_settings_dev";
 const DAILY_CLEAR_BONUS_SETTINGS_KEY = "sora_guild_app_daily_clear_bonus_settings_dev";
 const DAILY_CLEAR_BONUS_DATE_KEY = "sora_guild_app_daily_clear_bonus_date_dev";
 const BOSS_STATE_KEY = "sora_guild_app_boss_state_dev";
+const APP_SETTINGS_KEY = "sora_guild_app_app_settings_dev";
 const BGM_ENABLED_KEY = "sora_guild_app_bgm_enabled_dev";
 const BGM_SRC = "./assets/audio/bgm/bgm_main.mp3";
 const BGM_VOLUME = 0.3;
@@ -38,6 +39,10 @@ const DEFAULT_DAILY_CLEAR_BONUS_SETTINGS = {
   enabled: true,
   xp: 0,
   gold: 10,
+};
+const DEFAULT_APP_SETTINGS = {
+  childName: "そら",
+  appDisplayName: "そらクエスト",
 };
 const BOSS_DEFINITIONS = [
   {
@@ -222,6 +227,7 @@ const BACKUP_STORAGE_KEYS = [
   DAILY_CLEAR_BONUS_SETTINGS_KEY,
   DAILY_CLEAR_BONUS_DATE_KEY,
   BOSS_STATE_KEY,
+  APP_SETTINGS_KEY,
   BGM_ENABLED_KEY,
   SFX_ENABLED_KEY,
   CHARACTER_STAGE_KEY,
@@ -252,6 +258,8 @@ const BACKUP_STORAGE_KEY_ALIASES = {
   dailyClearBonusDate: DAILY_CLEAR_BONUS_DATE_KEY,
   bossData: BOSS_STATE_KEY,
   bossState: BOSS_STATE_KEY,
+  appSettings: APP_SETTINGS_KEY,
+  appName: APP_SETTINGS_KEY,
   bgmEnabled: BGM_ENABLED_KEY,
   sfxEnabled: SFX_ENABLED_KEY,
   characterStage: CHARACTER_STAGE_KEY,
@@ -548,7 +556,9 @@ let weeklyReportHistory = loadWeeklyReportHistory();
 let loginBonusSettings = loadLoginBonusSettings();
 let dailyClearBonusSettings = loadDailyClearBonusSettings();
 let bossState = loadBossState();
+let appSettings = loadAppSettings(progress.name);
 progress = reconcileProgressFromHistory(progress);
+syncProgressNameFromAppSettings();
 let rewardToastTimer;
 let clearToastTimer;
 let levelUpTimer;
@@ -776,6 +786,59 @@ function loadDailyClearBonusSettings() {
 
 function saveDailyClearBonusSettings() {
   localStorage.setItem(DAILY_CLEAR_BONUS_SETTINGS_KEY, JSON.stringify(dailyClearBonusSettings));
+}
+
+function normalizeAppSettings(rawSettings = {}, fallbackChildName = DEFAULT_APP_SETTINGS.childName) {
+  const childName = String(rawSettings.childName || fallbackChildName || DEFAULT_APP_SETTINGS.childName).trim() || DEFAULT_APP_SETTINGS.childName;
+  const derivedAppName = childName === DEFAULT_APP_SETTINGS.childName ? DEFAULT_APP_SETTINGS.appDisplayName : `${childName}クエスト`;
+  const appDisplayName = String(rawSettings.appDisplayName || derivedAppName).trim() || DEFAULT_APP_SETTINGS.appDisplayName;
+
+  return {
+    childName,
+    appDisplayName,
+  };
+}
+
+function loadAppSettings(fallbackChildName = DEFAULT_APP_SETTINGS.childName) {
+  try {
+    const stored = localStorage.getItem(APP_SETTINGS_KEY);
+    return normalizeAppSettings(stored ? JSON.parse(stored) : {}, fallbackChildName);
+  } catch {
+    return normalizeAppSettings({}, fallbackChildName);
+  }
+}
+
+function saveAppSettings() {
+  localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(appSettings));
+}
+
+function getChildName() {
+  return appSettings.childName || progress.name || DEFAULT_APP_SETTINGS.childName;
+}
+
+function getAppDisplayName() {
+  return appSettings.appDisplayName || DEFAULT_APP_SETTINGS.appDisplayName;
+}
+
+function syncProgressNameFromAppSettings() {
+  const childName = getChildName();
+  if (progress.name === childName) {
+    return;
+  }
+
+  progress = {
+    ...progress,
+    name: childName,
+  };
+  saveProgress();
+}
+
+function applyAppDisplayName() {
+  const appName = getAppDisplayName();
+  setText("[data-app-name]", appName);
+  document.title = appName;
+  document.querySelector("meta[name='apple-mobile-web-app-title']")?.setAttribute("content", appName);
+  document.querySelector("meta[name='application-name']")?.setAttribute("content", appName);
 }
 
 function getBossInfo(defeatedCount = 0) {
@@ -1619,7 +1682,7 @@ function notifyRewardExchange(historyItem) {
   }
 
   const data = {
-    name: progress.name || "そら",
+    name: getChildName(),
     reward: historyItem.rewardName || "ご褒美",
     gold: Number.isFinite(historyItem.cost) ? historyItem.cost : 0,
     remainingGold: Number.isFinite(progress.gold) ? progress.gold : 0,
@@ -1651,7 +1714,7 @@ function notifyWeeklyReport() {
   const report = getWeeklyReport();
   const data = {
     type: "weeklyReport",
-    name: progress.name || "そら",
+    name: getChildName(),
     completed: report.completed,
     xp: report.xp,
     gold: report.gold,
@@ -1692,7 +1755,7 @@ function createWeeklyReportPayload() {
   const topWeeklyStatValue = Number(stats[topWeeklyStat] || 0);
 
   return {
-    name: progress.name || "そら",
+    name: getChildName(),
     weekStart,
     weekEnd: getWeekEndKey(weekStart),
     questsCompleted: report.completed,
@@ -3488,6 +3551,7 @@ function createBackupData() {
 
   return {
     app: "sora-quest",
+    appDisplayName: getAppDisplayName(),
     type: "save-data",
     version: 1,
     exportedAt: new Date().toISOString(),
@@ -3496,7 +3560,11 @@ function createBackupData() {
 }
 
 function getBackupFileName() {
-  return `sora-quest-save-data-${getDateKey()}.json`;
+  const safeAppName = getAppDisplayName()
+    .replace(/[\\/:*?"<>|]/g, "")
+    .replace(/\s+/g, "-")
+    .trim();
+  return `${safeAppName || "sora-quest"}-save-data-${getDateKey()}.json`;
 }
 
 function downloadBackup() {
@@ -3521,6 +3589,9 @@ function downloadBackup() {
 function normalizeBackupValue(key, value, fromAlias = false) {
   if (fromAlias && key === PARENT_PIN_KEY && typeof value === "string") {
     return JSON.stringify(value);
+  }
+  if (fromAlias && key === APP_SETTINGS_KEY && typeof value === "string") {
+    return JSON.stringify(normalizeAppSettings({ childName: progress.name, appDisplayName: value }));
   }
 
   return typeof value === "string" ? value : JSON.stringify(value);
@@ -3584,7 +3655,7 @@ function restoreBackupFromText(text) {
       : [];
   const storage = normalizeBackupStorage(parsedBackup);
   if (!storage) {
-    setBackupMessage("そらクエストのセーブデータではありません", true);
+    setBackupMessage(`${getAppDisplayName()}のセーブデータではありません`, true);
     return;
   }
   if (!isValidBackupStorage(storage)) {
@@ -3602,7 +3673,7 @@ function restoreBackupFromText(text) {
   Object.entries(storage).forEach(([key, value]) => {
     localStorage.setItem(key, value);
   });
-  console.log("[そらクエスト] セーブデータ復元", {
+  console.log(`[${getAppDisplayName()}] セーブデータ復元`, {
     importedKeys,
     restoredKeys: Object.keys(storage),
   });
@@ -3623,7 +3694,7 @@ function handleBackupFileChange(event) {
     return;
   }
 
-  console.log("[そらクエスト] セーブデータファイル選択", {
+  console.log(`[${getAppDisplayName()}] セーブデータファイル選択`, {
     fileName: file.name,
     fileSize: file.size,
   });
@@ -3874,6 +3945,52 @@ function handleDailyClearBonusSettingsSubmit(event) {
   saveDailyClearBonusSettings();
   renderDailyClearBonusSettingsForm();
   setDailyClearBonusSettingsMessage("今日の冒険クリア設定を保存しました");
+}
+
+function setAppSettingsMessage(message, isError = false) {
+  const element = document.querySelector("[data-app-settings-message]");
+  if (!element) {
+    return;
+  }
+
+  element.textContent = message;
+  element.classList.toggle("is-error", isError);
+}
+
+function renderAppSettingsForm() {
+  const form = document.querySelector("[data-app-settings-form]");
+  if (!form) {
+    return;
+  }
+
+  const settings = normalizeAppSettings(appSettings, progress.name);
+  form.elements.childName.value = settings.childName;
+  form.elements.appDisplayName.value = settings.appDisplayName;
+}
+
+function handleAppSettingsSubmit(event) {
+  event.preventDefault();
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+  const childName = String(formData.get("childName") || "").trim();
+  const appDisplayName = String(formData.get("appDisplayName") || "").trim();
+
+  if (!childName || !appDisplayName) {
+    setAppSettingsMessage("子どもの名前とアプリ表示名を入力してください", true);
+    return;
+  }
+
+  appSettings = normalizeAppSettings({ childName, appDisplayName });
+  saveAppSettings();
+  syncProgressNameFromAppSettings();
+  applyAppDisplayName();
+  renderAppSettingsForm();
+  setAppSettingsMessage("名前設定を保存しました");
 }
 
 function devLevelUp() {
@@ -6003,6 +6120,7 @@ function renderRecentAchievements() {
 
 function render() {
   applyDailyStreakReset();
+  applyAppDisplayName();
   const level = getLevel(progress.xp);
   const title = getTitle(level);
   progress.stats = normalizeStats(progress.stats);
@@ -6018,6 +6136,7 @@ function render() {
     titleDescElement.textContent = title.desc;
   }
   setText("[data-sub-title-name]", subTitle.name);
+  setText("[data-child-name]", getChildName());
   renderCharacterEvolutionInfo(level);
   if (titleChanged && titleNameElement) {
     const titleBlock = titleNameElement.closest(".adventurer-copy");
@@ -6069,6 +6188,7 @@ function render() {
   renderQuestManager();
   renderRewardManager();
   renderRewardHistory();
+  renderAppSettingsForm();
   renderLoginBonusSettingsForm();
   renderDailyClearBonusSettingsForm();
 }
@@ -6383,6 +6503,7 @@ document.querySelector("[data-screen='quests']")?.addEventListener(
 
 document.querySelector("[data-parent-auth-form]")?.addEventListener("submit", handleParentAuthSubmit);
 document.querySelector("[data-pin-change-form]")?.addEventListener("submit", handlePinChangeSubmit);
+document.querySelector("[data-app-settings-form]")?.addEventListener("submit", handleAppSettingsSubmit);
 document.querySelector("[data-login-bonus-settings-form]")?.addEventListener("submit", handleLoginBonusSettingsSubmit);
 document.querySelector("[data-daily-clear-bonus-settings-form]")?.addEventListener("submit", handleDailyClearBonusSettingsSubmit);
 document.querySelector("[data-quest-create-form]")?.addEventListener("submit", handleQuestCreateSubmit);

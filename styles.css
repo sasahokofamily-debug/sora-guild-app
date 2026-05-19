@@ -656,6 +656,7 @@ h3 {
 }
 
 .sub-title-line,
+.adventurer-name-line,
 .equipped-title-line,
 .character-type-line,
 .character-evolution-line {
@@ -688,6 +689,7 @@ h3 {
 }
 
 .sub-title-line strong,
+.adventurer-name-line strong,
 .equipped-title-line strong,
 .character-type-line strong,
 .character-evolution-line strong {
