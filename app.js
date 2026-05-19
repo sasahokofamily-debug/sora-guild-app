@@ -5727,6 +5727,16 @@ function renderAchievements() {
     const group = document.createElement("details");
     group.className = "achievement-category";
     group.open = categoryIndex === 0;
+    group.addEventListener("toggle", () => {
+      if (!group.open) {
+        return;
+      }
+      list.querySelectorAll(".achievement-category[open]").forEach((otherGroup) => {
+        if (otherGroup !== group) {
+          otherGroup.open = false;
+        }
+      });
+    });
     group.innerHTML = `
       <summary>
         <span>${escapeHtml(category.name)}</span>
