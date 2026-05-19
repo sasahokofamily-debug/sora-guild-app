@@ -5419,12 +5419,17 @@ h3 {
   box-shadow: 0 12px 24px rgba(32, 18, 12, 0.18);
 }
 
+.admin-section.is-collapsed > :not(.admin-section-heading) {
+  display: none !important;
+}
+
 .admin-section-heading {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 0 2px 2px;
+  min-height: 46px;
+  padding: 0 2px;
 }
 
 .admin-section-heading h3 {
@@ -5437,6 +5442,19 @@ h3 {
 
 .admin-section-heading .section-kicker {
   margin: 0 0 2px;
+}
+
+.admin-section-toggle {
+  flex: 0 0 auto;
+  min-width: 64px;
+  min-height: 38px;
+  border: 1px solid rgba(241, 210, 122, 0.34);
+  border-radius: 999px;
+  padding: 7px 12px;
+  color: var(--cream);
+  background: rgba(39, 26, 22, 0.42);
+  font-size: 0.76rem;
+  font-weight: 900;
 }
 
 .parent-auth-panel {
@@ -5542,6 +5560,7 @@ h3 {
   gap: 12px;
   margin-top: 0;
   padding: 14px;
+  min-width: 0;
 }
 
 .future-form[hidden],
@@ -5564,12 +5583,14 @@ h3 {
 .future-form select,
 .future-form textarea {
   width: 100%;
+  max-width: 100%;
   min-height: 44px;
   border: 1px solid rgba(111, 63, 38, 0.28);
   border-radius: 8px;
   padding: 10px 12px;
   color: var(--ink);
   background: rgba(255, 247, 223, 0.82);
+  box-sizing: border-box;
 }
 
 .future-form textarea {
@@ -5619,6 +5640,11 @@ h3 {
 .notification-setting-list {
   display: grid;
   gap: 8px;
+}
+
+.notification-settings-form {
+  display: grid;
+  gap: 10px;
 }
 
 .notification-setting-list article {
@@ -6309,6 +6335,94 @@ h3 {
 }
 
 @media (max-width: 679px) {
+  #admin {
+    width: min(100%, 760px);
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .admin-panel,
+  .admin-section,
+  .future-form {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .admin-panel {
+    padding: 13px;
+  }
+
+  .admin-panel p,
+  .future-form p,
+  .backup-panel p,
+  .reset-panel p {
+    font-size: 0.8rem;
+    line-height: 1.55;
+  }
+
+  .admin-section {
+    gap: 10px;
+    margin-top: 12px;
+    padding: 10px;
+  }
+
+  .admin-section-heading h3 {
+    font-size: 1rem;
+  }
+
+  .future-form {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .future-form h3 {
+    font-size: 0.96rem;
+  }
+
+  .future-form label {
+    font-size: 0.82rem;
+  }
+
+  .future-form input,
+  .future-form select,
+  .future-form textarea {
+    font-size: 0.95rem;
+  }
+
+  .reward-input-grid,
+  .backup-actions,
+  .managed-quest-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .future-form button,
+  .future-form .quest-manage-button,
+  .quest-create-toggle {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .notification-setting-list article {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .notification-setting-list strong {
+    justify-self: start;
+  }
+
+  .weekday-options {
+    grid-template-columns: repeat(7, minmax(32px, 1fr));
+    gap: 4px;
+  }
+
+  .weekday-options label {
+    min-height: 36px;
+    padding: 5px 2px;
+    font-size: 0.72rem;
+  }
+
   #home .boss-card {
     display: grid !important;
     visibility: visible !important;

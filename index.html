@@ -39,7 +39,7 @@
               <p class="section-kicker">称号</p>
               <h2 id="home-title" data-title-name>一歩目の見習い</h2>
               <p class="adventurer-name-line">冒険者：<strong data-child-name>そら</strong></p>
-              <p class="equipped-title-line">装備称号：<strong data-equipped-title-name>称号未装備</strong></p>
+              <p class="equipped-title-line">現在の称号：<strong data-equipped-title-name>称号未設定</strong></p>
               <p class="sub-title-line">サブ称号：<strong data-sub-title-name>バランスの冒険者</strong></p>
               <p class="character-type-line">現在タイプ：<strong data-character-type>勇者タイプ</strong></p>
               <p class="character-type-desc" data-character-type-desc>行動力で道を切りひらく冒険者。</p>
@@ -514,18 +514,169 @@
           <div class="panel admin-panel">
             <h3>保護者の方へ</h3>
             <p>
-              宿題やお手伝いをクエストとして完了し、経験値とゴールドで日々の取り組みを記録する最小版です。
-              進行状況はこの端末のブラウザに保存されます。
+              クエスト、ご褒美、通知、データ保管をここで設定できます。
+              進行状況はこの端末に保存されます。
             </p>
           </div>
           <div class="dev-tools" data-dev-tools aria-label="開発確認用ツール" hidden>
             <span>開発確認用</span>
             <button class="dev-test-button" type="button" data-dev-level-up>Lv+1 テスト</button>
           </div>
+          <section class="admin-section admin-section-basic" data-admin-section="basic" aria-labelledby="admin-basic-section-title">
+            <div class="admin-section-heading">
+              <div>
+                <p class="section-kicker">Basic</p>
+                <h3 id="admin-basic-section-title">基本設定</h3>
+              </div>
+            </div>
+            <form class="future-form app-settings-form" data-app-settings-form aria-label="アプリ名設定フォーム">
+              <h3>名前設定</h3>
+              <p>子どもの名前とアプリ名を変更できます。</p>
+              <label>
+                子どもの名前
+                <input type="text" name="childName" placeholder="そら" maxlength="20" required>
+              </label>
+              <label>
+                アプリ表示名
+                <input type="text" name="appDisplayName" placeholder="そらクエスト" maxlength="30" required>
+              </label>
+              <p class="form-message" data-app-settings-message aria-live="polite"></p>
+              <button type="submit">名前設定を保存</button>
+            </form>
+            <form class="future-form pin-change-form" data-parent-mode-only data-pin-change-form aria-label="PIN変更フォーム" hidden>
+              <h3>親管理PIN</h3>
+              <p>親モード用の4桁PINを変更できます。</p>
+              <label>
+                現在のPIN
+                <input type="password" name="currentPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="現在のPIN" required>
+              </label>
+              <label>
+                新しいPIN
+                <input type="password" name="newPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="4桁の数字" required>
+              </label>
+              <label>
+                新しいPIN（確認）
+                <input type="password" name="confirmPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="もう一度入力" required>
+              </label>
+              <p class="form-message" data-pin-change-message aria-live="polite"></p>
+              <button type="submit">PINを変更</button>
+            </form>
+          </section>
+          <section class="admin-section admin-section-notifications" aria-labelledby="admin-notification-section-title">
+            <div class="admin-section-heading">
+              <div>
+                <p class="section-kicker">Notice</p>
+                <h3 id="admin-notification-section-title">通知設定</h3>
+              </div>
+            </div>
+            <section class="future-form notification-settings-panel" aria-labelledby="notification-settings-title">
+              <h3 id="notification-settings-title">GAS通知</h3>
+              <form class="notification-settings-form" data-notification-settings-form aria-label="通知先設定フォーム">
+                <label>
+                  通知先メールアドレス
+                  <input type="email" name="notificationEmail" placeholder="family@example.com" autocomplete="email">
+                </label>
+                <label class="setting-check">
+                  <input type="checkbox" name="rewardEnabled">
+                  <span>ご褒美交換通知ON</span>
+                </label>
+                <label class="setting-check">
+                  <input type="checkbox" name="weeklyEnabled">
+                  <span>週間レポート通知ON</span>
+                </label>
+                <p class="form-message" data-notification-settings-message aria-live="polite"></p>
+                <button type="submit">通知設定を保存</button>
+              </form>
+              <div class="notification-setting-list">
+                <article>
+                  <span>ご褒美交換通知</span>
+                  <strong data-notify-url-label>設定済み</strong>
+                </article>
+                <article>
+                  <span>週間レポート通知</span>
+                  <strong data-weekly-report-url-label>設定済み</strong>
+                </article>
+              </div>
+              <p>送信先メールはこの端末に保存されます。</p>
+            </section>
+            <section class="future-form weekly-report-admin-panel" data-parent-mode-only aria-labelledby="weekly-report-admin-title" hidden>
+              <h3 id="weekly-report-admin-title">週間レポート送信</h3>
+              <p>現在の週間レポートを送信します。</p>
+              <button class="quest-manage-button" type="button" data-weekly-report-send>週間レポートを送信</button>
+              <p class="form-message weekly-send-message" data-weekly-send-message aria-live="polite"></p>
+            </section>
+          </section>
+          <section class="admin-section admin-section-login-bonus" aria-labelledby="login-bonus-settings-title">
+            <div class="admin-section-heading">
+              <div>
+                <p class="section-kicker">Login Bonus</p>
+                <h3 id="login-bonus-settings-title">ログインボーナス設定</h3>
+              </div>
+            </div>
+          <form class="future-form login-bonus-settings-form" data-login-bonus-settings-form aria-label="ログインボーナス設定フォーム">
+            <p>アプリを開いた日のXPとGoldを調整できます。</p>
+            <label class="setting-check">
+              <input type="checkbox" name="dailyEnabled">
+              <span>ログインボーナスON</span>
+            </label>
+            <div class="reward-input-grid">
+              <label>
+                1日ログイン XP
+                <input type="number" name="dailyXp" inputmode="numeric" min="0" max="999" placeholder="5" required>
+              </label>
+              <label>
+                1日ログイン Gold
+                <input type="number" name="dailyGold" inputmode="numeric" min="0" max="999" placeholder="5" required>
+              </label>
+            </div>
+            <label class="setting-check">
+              <input type="checkbox" name="streakEnabled">
+              <span>連続ログインボーナスON</span>
+            </label>
+            <label>
+              連続ログイン何日ごと
+              <input type="number" name="streakIntervalDays" inputmode="numeric" min="1" max="365" placeholder="7" required>
+            </label>
+            <div class="reward-input-grid">
+              <label>
+                追加XP
+                <input type="number" name="streakXp" inputmode="numeric" min="0" max="999" placeholder="20" required>
+              </label>
+              <label>
+                追加Gold
+                <input type="number" name="streakGold" inputmode="numeric" min="0" max="999" placeholder="20" required>
+              </label>
+            </div>
+            <p class="form-message" data-login-bonus-settings-message aria-live="polite"></p>
+            <button type="submit">設定を保存</button>
+          </form>
+          <form class="future-form daily-clear-bonus-settings-form" data-daily-clear-bonus-settings-form aria-label="今日の冒険クリア設定フォーム">
+            <h3>今日の冒険クリア設定</h3>
+            <p>毎日クエストを全部終えた日のボーナスです。</p>
+            <label class="setting-check">
+              <input type="checkbox" name="enabled">
+              <span>クリアボーナスON</span>
+            </label>
+            <div class="reward-input-grid">
+              <label>
+                クリアボーナス XP
+                <input type="number" name="xp" inputmode="numeric" min="0" max="999" placeholder="0" required>
+              </label>
+              <label>
+                クリアボーナス Gold
+                <input type="number" name="gold" inputmode="numeric" min="0" max="999" placeholder="10" required>
+              </label>
+            </div>
+            <p class="form-message" data-daily-clear-bonus-settings-message aria-live="polite"></p>
+            <button type="submit">設定を保存</button>
+          </form>
+          </section>
           <section class="admin-section admin-section-quests" aria-labelledby="admin-quest-section-title">
             <div class="admin-section-heading">
-              <p class="section-kicker">Quest</p>
-              <h3 id="admin-quest-section-title">クエスト管理</h3>
+              <div>
+                <p class="section-kicker">Quest</p>
+                <h3 id="admin-quest-section-title">クエスト管理</h3>
+              </div>
             </div>
           <button class="quest-create-toggle" type="button" data-toggle-quest-create aria-expanded="false" hidden>新しいクエスト追加</button>
           <form class="future-form quest-create-form" data-quest-create-form aria-label="クエスト追加フォーム" hidden>
@@ -609,129 +760,12 @@
             <div class="managed-quest-list" data-managed-quest-list></div>
           </section>
           </section>
-          <section class="admin-section admin-section-notifications" aria-labelledby="admin-notification-section-title">
-            <div class="admin-section-heading">
-              <p class="section-kicker">Notice</p>
-              <h3 id="admin-notification-section-title">通知設定</h3>
-            </div>
-            <form class="future-form app-settings-form" data-app-settings-form aria-label="アプリ名設定フォーム">
-              <h3>アプリ名設定</h3>
-              <p>子どもの名前と、画面に表示するアプリ名を変更できます。通知や週間レポートの名前にも使われます。</p>
-              <label>
-                子どもの名前
-                <input type="text" name="childName" placeholder="そら" maxlength="20" required>
-              </label>
-              <label>
-                アプリ表示名
-                <input type="text" name="appDisplayName" placeholder="そらクエスト" maxlength="30" required>
-              </label>
-              <p class="form-message" data-app-settings-message aria-live="polite"></p>
-              <button type="submit">名前設定を保存</button>
-            </form>
-            <section class="future-form notification-settings-panel" aria-labelledby="notification-settings-title">
-              <h3 id="notification-settings-title">GAS通知</h3>
-              <form class="notification-settings-form" data-notification-settings-form aria-label="通知先設定フォーム">
-                <label>
-                  通知先メールアドレス
-                  <input type="email" name="notificationEmail" placeholder="family@example.com" autocomplete="email">
-                </label>
-                <label class="setting-check">
-                  <input type="checkbox" name="rewardEnabled">
-                  <span>ご褒美交換通知ON</span>
-                </label>
-                <label class="setting-check">
-                  <input type="checkbox" name="weeklyEnabled">
-                  <span>週間レポート通知ON</span>
-                </label>
-                <p class="form-message" data-notification-settings-message aria-live="polite"></p>
-                <button type="submit">通知設定を保存</button>
-              </form>
-              <div class="notification-setting-list">
-                <article>
-                  <span>ご褒美交換通知</span>
-                  <strong data-notify-url-label>設定済み</strong>
-                </article>
-                <article>
-                  <span>週間レポート通知</span>
-                  <strong data-weekly-report-url-label>設定済み</strong>
-                </article>
-              </div>
-              <p>通知URLはアプリ内の定数で管理しています。送信先メールはこの端末の設定として保存されます。</p>
-            </section>
-          <section class="admin-section admin-section-login-bonus" aria-labelledby="login-bonus-settings-title">
-            <div class="admin-section-heading">
-              <p class="section-kicker">Login Bonus</p>
-              <h3 id="login-bonus-settings-title">ログインボーナス設定</h3>
-            </div>
-          <form class="future-form login-bonus-settings-form" data-login-bonus-settings-form aria-label="ログインボーナス設定フォーム">
-            <p>アプリを開いた日に付与するXPとGold、連続ログイン時の追加ボーナスを調整できます。</p>
-            <label class="setting-check">
-              <input type="checkbox" name="dailyEnabled">
-              <span>ログインボーナスON</span>
-            </label>
-            <div class="reward-input-grid">
-              <label>
-                1日ログイン XP
-                <input type="number" name="dailyXp" inputmode="numeric" min="0" max="999" placeholder="5" required>
-              </label>
-              <label>
-                1日ログイン Gold
-                <input type="number" name="dailyGold" inputmode="numeric" min="0" max="999" placeholder="5" required>
-              </label>
-            </div>
-            <label class="setting-check">
-              <input type="checkbox" name="streakEnabled">
-              <span>連続ログインボーナスON</span>
-            </label>
-            <label>
-              連続ログイン何日ごと
-              <input type="number" name="streakIntervalDays" inputmode="numeric" min="1" max="365" placeholder="7" required>
-            </label>
-            <div class="reward-input-grid">
-              <label>
-                追加XP
-                <input type="number" name="streakXp" inputmode="numeric" min="0" max="999" placeholder="20" required>
-              </label>
-              <label>
-                追加Gold
-                <input type="number" name="streakGold" inputmode="numeric" min="0" max="999" placeholder="20" required>
-              </label>
-            </div>
-            <p class="form-message" data-login-bonus-settings-message aria-live="polite"></p>
-            <button type="submit">設定を保存</button>
-          </form>
-          <form class="future-form daily-clear-bonus-settings-form" data-daily-clear-bonus-settings-form aria-label="今日の冒険クリア設定フォーム">
-            <h3>今日の冒険クリア設定</h3>
-            <p>今日表示されている毎日クエストをすべて達成したときのクリアボーナスです。</p>
-            <label class="setting-check">
-              <input type="checkbox" name="enabled">
-              <span>クリアボーナスON</span>
-            </label>
-            <div class="reward-input-grid">
-              <label>
-                クリアボーナス XP
-                <input type="number" name="xp" inputmode="numeric" min="0" max="999" placeholder="0" required>
-              </label>
-              <label>
-                クリアボーナス Gold
-                <input type="number" name="gold" inputmode="numeric" min="0" max="999" placeholder="10" required>
-              </label>
-            </div>
-            <p class="form-message" data-daily-clear-bonus-settings-message aria-live="polite"></p>
-            <button type="submit">設定を保存</button>
-          </form>
-          </section>
-          <section class="future-form weekly-report-admin-panel" data-parent-mode-only aria-labelledby="weekly-report-admin-title" hidden>
-            <h3 id="weekly-report-admin-title">週間レポート送信</h3>
-            <p>現在の週間レポートをGoogle Apps Scriptへ送信します。GAS連携のテストに使えます。</p>
-            <button class="quest-manage-button" type="button" data-weekly-report-send>週間レポートを送信</button>
-            <p class="form-message weekly-send-message" data-weekly-send-message aria-live="polite"></p>
-          </section>
-          </section>
           <section class="admin-section admin-section-rewards" aria-labelledby="admin-reward-section-title">
             <div class="admin-section-heading">
-              <p class="section-kicker">Reward</p>
-              <h3 id="admin-reward-section-title">ご褒美管理</h3>
+              <div>
+                <p class="section-kicker">Reward</p>
+                <h3 id="admin-reward-section-title">ご褒美管理</h3>
+              </div>
             </div>
           <form class="future-form reward-create-form" data-reward-create-form aria-label="ご褒美追加フォーム">
             <h3>ご褒美追加</h3>
@@ -757,30 +791,14 @@
           </section>
           <section class="admin-section admin-section-data" aria-labelledby="admin-data-section-title">
             <div class="admin-section-heading">
-              <p class="section-kicker">Data</p>
-              <h3 id="admin-data-section-title">データ管理</h3>
+              <div>
+                <p class="section-kicker">Data</p>
+                <h3 id="admin-data-section-title">データ管理</h3>
+              </div>
             </div>
-          <form class="future-form pin-change-form" data-parent-mode-only data-pin-change-form aria-label="PIN変更フォーム" hidden>
-            <h3>PIN変更</h3>
-            <p>親モードに入るためのPINを変更できます。4桁の数字で設定してください。</p>
-            <label>
-              現在のPIN
-              <input type="password" name="currentPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="現在のPIN" required>
-            </label>
-            <label>
-              新しいPIN
-              <input type="password" name="newPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="4桁の数字" required>
-            </label>
-            <label>
-              新しいPIN（確認）
-              <input type="password" name="confirmPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="もう一度入力" required>
-            </label>
-            <p class="form-message" data-pin-change-message aria-live="polite"></p>
-            <button type="submit">PINを変更</button>
-          </form>
           <section class="future-form backup-panel" aria-labelledby="backup-title">
             <h3 id="backup-title">セーブデータ保管</h3>
-            <p>この端末に保存されているプレイヤーデータ、クエスト、ご褒美、実績、設定をJSONファイルとしてエクスポート・インポートできます。</p>
+            <p>この端末のセーブデータを保管・復元できます。</p>
             <div class="backup-actions">
               <button class="quest-manage-button" type="button" data-backup-download data-save-export>セーブデータをエクスポート</button>
               <button class="quest-manage-button is-secondary" type="button" data-backup-import data-save-import>セーブデータをインポート</button>

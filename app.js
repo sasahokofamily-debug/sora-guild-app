@@ -600,6 +600,7 @@ let activeQuestCategory = "daily_required";
 let questSwipeStartX = 0;
 let questSwipeStartY = 0;
 let growthChartMode = "xp";
+const openAdminSections = new Set(["basic"]);
 let previousDailyRequiredComplete = false;
 let hasRenderedQuestCategoryProgress = false;
 let onboardingIndex = 0;
@@ -3291,7 +3292,7 @@ function equipCollectibleTitle(titleId) {
   saveProgress();
   renderCollectibleTitles();
   const equippedTitle = getEquippedCollectibleTitle();
-  setText("[data-equipped-title-name]", equippedTitle ? equippedTitle.name : "称号未装備");
+  setText("[data-equipped-title-name]", equippedTitle ? equippedTitle.name : "称号未設定");
 }
 
 function markScreenVisited(screenId) {
@@ -3936,6 +3937,39 @@ function renderModeControls() {
 function renderParentModeControls() {
   document.querySelectorAll("[data-parent-mode-only]").forEach((element) => {
     element.hidden = !isParentMode;
+  });
+}
+
+function getAdminSectionId(section) {
+  if (section.dataset.adminSection) {
+    return section.dataset.adminSection;
+  }
+
+  const sectionClass = [...section.classList].find((className) => className.startsWith("admin-section-") && className !== "admin-section");
+  return sectionClass ? sectionClass.replace("admin-section-", "") : "";
+}
+
+function renderAdminAccordions() {
+  document.querySelectorAll("#admin .admin-section").forEach((section) => {
+    const sectionId = getAdminSectionId(section);
+    const heading = section.querySelector(".admin-section-heading");
+    if (!sectionId || !heading) {
+      return;
+    }
+
+    let button = heading.querySelector("[data-admin-section-toggle]");
+    if (!button) {
+      button = document.createElement("button");
+      button.className = "admin-section-toggle";
+      button.type = "button";
+      button.dataset.adminSectionToggle = sectionId;
+      heading.append(button);
+    }
+
+    const isOpen = openAdminSections.has(sectionId);
+    section.classList.toggle("is-collapsed", !isOpen);
+    button.setAttribute("aria-expanded", String(isOpen));
+    button.textContent = isOpen ? "閉じる" : "開く";
   });
 }
 
@@ -6108,7 +6142,7 @@ function renderCollectibleTitles() {
   const unlockedIds = normalizeStringList(progress.unlockedCollectibleTitleIds);
   const unlockedSet = new Set(unlockedIds);
 
-  setText("[data-equipped-title-name]", equippedTitle ? equippedTitle.name : "称号未装備");
+  setText("[data-equipped-title-name]", equippedTitle ? equippedTitle.name : "称号未設定");
   setText("[data-current-collectible-title]", equippedTitle ? equippedTitle.name : "称号未獲得");
   setText("[data-current-collectible-title-desc]", equippedTitle ? equippedTitle.description : "称号を獲得すると、ここに表示されます。");
   if (count) {
@@ -6326,6 +6360,7 @@ function render() {
   renderModeControls();
   renderParentModeControls();
   renderDevTools();
+  renderAdminAccordions();
   renderQuestCreateForm();
   renderQuestManager();
   renderRewardManager();
@@ -6511,6 +6546,19 @@ document.addEventListener("click", (event) => {
     sendWeeklyReport({ manual: true }).finally(() => {
       weeklyReportSendButton.disabled = false;
     });
+    return;
+  }
+
+  const adminSectionToggle = event.target.closest("[data-admin-section-toggle]");
+  if (adminSectionToggle) {
+    const sectionId = adminSectionToggle.dataset.adminSectionToggle;
+    if (openAdminSections.has(sectionId)) {
+      openAdminSections.delete(sectionId);
+    } else {
+      openAdminSections.clear();
+      openAdminSections.add(sectionId);
+    }
+    renderAdminAccordions();
     return;
   }
 
