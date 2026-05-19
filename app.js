@@ -1790,9 +1790,9 @@ function setWeeklyReportSendMessage(message, isError = false) {
   });
 }
 
-function sendWeeklyReportToGas(report) {
+async function sendWeeklyReportToGas(report) {
   if (!WEEKLY_REPORT_GAS_URL || WEEKLY_REPORT_GAS_URL.includes("ここに貼り付け")) {
-    return Promise.reject(new Error("週間レポートGAS URLが未設定です"));
+    throw new Error("週間レポートGAS URLが未設定です");
   }
 
   const payload = {
@@ -1800,23 +1800,44 @@ function sendWeeklyReportToGas(report) {
     ...report,
   };
 
-  return fetch(WEEKLY_REPORT_GAS_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8",
-    },
-    body: JSON.stringify(payload),
-  })
-    .then(() => true)
-    .catch((error) => {
-      console.warn("週間レポートfetchに失敗しました", {
-        url: WEEKLY_REPORT_GAS_URL,
-        payload,
-        error,
-      });
-      throw error;
+  console.log("週間レポート送信データ", payload);
+
+  try {
+    const response = await fetch(WEEKLY_REPORT_GAS_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8",
+      },
+      body: JSON.stringify(payload),
     });
+    const responseText = await response.text();
+    let responseData = {};
+
+    try {
+      responseData = responseText ? JSON.parse(responseText) : {};
+    } catch (parseError) {
+      console.error("週間レポートGAS返答のJSON解析に失敗しました", {
+        responseText,
+        parseError,
+      });
+      throw new Error(`GASの返答を読み取れませんでした: ${responseText.slice(0, 120) || "空の返答"}`);
+    }
+
+    console.log("週間レポートGAS返答", responseData);
+
+    if (!response.ok || responseData.success === false) {
+      throw new Error(responseData.message || responseData.error || `HTTP ${response.status}`);
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error("週間レポートfetchに失敗しました", {
+      url: WEEKLY_REPORT_GAS_URL,
+      payload,
+      error,
+    });
+    throw error;
+  }
 }
 
 function sendWeeklyReport({ manual = false } = {}) {
@@ -1840,9 +1861,10 @@ function sendWeeklyReport({ manual = false } = {}) {
       return true;
     })
     .catch((error) => {
-      console.warn("週間レポート送信に失敗しました", error);
+      console.error("週間レポート送信に失敗しました", error);
       if (manual) {
-        setWeeklyReportSendMessage("送信に失敗しました。GAS URLまたは権限を確認してください", true);
+        const reason = error?.message || "GAS URLまたは権限を確認してください";
+        setWeeklyReportSendMessage(`週間レポート送信に失敗しました：${reason}`, true);
       }
       return false;
     });

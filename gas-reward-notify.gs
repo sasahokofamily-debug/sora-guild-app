@@ -32,7 +32,7 @@ function doPost(e) {
     if (!e || !e.postData || typeof e.postData.contents !== "string") {
       return createJsonResponse({
         success: false,
-        error: "postDataが空です。WebアプリのPOST設定を確認してください。",
+        message: "postDataが空です。WebアプリURLが /exec か、POSTのbodyが送られているか確認してください。",
       });
     }
 
@@ -42,7 +42,8 @@ function doPost(e) {
     } catch (parseError) {
       return createJsonResponse({
         success: false,
-        error: `JSON.parseに失敗しました: ${parseError.message}`,
+        message: `JSON.parseに失敗しました: ${parseError.message}`,
+        stack: parseError.stack || "",
       });
     }
 
@@ -50,8 +51,16 @@ function doPost(e) {
       const report = saveWeeklyReport(data);
       return createJsonResponse({
         success: true,
+        message: "週間レポートを保存しました",
         type: "weeklyReport",
         report,
+      });
+    }
+
+    if (!NOTIFY_EMAIL) {
+      return createJsonResponse({
+        success: false,
+        message: "通知先メールアドレスが未設定です。NOTIFY_EMAILを確認してください。",
       });
     }
 
@@ -100,7 +109,8 @@ function doPost(e) {
     console.warn("doPost error", error);
     return createJsonResponse({
       success: false,
-      error: error && error.message ? error.message : String(error),
+      message: error && error.message ? error.message : String(error),
+      stack: error && error.stack ? error.stack : "",
     });
   }
 }
@@ -112,6 +122,7 @@ function createJsonResponse(payload) {
 }
 
 function saveWeeklyReport(data) {
+  data = data && typeof data === "object" ? data : {};
   const stats = normalizeStats(data.stats || {
     STR: data.strGain,
     INT: data.intGain,
@@ -137,7 +148,10 @@ function saveWeeklyReport(data) {
   };
 
   PropertiesService.getScriptProperties().setProperty(WEEKLY_REPORT_PROPERTY_KEY, JSON.stringify(report));
-  saveWeeklyReportToSheet(report);
+  const sheetResult = saveWeeklyReportToSheet(report);
+  if (sheetResult && sheetResult.success === false) {
+    report.sheetWarning = sheetResult.message;
+  }
   return report;
 }
 
@@ -156,8 +170,18 @@ function sendWeeklyReport() {
 }
 
 function sendWeeklyReportEmail() {
+  if (!NOTIFY_EMAIL) {
+    throw new Error("通知先メールアドレスが未設定です。NOTIFY_EMAILを確認してください。");
+  }
+
   const stored = PropertiesService.getScriptProperties().getProperty(WEEKLY_REPORT_PROPERTY_KEY);
-  const report = stored ? JSON.parse(stored) : null;
+  let report = null;
+  try {
+    report = stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    console.warn("保存済み週間レポートのJSON解析に失敗しました", error);
+    report = null;
+  }
   const currentWeekStart = getCurrentWeekStartKey();
   const safeReport = report || {
     name: "そら",
@@ -224,10 +248,11 @@ function sendWeeklyReportEmail() {
 
 function saveWeeklyReportToSheet(report) {
   try {
+    report = report && typeof report === "object" ? report : {};
     const spreadsheet = getWeeklyReportSpreadsheet();
     if (!spreadsheet) {
       console.warn("週間レポート用スプレッドシートIDが未設定です");
-      return;
+      return { success: false, message: "週間レポート用スプレッドシートが見つかりません" };
     }
 
     const sheet = getOrCreateWeeklyReportSheet(spreadsheet);
@@ -253,8 +278,14 @@ function saveWeeklyReportToSheet(report) {
       character.topWeeklyStatText,
     ]]);
     formatWeeklyReportSheet(sheet);
+    return { success: true };
   } catch (error) {
     console.warn("週間レポートのスプレッドシート保存に失敗しました", error);
+    return {
+      success: false,
+      message: error && error.message ? error.message : String(error),
+      stack: error && error.stack ? error.stack : "",
+    };
   }
 }
 
