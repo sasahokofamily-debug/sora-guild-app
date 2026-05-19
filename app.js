@@ -601,6 +601,7 @@ let questSwipeStartX = 0;
 let questSwipeStartY = 0;
 let growthChartMode = "xp";
 const openAdminSections = new Set(["basic"]);
+const openGrowthCollections = new Set();
 let previousDailyRequiredComplete = false;
 let hasRenderedQuestCategoryProgress = false;
 let onboardingIndex = 0;
@@ -6135,6 +6136,23 @@ function renderAchievements() {
   });
 }
 
+function renderGrowthCollectionToggles() {
+  document.querySelectorAll("[data-growth-collapsible]").forEach((section) => {
+    const sectionId = section.dataset.growthCollapsible;
+    const isOpen = openGrowthCollections.has(sectionId);
+    const toggle = section.querySelector("[data-growth-collapsible-toggle]");
+    const indicator = section.querySelector("[data-growth-collapsible-indicator]");
+
+    section.classList.toggle("is-collapsed", !isOpen);
+    if (toggle) {
+      toggle.setAttribute("aria-expanded", String(isOpen));
+    }
+    if (indicator) {
+      indicator.textContent = isOpen ? "▼" : "▶";
+    }
+  });
+}
+
 function renderCollectibleTitles() {
   const list = document.querySelector("[data-collectible-title-list]");
   const count = document.querySelector("[data-collectible-title-count]");
@@ -6346,6 +6364,7 @@ function render() {
   renderAchievements();
   renderCollectibleTitles();
   renderAllyCollection();
+  renderGrowthCollectionToggles();
   renderRecentAchievements();
   renderXpBar();
   renderCharacter(level);
@@ -6566,6 +6585,18 @@ document.addEventListener("click", (event) => {
   if (growthChartModeButton) {
     growthChartMode = growthChartModeButton.dataset.growthChartMode || "xp";
     renderGrowthChart();
+    return;
+  }
+
+  const growthCollapsibleToggle = event.target.closest("[data-growth-collapsible-toggle]");
+  if (growthCollapsibleToggle) {
+    const sectionId = growthCollapsibleToggle.dataset.growthCollapsibleToggle;
+    if (openGrowthCollections.has(sectionId)) {
+      openGrowthCollections.delete(sectionId);
+    } else {
+      openGrowthCollections.add(sectionId);
+    }
+    renderGrowthCollectionToggles();
     return;
   }
 

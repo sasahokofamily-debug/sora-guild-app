@@ -451,27 +451,35 @@
             <div class="collectible-title-list" data-collectible-title-list></div>
           </section>
 
-          <section class="growth-panel" aria-labelledby="achievement-title">
-            <div class="mini-section-heading achievement-heading">
+          <section class="growth-panel growth-collapsible is-collapsed" data-growth-collapsible="achievements" aria-labelledby="achievement-title">
+            <button class="mini-section-heading achievement-heading growth-collapsible-heading" type="button" data-growth-collapsible-toggle="achievements" aria-expanded="false">
               <div>
                 <p class="section-kicker">Adventure Log</p>
                 <h3 id="achievement-title">実績図鑑</h3>
               </div>
-              <strong data-achievement-count>0 / 100</strong>
-            </div>
-            <div class="achievement-list" data-achievement-list></div>
+              <span class="growth-collapsible-meta">
+                <strong data-achievement-count>0 / 100</strong>
+                <span class="growth-collapsible-indicator" data-growth-collapsible-indicator>▶</span>
+              </span>
+            </button>
+            <div class="achievement-list" data-achievement-list data-growth-collapsible-content></div>
           </section>
 
-          <section class="growth-panel ally-collection-panel" aria-labelledby="ally-collection-title">
-            <div class="mini-section-heading achievement-heading">
+          <section class="growth-panel ally-collection-panel growth-collapsible is-collapsed" data-growth-collapsible="allies" aria-labelledby="ally-collection-title">
+            <button class="mini-section-heading achievement-heading growth-collapsible-heading" type="button" data-growth-collapsible-toggle="allies" aria-expanded="false">
               <div>
                 <p class="section-kicker">Ally Collection</p>
                 <h3 id="ally-collection-title">仲間図鑑</h3>
               </div>
-              <strong data-ally-collection-count>0 / 10</strong>
+              <span class="growth-collapsible-meta">
+                <strong data-ally-collection-count>0 / 10</strong>
+                <span class="growth-collapsible-indicator" data-growth-collapsible-indicator>▶</span>
+              </span>
+            </button>
+            <div data-growth-collapsible-content>
+              <p class="ally-collection-lead">仲間になったモンスターたちの記録です。</p>
+              <div class="ally-collection-list" data-ally-collection-list></div>
             </div>
-            <p class="ally-collection-lead">仲間になったモンスターたちの記録です。</p>
-            <div class="ally-collection-list" data-ally-collection-list></div>
           </section>
         </section>
 
