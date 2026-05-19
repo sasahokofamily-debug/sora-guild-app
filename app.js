@@ -13,11 +13,10 @@ const DAILY_CLEAR_BONUS_DATE_KEY = "sora_guild_app_daily_clear_bonus_date_dev";
 const BOSS_STATE_KEY = "sora_guild_app_boss_state_dev";
 const APP_SETTINGS_KEY = "sora_guild_app_app_settings_dev";
 const NOTIFICATION_SETTINGS_KEY = "sora_guild_app_notification_settings_dev";
+const AUDIO_SETTINGS_KEY = "sora_guild_app_audio_settings_dev";
 const BGM_ENABLED_KEY = "sora_guild_app_bgm_enabled_dev";
 const BGM_SRC = "./assets/audio/bgm/bgm_main.mp3";
-const BGM_VOLUME = 0.3;
 const SFX_ENABLED_KEY = "sora_guild_app_sfx_enabled_dev";
-const SFX_VOLUME = 0.62;
 const CHARACTER_STAGE_KEY = "sora_guild_app_character_stage_dev";
 const PARENT_PIN_KEY = "sora_guild_app_parent_pin_dev";
 const NOTIFY_URL = "https://script.google.com/macros/s/AKfycbzPl6o5pJGvx_3F2GGuGz7PbC1ZmYKUnz9ewcx_F_hr1s7uEQmeNmDn-vZK2hQMUa13Dg/exec";
@@ -49,6 +48,11 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   notificationEmail: "",
   rewardEnabled: true,
   weeklyEnabled: true,
+};
+const DEFAULT_AUDIO_SETTINGS = {
+  bgmEnabled: true,
+  sfxEnabled: true,
+  volume: 50,
 };
 const BOSS_DEFINITIONS = [
   {
@@ -235,6 +239,7 @@ const BACKUP_STORAGE_KEYS = [
   BOSS_STATE_KEY,
   APP_SETTINGS_KEY,
   NOTIFICATION_SETTINGS_KEY,
+  AUDIO_SETTINGS_KEY,
   BGM_ENABLED_KEY,
   SFX_ENABLED_KEY,
   CHARACTER_STAGE_KEY,
@@ -269,6 +274,7 @@ const BACKUP_STORAGE_KEY_ALIASES = {
   appName: APP_SETTINGS_KEY,
   notificationSettings: NOTIFICATION_SETTINGS_KEY,
   notificationEmail: NOTIFICATION_SETTINGS_KEY,
+  audioSettings: AUDIO_SETTINGS_KEY,
   bgmEnabled: BGM_ENABLED_KEY,
   sfxEnabled: SFX_ENABLED_KEY,
   characterStage: CHARACTER_STAGE_KEY,
@@ -567,6 +573,7 @@ let dailyClearBonusSettings = loadDailyClearBonusSettings();
 let bossState = loadBossState();
 let appSettings = loadAppSettings(progress.name);
 let notificationSettings = loadNotificationSettings();
+let audioSettings = loadAudioSettings();
 progress = reconcileProgressFromHistory(progress);
 syncProgressNameFromAppSettings();
 let rewardToastTimer;
@@ -605,12 +612,12 @@ const openGrowthCollections = new Set();
 let previousDailyRequiredComplete = false;
 let hasRenderedQuestCategoryProgress = false;
 let onboardingIndex = 0;
-let bgmEnabled = true;
+let bgmEnabled = audioSettings.bgmEnabled;
 let bgmAudio = null;
 let bgmInteractionArmed = false;
 let bgmStarted = false;
 let sfxInteractionPrimed = false;
-let sfxEnabled = localStorage.getItem(SFX_ENABLED_KEY) !== "false";
+let sfxEnabled = audioSettings.sfxEnabled;
 const sounds = {
   tab: new Audio("./assets/audio/sfx/sfx_tab.mp3"),
   gold: new Audio("./assets/audio/sfx/sfx_gold.mp3"),
@@ -885,6 +892,47 @@ function getNotificationEmail() {
   return normalizeNotificationSettings(notificationSettings).notificationEmail;
 }
 
+function normalizeAudioSettings(rawSettings = {}) {
+  const fallbackBgm = localStorage.getItem(BGM_ENABLED_KEY);
+  const fallbackSfx = localStorage.getItem(SFX_ENABLED_KEY);
+  return {
+    ...DEFAULT_AUDIO_SETTINGS,
+    bgmEnabled:
+      typeof rawSettings.bgmEnabled === "boolean"
+        ? rawSettings.bgmEnabled
+        : fallbackBgm === null
+          ? DEFAULT_AUDIO_SETTINGS.bgmEnabled
+          : fallbackBgm !== "false",
+    sfxEnabled:
+      typeof rawSettings.sfxEnabled === "boolean"
+        ? rawSettings.sfxEnabled
+        : fallbackSfx === null
+          ? DEFAULT_AUDIO_SETTINGS.sfxEnabled
+          : fallbackSfx !== "false",
+    volume: Math.min(100, Math.max(0, normalizeNonNegativeNumber(rawSettings.volume, DEFAULT_AUDIO_SETTINGS.volume))),
+  };
+}
+
+function loadAudioSettings() {
+  try {
+    const stored = localStorage.getItem(AUDIO_SETTINGS_KEY);
+    return normalizeAudioSettings(stored ? JSON.parse(stored) : {});
+  } catch {
+    return normalizeAudioSettings();
+  }
+}
+
+function saveAudioSettings() {
+  audioSettings = normalizeAudioSettings(audioSettings);
+  localStorage.setItem(AUDIO_SETTINGS_KEY, JSON.stringify(audioSettings));
+  localStorage.setItem(BGM_ENABLED_KEY, JSON.stringify(audioSettings.bgmEnabled));
+  localStorage.setItem(SFX_ENABLED_KEY, JSON.stringify(audioSettings.sfxEnabled));
+}
+
+function getAudioVolume() {
+  return normalizeAudioSettings(audioSettings).volume / 100;
+}
+
 function getBossInfo(defeatedCount = 0) {
   const safeCount = Math.max(0, Math.floor(Number(defeatedCount) || 0));
   const baseBoss = BOSS_DEFINITIONS[safeCount % BOSS_DEFINITIONS.length] || BOSS_DEFINITIONS[0];
@@ -987,7 +1035,7 @@ function getBgmAudio() {
   if (!bgmAudio) {
     bgmAudio = new Audio(BGM_SRC);
     bgmAudio.loop = true;
-    bgmAudio.volume = BGM_VOLUME;
+    bgmAudio.volume = getAudioVolume();
     bgmAudio.preload = "auto";
     bgmAudio.addEventListener("error", () => {
       console.warn("BGM音源を読み込めませんでした", BGM_SRC);
@@ -1053,7 +1101,7 @@ function playBgm() {
     return Promise.resolve();
   }
   const audio = getBgmAudio();
-  audio.volume = BGM_VOLUME;
+  audio.volume = getAudioVolume();
   const playPromise = audio.play();
   if (playPromise && typeof playPromise.catch === "function") {
     return playPromise.catch((error) => {
@@ -1098,8 +1146,9 @@ function removeBgmInteractionListeners(handler) {
 }
 
 function setBgmEnabled(enabled) {
-  bgmEnabled = enabled;
-  localStorage.setItem(BGM_ENABLED_KEY, JSON.stringify(bgmEnabled));
+  audioSettings = normalizeAudioSettings({ ...audioSettings, bgmEnabled: enabled });
+  saveAudioSettings();
+  bgmEnabled = audioSettings.bgmEnabled;
   if (bgmEnabled) {
     bgmStarted = false;
     armBgmStartOnInteraction();
@@ -1110,8 +1159,10 @@ function setBgmEnabled(enabled) {
 }
 
 function initializeBgm() {
-  bgmEnabled = true;
-  localStorage.setItem(BGM_ENABLED_KEY, "true");
+  audioSettings = normalizeAudioSettings(audioSettings);
+  saveAudioSettings();
+  bgmEnabled = audioSettings.bgmEnabled;
+  sfxEnabled = audioSettings.sfxEnabled;
   preloadAudioAssets();
   armBgmStartOnInteraction();
   playBgm();
@@ -1119,7 +1170,7 @@ function initializeBgm() {
 
 Object.entries(sounds).forEach(([name, sound]) => {
   sound.preload = "auto";
-  sound.volume = SFX_VOLUME;
+  sound.volume = getAudioVolume();
   sound.addEventListener("error", () => {
     console.warn(`効果音を読み込めませんでした: ${name}`);
   });
@@ -1140,7 +1191,7 @@ function playSound(name) {
   }
   try {
     sound.currentTime = 0;
-    sound.volume = SFX_VOLUME;
+    sound.volume = getAudioVolume();
     const playPromise = sound.play();
     if (playPromise && typeof playPromise.catch === "function") {
       playPromise.catch(() => {});
@@ -1151,8 +1202,20 @@ function playSound(name) {
 }
 
 function setSfxEnabled(enabled) {
-  sfxEnabled = enabled;
-  localStorage.setItem(SFX_ENABLED_KEY, JSON.stringify(sfxEnabled));
+  audioSettings = normalizeAudioSettings({ ...audioSettings, sfxEnabled: enabled });
+  saveAudioSettings();
+  sfxEnabled = audioSettings.sfxEnabled;
+}
+
+function setAudioVolume(volume) {
+  audioSettings = normalizeAudioSettings({ ...audioSettings, volume });
+  saveAudioSettings();
+  if (bgmAudio) {
+    bgmAudio.volume = getAudioVolume();
+  }
+  Object.values(sounds).forEach((sound) => {
+    sound.volume = getAudioVolume();
+  });
 }
 
 function normalizeWeeklyReportHistoryItem(rawItem) {
@@ -4122,6 +4185,65 @@ function handleAppSettingsSubmit(event) {
   setAppSettingsMessage("名前設定を保存しました");
 }
 
+function setAudioSettingsMessage(message, isError = false) {
+  const element = document.querySelector("[data-audio-settings-message]");
+  if (!element) {
+    return;
+  }
+
+  element.textContent = message;
+  element.classList.toggle("is-error", isError);
+}
+
+function renderAudioSettingsForm() {
+  const form = document.querySelector("[data-audio-settings-form]");
+  if (!form) {
+    return;
+  }
+
+  const settings = normalizeAudioSettings(audioSettings);
+  form.elements.bgmEnabled.checked = settings.bgmEnabled;
+  form.elements.sfxEnabled.checked = settings.sfxEnabled;
+  form.elements.volume.value = settings.volume;
+  setText("[data-audio-volume-label]", `${settings.volume}%`);
+}
+
+function applyAudioSettings() {
+  audioSettings = normalizeAudioSettings(audioSettings);
+  saveAudioSettings();
+  bgmEnabled = audioSettings.bgmEnabled;
+  sfxEnabled = audioSettings.sfxEnabled;
+  setAudioVolume(audioSettings.volume);
+
+  if (bgmEnabled) {
+    bgmStarted = false;
+    armBgmStartOnInteraction();
+    playBgm();
+  } else {
+    pauseBgm();
+  }
+}
+
+function handleAudioSettingsSubmit(event) {
+  event.preventDefault();
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+  audioSettings = normalizeAudioSettings({
+    bgmEnabled: formData.get("bgmEnabled") === "on",
+    sfxEnabled: formData.get("sfxEnabled") === "on",
+    volume: formData.get("volume"),
+  });
+
+  applyAudioSettings();
+  renderAudioSettingsForm();
+  setAudioSettingsMessage("ゲーム設定を保存しました");
+}
+
 function setNotificationSettingsMessage(message, isError = false) {
   const element = document.querySelector("[data-notification-settings-message]");
   if (!element) {
@@ -6385,6 +6507,7 @@ function render() {
   renderRewardManager();
   renderRewardHistory();
   renderAppSettingsForm();
+  renderAudioSettingsForm();
   renderNotificationSettingsForm();
   renderLoginBonusSettingsForm();
   renderDailyClearBonusSettingsForm();
@@ -6683,6 +6806,20 @@ document.addEventListener("change", (event) => {
     return;
   }
 
+  if (event.target.matches("[data-audio-settings-form] input")) {
+    const form = event.target.closest("[data-audio-settings-form]");
+    if (!form) {
+      return;
+    }
+    audioSettings = normalizeAudioSettings({
+      bgmEnabled: form.elements.bgmEnabled.checked,
+      sfxEnabled: form.elements.sfxEnabled.checked,
+      volume: form.elements.volume.value,
+    });
+    applyAudioSettings();
+    renderAudioSettingsForm();
+  }
+
   if (event.target.matches("[data-backup-file]")) {
     handleBackupFileChange(event);
   }
@@ -6726,6 +6863,7 @@ document.querySelector("[data-screen='quests']")?.addEventListener(
 document.querySelector("[data-parent-auth-form]")?.addEventListener("submit", handleParentAuthSubmit);
 document.querySelector("[data-pin-change-form]")?.addEventListener("submit", handlePinChangeSubmit);
 document.querySelector("[data-app-settings-form]")?.addEventListener("submit", handleAppSettingsSubmit);
+document.querySelector("[data-audio-settings-form]")?.addEventListener("submit", handleAudioSettingsSubmit);
 document.querySelector("[data-notification-settings-form]")?.addEventListener("submit", handleNotificationSettingsSubmit);
 document.querySelector("[data-login-bonus-settings-form]")?.addEventListener("submit", handleLoginBonusSettingsSubmit);
 document.querySelector("[data-daily-clear-bonus-settings-form]")?.addEventListener("submit", handleDailyClearBonusSettingsSubmit);

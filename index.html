@@ -563,6 +563,24 @@
               <p class="form-message" data-app-settings-message aria-live="polite"></p>
               <button type="submit">名前設定を保存</button>
             </form>
+            <form class="future-form audio-settings-form" data-audio-settings-form aria-label="ゲーム音設定フォーム">
+              <h3>ゲーム設定</h3>
+              <label class="setting-check">
+                <input type="checkbox" name="bgmEnabled">
+                <span>BGMを再生する</span>
+              </label>
+              <label class="setting-check">
+                <input type="checkbox" name="sfxEnabled">
+                <span>効果音を再生する</span>
+              </label>
+              <label>
+                音量
+                <input type="range" name="volume" min="0" max="100" step="5">
+                <span class="range-value" data-audio-volume-label>50%</span>
+              </label>
+              <p class="form-message" data-audio-settings-message aria-live="polite"></p>
+              <button type="submit">ゲーム設定を保存</button>
+            </form>
             <form class="future-form pin-change-form" data-parent-mode-only data-pin-change-form aria-label="PIN変更フォーム" hidden>
               <h3>親管理PIN</h3>
               <p>親モード用の4桁PINを変更できます。</p>

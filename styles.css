@@ -5726,6 +5726,26 @@ h3 {
   accent-color: var(--gold);
 }
 
+.future-form input[type="range"] {
+  min-height: 34px;
+  padding: 0;
+  accent-color: var(--gold);
+  background: transparent;
+}
+
+.range-value {
+  display: inline-flex;
+  align-self: flex-start;
+  margin-top: 4px;
+  border: 1px solid rgba(201, 154, 53, 0.28);
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: var(--wood-dark);
+  background: rgba(241, 210, 122, 0.24);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
 .backup-panel p {
   margin: 0;
   color: var(--muted);
