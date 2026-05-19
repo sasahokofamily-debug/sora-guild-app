@@ -192,6 +192,20 @@ h1 {
   text-shadow: 0 2px 10px rgba(23, 12, 9, 0.58), 0 0 18px rgba(241, 210, 122, 0.18);
 }
 
+.app-version {
+  display: inline-flex;
+  align-items: center;
+  margin: 7px 0 0;
+  border: 1px solid rgba(241, 210, 122, 0.38);
+  border-radius: 999px;
+  padding: 3px 9px;
+  color: var(--gold-light);
+  background: rgba(39, 26, 22, 0.42);
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
 h2 {
   margin: 0;
   font-size: clamp(1.34rem, 5.8vw, 1.62rem);
@@ -5404,6 +5418,14 @@ h3 {
   margin: 0;
   color: var(--muted);
   line-height: 1.7;
+}
+
+.app-history-panel {
+  margin-top: 12px;
+}
+
+.app-history-panel h3 {
+  color: var(--ink);
 }
 
 .admin-section {
