@@ -57,10 +57,11 @@ function doPost(e) {
       });
     }
 
-    if (!NOTIFY_EMAIL) {
+    const notificationEmail = getNotificationEmail(data);
+    if (!notificationEmail) {
       return createJsonResponse({
         success: false,
-        message: "通知先メールアドレスが未設定です。NOTIFY_EMAILを確認してください。",
+        message: "通知先メールアドレスが未設定です。",
       });
     }
 
@@ -95,7 +96,7 @@ function doPost(e) {
     });
 
     MailApp.sendEmail({
-      to: NOTIFY_EMAIL,
+      to: notificationEmail,
       subject,
       body: plainText,
       htmlBody,
@@ -121,8 +122,17 @@ function createJsonResponse(payload) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+function getNotificationEmail(data) {
+  const email = String((data && data.notificationEmail) || "").trim();
+  return email && email.indexOf("@") >= 0 ? email : "";
+}
+
 function saveWeeklyReport(data) {
   data = data && typeof data === "object" ? data : {};
+  const notificationEmail = getNotificationEmail(data);
+  if (!notificationEmail) {
+    throw new Error("通知先メールアドレスが未設定です。");
+  }
   const stats = normalizeStats(data.stats || {
     STR: data.strGain,
     INT: data.intGain,
@@ -134,6 +144,7 @@ function saveWeeklyReport(data) {
 
   const report = {
     name: data.name || "そら",
+    notificationEmail,
     completed: Number(data.questsCompleted ?? data.completed ?? 0),
     xp: Number(data.xpEarned ?? data.xp ?? 0),
     gold: Number(data.goldEarned ?? data.gold ?? 0),
@@ -170,10 +181,6 @@ function sendWeeklyReport() {
 }
 
 function sendWeeklyReportEmail() {
-  if (!NOTIFY_EMAIL) {
-    throw new Error("通知先メールアドレスが未設定です。NOTIFY_EMAILを確認してください。");
-  }
-
   const stored = PropertiesService.getScriptProperties().getProperty(WEEKLY_REPORT_PROPERTY_KEY);
   let report = null;
   try {
@@ -185,6 +192,7 @@ function sendWeeklyReportEmail() {
   const currentWeekStart = getCurrentWeekStartKey();
   const safeReport = report || {
     name: "そら",
+    notificationEmail: "",
     completed: 0,
     xp: 0,
     gold: 0,
@@ -197,6 +205,10 @@ function sendWeeklyReportEmail() {
     weekEnd: getWeekEndKey(Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy-MM-dd")),
     savedAt: Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd HH:mm"),
   };
+  const notificationEmail = getNotificationEmail(safeReport);
+  if (!notificationEmail) {
+    throw new Error("通知先メールアドレスが未設定です。");
+  }
   const isCurrentWeek = safeReport.weekStart === currentWeekStart;
   if (!isCurrentWeek) {
     safeReport.weekStart = currentWeekStart;
@@ -239,7 +251,7 @@ function sendWeeklyReportEmail() {
   const htmlBody = buildWeeklyReportHtml(safeReport, hasRecord);
 
   MailApp.sendEmail({
-    to: NOTIFY_EMAIL,
+    to: notificationEmail,
     subject,
     body: plainText,
     htmlBody,

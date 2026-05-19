@@ -630,6 +630,22 @@
             </form>
             <section class="future-form notification-settings-panel" aria-labelledby="notification-settings-title">
               <h3 id="notification-settings-title">GAS通知</h3>
+              <form class="notification-settings-form" data-notification-settings-form aria-label="通知先設定フォーム">
+                <label>
+                  通知先メールアドレス
+                  <input type="email" name="notificationEmail" placeholder="family@example.com" autocomplete="email">
+                </label>
+                <label class="setting-check">
+                  <input type="checkbox" name="rewardEnabled">
+                  <span>ご褒美交換通知ON</span>
+                </label>
+                <label class="setting-check">
+                  <input type="checkbox" name="weeklyEnabled">
+                  <span>週間レポート通知ON</span>
+                </label>
+                <p class="form-message" data-notification-settings-message aria-live="polite"></p>
+                <button type="submit">通知設定を保存</button>
+              </form>
               <div class="notification-setting-list">
                 <article>
                   <span>ご褒美交換通知</span>
@@ -640,7 +656,7 @@
                   <strong data-weekly-report-url-label>設定済み</strong>
                 </article>
               </div>
-              <p>通知URLはアプリ内の定数で管理しています。メール通知と週間レポート送信は既存設定を使用します。</p>
+              <p>通知URLはアプリ内の定数で管理しています。送信先メールはこの端末の設定として保存されます。</p>
             </section>
           <section class="admin-section admin-section-login-bonus" aria-labelledby="login-bonus-settings-title">
             <div class="admin-section-heading">

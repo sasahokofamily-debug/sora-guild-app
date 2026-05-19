@@ -12,6 +12,7 @@ const DAILY_CLEAR_BONUS_SETTINGS_KEY = "sora_guild_app_daily_clear_bonus_setting
 const DAILY_CLEAR_BONUS_DATE_KEY = "sora_guild_app_daily_clear_bonus_date_dev";
 const BOSS_STATE_KEY = "sora_guild_app_boss_state_dev";
 const APP_SETTINGS_KEY = "sora_guild_app_app_settings_dev";
+const NOTIFICATION_SETTINGS_KEY = "sora_guild_app_notification_settings_dev";
 const BGM_ENABLED_KEY = "sora_guild_app_bgm_enabled_dev";
 const BGM_SRC = "./assets/audio/bgm/bgm_main.mp3";
 const BGM_VOLUME = 0.3;
@@ -43,6 +44,11 @@ const DEFAULT_DAILY_CLEAR_BONUS_SETTINGS = {
 const DEFAULT_APP_SETTINGS = {
   childName: "そら",
   appDisplayName: "そらクエスト",
+};
+const DEFAULT_NOTIFICATION_SETTINGS = {
+  notificationEmail: "",
+  rewardEnabled: true,
+  weeklyEnabled: true,
 };
 const BOSS_DEFINITIONS = [
   {
@@ -228,6 +234,7 @@ const BACKUP_STORAGE_KEYS = [
   DAILY_CLEAR_BONUS_DATE_KEY,
   BOSS_STATE_KEY,
   APP_SETTINGS_KEY,
+  NOTIFICATION_SETTINGS_KEY,
   BGM_ENABLED_KEY,
   SFX_ENABLED_KEY,
   CHARACTER_STAGE_KEY,
@@ -260,6 +267,8 @@ const BACKUP_STORAGE_KEY_ALIASES = {
   bossState: BOSS_STATE_KEY,
   appSettings: APP_SETTINGS_KEY,
   appName: APP_SETTINGS_KEY,
+  notificationSettings: NOTIFICATION_SETTINGS_KEY,
+  notificationEmail: NOTIFICATION_SETTINGS_KEY,
   bgmEnabled: BGM_ENABLED_KEY,
   sfxEnabled: SFX_ENABLED_KEY,
   characterStage: CHARACTER_STAGE_KEY,
@@ -557,6 +566,7 @@ let loginBonusSettings = loadLoginBonusSettings();
 let dailyClearBonusSettings = loadDailyClearBonusSettings();
 let bossState = loadBossState();
 let appSettings = loadAppSettings(progress.name);
+let notificationSettings = loadNotificationSettings();
 progress = reconcileProgressFromHistory(progress);
 syncProgressNameFromAppSettings();
 let rewardToastTimer;
@@ -839,6 +849,38 @@ function applyAppDisplayName() {
   document.title = appName;
   document.querySelector("meta[name='apple-mobile-web-app-title']")?.setAttribute("content", appName);
   document.querySelector("meta[name='application-name']")?.setAttribute("content", appName);
+}
+
+function isValidEmailAddress(value) {
+  const email = String(value || "").trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function normalizeNotificationSettings(rawSettings = {}) {
+  const notificationEmail = String(rawSettings.notificationEmail || "").trim();
+  return {
+    ...DEFAULT_NOTIFICATION_SETTINGS,
+    notificationEmail,
+    rewardEnabled: typeof rawSettings.rewardEnabled === "boolean" ? rawSettings.rewardEnabled : DEFAULT_NOTIFICATION_SETTINGS.rewardEnabled,
+    weeklyEnabled: typeof rawSettings.weeklyEnabled === "boolean" ? rawSettings.weeklyEnabled : DEFAULT_NOTIFICATION_SETTINGS.weeklyEnabled,
+  };
+}
+
+function loadNotificationSettings() {
+  try {
+    const stored = localStorage.getItem(NOTIFICATION_SETTINGS_KEY);
+    return normalizeNotificationSettings(stored ? JSON.parse(stored) : {});
+  } catch {
+    return normalizeNotificationSettings();
+  }
+}
+
+function saveNotificationSettings() {
+  localStorage.setItem(NOTIFICATION_SETTINGS_KEY, JSON.stringify(notificationSettings));
+}
+
+function getNotificationEmail() {
+  return normalizeNotificationSettings(notificationSettings).notificationEmail;
 }
 
 function getBossInfo(defeatedCount = 0) {
@@ -1680,9 +1722,18 @@ function notifyRewardExchange(historyItem) {
   if (!NOTIFY_URL) {
     return Promise.resolve(true);
   }
+  const settings = normalizeNotificationSettings(notificationSettings);
+  if (!settings.rewardEnabled) {
+    return Promise.resolve(true);
+  }
+  if (!isValidEmailAddress(settings.notificationEmail)) {
+    console.warn("ご褒美交換通知: 通知先メールアドレスが未設定または不正です");
+    return Promise.resolve(false);
+  }
 
   const data = {
     name: getChildName(),
+    notificationEmail: settings.notificationEmail,
     reward: historyItem.rewardName || "ご褒美",
     gold: Number.isFinite(historyItem.cost) ? historyItem.cost : 0,
     remainingGold: Number.isFinite(progress.gold) ? progress.gold : 0,
@@ -1710,11 +1761,20 @@ function notifyWeeklyReport() {
   if (!NOTIFY_URL) {
     return Promise.resolve(true);
   }
+  const settings = normalizeNotificationSettings(notificationSettings);
+  if (!settings.weeklyEnabled) {
+    return Promise.resolve(true);
+  }
+  if (!isValidEmailAddress(settings.notificationEmail)) {
+    console.warn("週間レポート通知: 通知先メールアドレスが未設定または不正です");
+    return Promise.resolve(false);
+  }
 
   const report = getWeeklyReport();
   const data = {
     type: "weeklyReport",
     name: getChildName(),
+    notificationEmail: settings.notificationEmail,
     completed: report.completed,
     xp: report.xp,
     gold: report.gold,
@@ -1756,6 +1816,7 @@ function createWeeklyReportPayload() {
 
   return {
     name: getChildName(),
+    notificationEmail: getNotificationEmail(),
     weekStart,
     weekEnd: getWeekEndKey(weekStart),
     questsCompleted: report.completed,
@@ -1794,9 +1855,17 @@ async function sendWeeklyReportToGas(report) {
   if (!WEEKLY_REPORT_GAS_URL || WEEKLY_REPORT_GAS_URL.includes("ここに貼り付け")) {
     throw new Error("週間レポートGAS URLが未設定です");
   }
+  const settings = normalizeNotificationSettings(notificationSettings);
+  if (!settings.weeklyEnabled) {
+    throw new Error("週間レポート通知がOFFです");
+  }
+  if (!isValidEmailAddress(settings.notificationEmail)) {
+    throw new Error("通知先メールアドレスを設定してください");
+  }
 
   const payload = {
     type: "weeklyReport",
+    notificationEmail: settings.notificationEmail,
     ...report,
   };
 
@@ -3615,6 +3684,9 @@ function normalizeBackupValue(key, value, fromAlias = false) {
   if (fromAlias && key === APP_SETTINGS_KEY && typeof value === "string") {
     return JSON.stringify(normalizeAppSettings({ childName: progress.name, appDisplayName: value }));
   }
+  if (fromAlias && key === NOTIFICATION_SETTINGS_KEY && typeof value === "string") {
+    return JSON.stringify(normalizeNotificationSettings({ notificationEmail: value }));
+  }
 
   return typeof value === "string" ? value : JSON.stringify(value);
 }
@@ -4013,6 +4085,54 @@ function handleAppSettingsSubmit(event) {
   applyAppDisplayName();
   renderAppSettingsForm();
   setAppSettingsMessage("名前設定を保存しました");
+}
+
+function setNotificationSettingsMessage(message, isError = false) {
+  const element = document.querySelector("[data-notification-settings-message]");
+  if (!element) {
+    return;
+  }
+
+  element.textContent = message;
+  element.classList.toggle("is-error", isError);
+}
+
+function renderNotificationSettingsForm() {
+  const form = document.querySelector("[data-notification-settings-form]");
+  if (!form) {
+    return;
+  }
+
+  const settings = normalizeNotificationSettings(notificationSettings);
+  form.elements.notificationEmail.value = settings.notificationEmail;
+  form.elements.rewardEnabled.checked = settings.rewardEnabled;
+  form.elements.weeklyEnabled.checked = settings.weeklyEnabled;
+}
+
+function handleNotificationSettingsSubmit(event) {
+  event.preventDefault();
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+  const notificationEmail = String(formData.get("notificationEmail") || "").trim();
+
+  if (!isValidEmailAddress(notificationEmail)) {
+    setNotificationSettingsMessage("通知先メールアドレスを設定してください", true);
+    return;
+  }
+
+  notificationSettings = normalizeNotificationSettings({
+    notificationEmail,
+    rewardEnabled: formData.get("rewardEnabled") === "on",
+    weeklyEnabled: formData.get("weeklyEnabled") === "on",
+  });
+  saveNotificationSettings();
+  renderNotificationSettingsForm();
+  setNotificationSettingsMessage("通知設定を保存しました");
 }
 
 function devLevelUp() {
@@ -4781,7 +4901,7 @@ function exchangeReward(rewardId) {
   checkAchievements();
   notifyRewardExchange(historyItem).then((notified) => {
     if (!notified) {
-      window.alert("交換は完了しました。通知だけ失敗しました。");
+      window.alert("交換は完了しました。通知だけ失敗しました。通知先メールアドレスまたはGAS設定を確認してください。");
     }
   });
 }
@@ -6211,6 +6331,7 @@ function render() {
   renderRewardManager();
   renderRewardHistory();
   renderAppSettingsForm();
+  renderNotificationSettingsForm();
   renderLoginBonusSettingsForm();
   renderDailyClearBonusSettingsForm();
 }
@@ -6526,6 +6647,7 @@ document.querySelector("[data-screen='quests']")?.addEventListener(
 document.querySelector("[data-parent-auth-form]")?.addEventListener("submit", handleParentAuthSubmit);
 document.querySelector("[data-pin-change-form]")?.addEventListener("submit", handlePinChangeSubmit);
 document.querySelector("[data-app-settings-form]")?.addEventListener("submit", handleAppSettingsSubmit);
+document.querySelector("[data-notification-settings-form]")?.addEventListener("submit", handleNotificationSettingsSubmit);
 document.querySelector("[data-login-bonus-settings-form]")?.addEventListener("submit", handleLoginBonusSettingsSubmit);
 document.querySelector("[data-daily-clear-bonus-settings-form]")?.addEventListener("submit", handleDailyClearBonusSettingsSubmit);
 document.querySelector("[data-quest-create-form]")?.addEventListener("submit", handleQuestCreateSubmit);
