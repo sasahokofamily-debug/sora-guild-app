@@ -5056,6 +5056,150 @@ h3 {
   background: linear-gradient(180deg, rgba(241, 210, 122, 0.72), rgba(201, 154, 53, 0.5));
 }
 
+.ally-collection-lead {
+  margin: -2px 0 0;
+  color: rgba(75, 51, 38, 0.82);
+  font-size: 0.8rem;
+  font-weight: 850;
+  line-height: 1.5;
+}
+
+.ally-collection-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.ally-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  border: 1px solid rgba(111, 77, 59, 0.28);
+  border-radius: 12px;
+  padding: 12px;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(241, 210, 122, 0.2), transparent 7rem),
+    repeating-linear-gradient(135deg, rgba(111, 63, 38, 0.025) 0 1px, transparent 1px 7px),
+    linear-gradient(180deg, rgba(255, 247, 223, 0.7), rgba(221, 199, 158, 0.46));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 247, 223, 0.24),
+    0 9px 18px rgba(48, 29, 20, 0.12);
+  overflow: hidden;
+}
+
+.ally-card.is-locked {
+  opacity: 0.78;
+  filter: saturate(0.72);
+}
+
+.ally-card.is-unlocked {
+  border-color: rgba(201, 154, 53, 0.62);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 226, 120, 0.34), transparent 7rem),
+    repeating-linear-gradient(135deg, rgba(111, 63, 38, 0.02) 0 1px, transparent 1px 7px),
+    linear-gradient(180deg, rgba(255, 248, 226, 0.9), rgba(229, 199, 139, 0.62));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 247, 223, 0.36),
+    0 0 0 1px rgba(201, 154, 53, 0.16),
+    0 12px 22px rgba(48, 29, 20, 0.15);
+  opacity: 1;
+  filter: none;
+}
+
+.ally-card-image {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(111, 77, 59, 0.24);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 232, 143, 0.3), transparent 62%),
+    rgba(83, 51, 35, 0.08);
+  overflow: hidden;
+}
+
+.ally-card-image img {
+  width: 92%;
+  height: 92%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 10px rgba(48, 29, 20, 0.2));
+}
+
+.ally-card.is-locked .ally-card-image img {
+  filter: grayscale(1) brightness(0.38) contrast(1.1);
+  opacity: 0.62;
+}
+
+.ally-card-image span {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  color: rgba(255, 247, 223, 0.88);
+  background: rgba(53, 34, 26, 0.42);
+  font-size: 1.6rem;
+  font-weight: 950;
+}
+
+.ally-card-image img:not([hidden]) + span {
+  display: none;
+}
+
+.ally-card-copy {
+  min-width: 0;
+}
+
+.ally-card-status {
+  display: inline-flex;
+  margin-bottom: 6px;
+  border: 1px solid rgba(111, 77, 59, 0.18);
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: rgba(84, 57, 42, 0.84);
+  background: rgba(255, 247, 223, 0.5);
+  font-size: 0.66rem;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.ally-card.is-unlocked .ally-card-status {
+  color: var(--wood-dark);
+  border-color: rgba(201, 154, 53, 0.46);
+  background: rgba(241, 210, 122, 0.5);
+}
+
+.ally-card h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 950;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.ally-card p {
+  margin: 6px 0 0;
+  color: rgba(75, 51, 38, 0.86);
+  font-size: 0.76rem;
+  font-weight: 820;
+  line-height: 1.4;
+}
+
+.ally-card small {
+  display: block;
+  margin-top: 7px;
+  color: rgba(48, 29, 20, 0.74);
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
 .admin-panel {
   padding: 16px;
 }
@@ -5962,7 +6106,8 @@ h3 {
   }
 
   .achievement-category-list,
-  .collectible-title-list {
+  .collectible-title-list,
+  .ally-collection-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -6077,8 +6222,19 @@ h3 {
   }
 
   .achievement-list,
-  .collectible-title-list {
+  .collectible-title-list,
+  .ally-collection-list {
     grid-template-columns: 1fr;
+  }
+
+  .ally-card {
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 11px;
+    padding: 11px;
+  }
+
+  .ally-card-image {
+    width: 84px;
   }
 
   .backup-actions {

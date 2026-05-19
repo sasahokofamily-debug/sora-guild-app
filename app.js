@@ -40,16 +40,16 @@ const DEFAULT_DAILY_CLEAR_BONUS_SETTINGS = {
   gold: 10,
 };
 const BOSS_DEFINITIONS = [
-  { id: "slime-king", name: "スライムキング", maxHp: 50, rewardXp: 30, rewardGold: 20, image: "./assets/bosses/boss-1-slime-king.png" },
-  { id: "mischief-goblin", name: "いたずらゴブリン", maxHp: 80, rewardXp: 45, rewardGold: 28, image: "./assets/bosses/boss-2-goblin-trickster.png" },
-  { id: "mushroom-mage", name: "キノコまじん", maxHp: 120, rewardXp: 65, rewardGold: 38, image: "./assets/bosses/boss-3-mushroom-mage.png" },
-  { id: "ice-bat", name: "こおりコウモリ", maxHp: 180, rewardXp: 90, rewardGold: 52, image: "./assets/bosses/boss-4-frost-bat.png" },
-  { id: "desert-scorpion", name: "砂漠のサソリ", maxHp: 260, rewardXp: 120, rewardGold: 68, image: "./assets/bosses/boss-5-desert-scorpion.png" },
-  { id: "forest-troll", name: "森のトロル", maxHp: 380, rewardXp: 160, rewardGold: 92, image: "./assets/bosses/boss-6-forest-troll.png" },
-  { id: "baby-dragon", name: "ベビードラゴン", maxHp: 550, rewardXp: 220, rewardGold: 125, image: "./assets/bosses/boss-7-baby-dragon.png" },
-  { id: "iron-golem", name: "鉄のゴーレム", maxHp: 750, rewardXp: 300, rewardGold: 165, image: "./assets/bosses/boss-8-iron-golem.png" },
-  { id: "ancient-guardian", name: "古代の守護者", maxHp: 1000, rewardXp: 410, rewardGold: 220, image: "./assets/bosses/boss-9-ancient-guardian.png" },
-  { id: "dark-lord", name: "闇の魔王", maxHp: 1500, rewardXp: 650, rewardGold: 320, image: "./assets/bosses/boss-10-dark-lord.png" },
+  { id: "slime-king", name: "スライムキング", description: "ぷるんと元気な最初の仲間候補。", maxHp: 50, rewardXp: 30, rewardGold: 20, image: "./assets/bosses/boss-1-slime-king.png" },
+  { id: "mischief-goblin", name: "いたずらゴブリン", description: "いたずら好きだけど、仲良くなると頼もしい。", maxHp: 80, rewardXp: 45, rewardGold: 28, image: "./assets/bosses/boss-2-goblin-trickster.png" },
+  { id: "mushroom-mage", name: "キノコまじん", description: "森の知恵を持つ、ふしぎな魔法使い。", maxHp: 120, rewardXp: 65, rewardGold: 38, image: "./assets/bosses/boss-3-mushroom-mage.png" },
+  { id: "ice-bat", name: "こおりコウモリ", description: "ひんやりした洞窟から来た夜の案内役。", maxHp: 180, rewardXp: 90, rewardGold: 52, image: "./assets/bosses/boss-4-frost-bat.png" },
+  { id: "desert-scorpion", name: "砂漠のサソリ", description: "砂漠を越える強さを教えてくれる仲間。", maxHp: 260, rewardXp: 120, rewardGold: 68, image: "./assets/bosses/boss-5-desert-scorpion.png" },
+  { id: "forest-troll", name: "森のトロル", description: "大きな体で、みんなを守ってくれる森の友だち。", maxHp: 380, rewardXp: 160, rewardGold: 92, image: "./assets/bosses/boss-6-forest-troll.png" },
+  { id: "baby-dragon", name: "ベビードラゴン", description: "小さな翼に大きな勇気を秘めている。", maxHp: 550, rewardXp: 220, rewardGold: 125, image: "./assets/bosses/boss-7-baby-dragon.png" },
+  { id: "iron-golem", name: "鉄のゴーレム", description: "こつこつ努力する力に反応して動き出す守護者。", maxHp: 750, rewardXp: 300, rewardGold: 165, image: "./assets/bosses/boss-8-iron-golem.png" },
+  { id: "ancient-guardian", name: "古代の守護者", description: "長い冒険を見守ってきた古の仲間。", maxHp: 1000, rewardXp: 410, rewardGold: 220, image: "./assets/bosses/boss-9-ancient-guardian.png" },
+  { id: "dark-lord", name: "闇の魔王", description: "最後に心を開く、強大な力を持つ仲間候補。", maxHp: 1500, rewardXp: 650, rewardGold: 320, image: "./assets/bosses/boss-10-dark-lord.png" },
 ];
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 const EVERYDAY_SCHEDULE_DAYS = [0, 1, 2, 3, 4, 5, 6];
@@ -5695,6 +5695,40 @@ function renderCollectibleTitles() {
   });
 }
 
+function renderAllyCollection() {
+  const list = document.querySelector("[data-ally-collection-list]");
+  const count = document.querySelector("[data-ally-collection-count]");
+  if (!list) {
+    return;
+  }
+
+  bossState = normalizeBossState(bossState);
+  const alliedCount = Math.min(BOSS_DEFINITIONS.length, Math.max(0, bossState.defeatedCount || 0));
+  if (count) {
+    count.textContent = `${alliedCount} / ${BOSS_DEFINITIONS.length}`;
+  }
+
+  list.innerHTML = "";
+  BOSS_DEFINITIONS.forEach((ally, index) => {
+    const unlocked = index < alliedCount;
+    const item = document.createElement("article");
+    item.className = `ally-card${unlocked ? " is-unlocked" : " is-locked"}`;
+    item.innerHTML = `
+      <div class="ally-card-image" aria-hidden="true">
+        <img src="${escapeHtml(ally.image)}" alt="" loading="lazy" onerror="this.hidden=true">
+        <span>${escapeHtml((ally.name || "?").slice(0, 1))}</span>
+      </div>
+      <div class="ally-card-copy">
+        <span class="ally-card-status">${unlocked ? "なかまになった！" : "未発見"}</span>
+        <h4>${escapeHtml(unlocked ? ally.name : "???")}</h4>
+        <p>${escapeHtml(unlocked ? ally.description : "クエストを重ねると、いつか出会える仲間です。")}</p>
+        <small>仲間になった日：${unlocked ? "記録なし" : "まだ"}</small>
+      </div>
+    `;
+    list.append(item);
+  });
+}
+
 function renderRecentAchievements() {
   const list = document.querySelector("[data-recent-achievement-list]");
   if (!list) {
@@ -5781,6 +5815,7 @@ function render() {
   renderGrowthRecord(level, title);
   renderAchievements();
   renderCollectibleTitles();
+  renderAllyCollection();
   renderRecentAchievements();
   renderXpBar();
   renderCharacter(level);
