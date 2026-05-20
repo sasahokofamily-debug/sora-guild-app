@@ -2,11 +2,15 @@
   "name": "そらクエスト",
   "short_name": "そらクエスト",
   "description": "毎日のクエストで成長を記録するギルド風アプリ",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
+  "lang": "ja",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#3a2414",
   "theme_color": "#6b4f2a",
+  "categories": ["education", "productivity", "games"],
   "icons": [
     {
       "src": "assets/icons/pwa-icon-192.png",

@@ -1222,6 +1222,18 @@ function setAudioVolume(volume) {
   });
 }
 
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch((error) => {
+      console.warn("Service Workerを登録できませんでした", error);
+    });
+  });
+}
+
 function normalizeWeeklyReportHistoryItem(rawItem) {
   const weekStart = typeof rawItem.weekStart === "string" ? rawItem.weekStart : "";
   if (!weekStart) {
@@ -7007,3 +7019,4 @@ if (startupAchievements.length > 0) {
     window.setTimeout(() => showAchievementToast(startupAchievements), loginBonusResult.granted ? 2200 : 350);
   }
 }
+registerServiceWorker();
