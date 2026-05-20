@@ -1890,7 +1890,7 @@ h3 {
   width: 100%;
   max-width: 100%;
   gap: 8px;
-  overflow-x: hidden;
+  overflow: visible;
 }
 
 .world-map-area {
@@ -1907,7 +1907,9 @@ h3 {
   border-radius: 10px;
   padding: 8px 10px;
   background: rgba(255, 247, 223, 0.42);
-  overflow: hidden;
+  overflow: visible;
+  visibility: visible;
+  opacity: 1;
 }
 
 .world-map-area > div {

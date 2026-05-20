@@ -5398,7 +5398,7 @@ function renderWorldMap() {
     progress.textContent = `${currentIndex + 1} / ${WORLD_AREAS.length}`;
   }
 
-  list.innerHTML = "";
+  const fragment = document.createDocumentFragment();
   WORLD_AREAS.forEach((areaName, index) => {
     const isCleared = index < clearedCount;
     const isCurrent = index === currentIndex;
@@ -5406,14 +5406,15 @@ function renderWorldMap() {
     const item = document.createElement("article");
     item.className = `world-map-area${isCleared ? " is-cleared" : ""}${isCurrent ? " is-current" : ""}${isLocked ? " is-locked" : ""}`;
     item.innerHTML = `
-      <span class="world-map-marker" aria-hidden="true">${isCleared ? "✓" : isCurrent ? "★" : "?"}</span>
+      <span class="world-map-marker" aria-hidden="true">${isCleared ? "✓" : isCurrent ? "★" : "🔒"}</span>
       <div>
         <strong>${escapeHtml(isLocked ? "？？？" : areaName)}</strong>
         <small>${isCleared ? "踏破済み" : isCurrent ? "現在地" : "未到達エリア"}</small>
       </div>
     `;
-    list.append(item);
+    fragment.append(item);
   });
+  list.replaceChildren(fragment);
 }
 
 function renderAppReminder() {
