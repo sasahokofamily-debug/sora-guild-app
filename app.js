@@ -1,5 +1,6 @@
 const STORAGE_KEY = "sora_guild_app_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
+const QUEST_BULK_EDIT_BACKUP_KEY = "lastQuestBulkEditBackup";
 const LEGACY_CUSTOM_QUESTS_KEY = "sora_guild_app_custom_quests_dev";
 const REWARDS_KEY = "sora_guild_app_rewards_dev";
 const REWARD_HISTORY_KEY = "sora_guild_app_reward_history_dev";
@@ -4592,6 +4593,158 @@ function renderQuestCreateForm() {
   updateWeekdayPicker(form);
 }
 
+function getQuestBulkEditMessageElement() {
+  return document.querySelector("[data-quest-bulk-edit-message]");
+}
+
+function setQuestBulkEditMessage(message, isError = false) {
+  const element = getQuestBulkEditMessageElement();
+  if (!element) {
+    return;
+  }
+  element.textContent = message;
+  element.classList.toggle("is-error", isError);
+}
+
+function getQuestBulkEditTargetLabel(target) {
+  return {
+    all: "すべてのクエスト",
+    daily_required: "必須クエスト",
+    challenge: "チャレンジクエスト",
+    visible: "表示中のクエスト",
+  }[target] || "対象クエスト";
+}
+
+function getQuestBulkEditFieldLabel(field) {
+  return field === "xpReward" ? "XP" : "Gold";
+}
+
+function getQuestBulkEditOperationLabel(operation, value) {
+  return {
+    "percent-up": `${value}%増やします`,
+    "percent-down": `${value}%減らします`,
+    add: `${value}足します`,
+    subtract: `${value}引きます`,
+    set: `${value}にそろえます`,
+  }[operation] || "変更します";
+}
+
+function getQuestBulkEditTargetIds(target) {
+  if (target === "daily_required" || target === "challenge") {
+    return new Set(managedQuests.filter((quest) => quest.category === target).map((quest) => quest.id));
+  }
+  if (target === "visible") {
+    return new Set(getVisibleQuests().map((quest) => quest.id));
+  }
+  return new Set(managedQuests.map((quest) => quest.id));
+}
+
+function calculateQuestBulkEditValue(currentValue, operation, value) {
+  const current = Math.max(0, Math.round(Number(currentValue) || 0));
+  const amount = Math.max(0, Number(value) || 0);
+  const nextValue = {
+    "percent-up": current * (1 + amount / 100),
+    "percent-down": current * (1 - amount / 100),
+    add: current + amount,
+    subtract: current - amount,
+    set: amount,
+  }[operation];
+
+  return Math.max(0, Math.round(Number.isFinite(nextValue) ? nextValue : current));
+}
+
+function renderQuestBulkEditControls() {
+  const undoButton = document.querySelector("[data-quest-bulk-undo]");
+  if (!undoButton) {
+    return;
+  }
+  undoButton.hidden = localStorage.getItem(QUEST_BULK_EDIT_BACKUP_KEY) === null;
+}
+
+function handleQuestBulkEditSubmit(event) {
+  event.preventDefault();
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+  const target = String(formData.get("target") || "all");
+  const field = String(formData.get("field") || "goldReward");
+  const operation = String(formData.get("operation") || "add");
+  const value = Number(formData.get("value"));
+
+  if (!["xpReward", "goldReward"].includes(field) || !Number.isFinite(value) || value < 0) {
+    setQuestBulkEditMessage("0以上の数値を入力してください", true);
+    return;
+  }
+
+  const targetIds = getQuestBulkEditTargetIds(target);
+  const targetCount = managedQuests.filter((quest) => targetIds.has(quest.id)).length;
+  if (targetCount === 0) {
+    setQuestBulkEditMessage("対象のクエストがありません", true);
+    return;
+  }
+
+  const fieldLabel = getQuestBulkEditFieldLabel(field);
+  const confirmed = window.confirm(
+    `${targetCount}件の${getQuestBulkEditTargetLabel(target)}の${fieldLabel}を${getQuestBulkEditOperationLabel(operation, value)}。よろしいですか？`,
+  );
+  if (!confirmed) {
+    return;
+  }
+
+  localStorage.setItem(QUEST_BULK_EDIT_BACKUP_KEY, JSON.stringify(managedQuests));
+  managedQuests = managedQuests.map((quest) => {
+    if (!targetIds.has(quest.id)) {
+      return quest;
+    }
+    return {
+      ...quest,
+      [field]: calculateQuestBulkEditValue(quest[field], operation, value),
+    };
+  });
+
+  saveManagedQuests();
+  render();
+  setQuestBulkEditMessage(`${targetCount}件のクエストを更新しました`);
+}
+
+function undoQuestBulkEdit() {
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+
+  const backup = localStorage.getItem(QUEST_BULK_EDIT_BACKUP_KEY);
+  if (!backup) {
+    setQuestBulkEditMessage("取り消せる一括編集はありません", true);
+    renderQuestBulkEditControls();
+    return;
+  }
+
+  const confirmed = window.confirm("直前の一括編集前のクエスト一覧に戻します。よろしいですか？");
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(backup);
+    if (!Array.isArray(parsed)) {
+      throw new Error("backup is not an array");
+    }
+    managedQuests = parsed.map(normalizeQuest).filter(Boolean).map(applyQuestStatPolicy);
+    localStorage.removeItem(QUEST_BULK_EDIT_BACKUP_KEY);
+    saveManagedQuests();
+    render();
+    setQuestBulkEditMessage("直前の一括編集を取り消しました");
+  } catch (error) {
+    console.warn("クエスト一括編集の取り消しに失敗しました", error);
+    setQuestBulkEditMessage("取り消しデータを読み込めませんでした", true);
+  }
+}
+
 function renderQuestManager() {
   const list = document.querySelector("[data-managed-quest-list]");
   if (!list) {
@@ -6700,6 +6853,7 @@ function render() {
   renderDevTools();
   renderAdminAccordions();
   renderQuestCreateForm();
+  renderQuestBulkEditControls();
   renderQuestManager();
   renderRewardManager();
   renderRewardHistory();
@@ -6811,6 +6965,12 @@ document.addEventListener("click", (event) => {
   const devLevelButton = event.target.closest("[data-dev-level-up]");
   if (devLevelButton && isTestMode) {
     devLevelUp();
+    return;
+  }
+
+  const questBulkUndoButton = event.target.closest("[data-quest-bulk-undo]");
+  if (questBulkUndoButton) {
+    undoQuestBulkEdit();
     return;
   }
 
@@ -7072,6 +7232,7 @@ document.querySelector("[data-notification-settings-form]")?.addEventListener("s
 document.querySelector("[data-login-bonus-settings-form]")?.addEventListener("submit", handleLoginBonusSettingsSubmit);
 document.querySelector("[data-daily-clear-bonus-settings-form]")?.addEventListener("submit", handleDailyClearBonusSettingsSubmit);
 document.querySelector("[data-quest-create-form]")?.addEventListener("submit", handleQuestCreateSubmit);
+document.querySelector("[data-quest-bulk-edit-form]")?.addEventListener("submit", handleQuestBulkEditSubmit);
 document.querySelector("[data-reward-create-form]")?.addEventListener("submit", handleRewardCreateSubmit);
 document.querySelector("[data-parent-note-form]")?.addEventListener("submit", handleParentNoteSubmit);
 document.addEventListener("submit", handleQuestEditSubmit);

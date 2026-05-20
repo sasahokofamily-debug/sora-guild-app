@@ -871,6 +871,47 @@
             <p class="form-message" data-quest-create-message aria-live="polite"></p>
             <button type="submit">クエストを追加</button>
           </form>
+          <section class="future-form quest-bulk-edit-panel" aria-labelledby="quest-bulk-edit-title">
+            <h3 id="quest-bulk-edit-title">クエスト一括編集</h3>
+            <p>これから達成するクエストのXP / Goldだけをまとめて調整します。</p>
+            <form class="quest-bulk-edit-form" data-quest-bulk-edit-form>
+              <label>
+                対象
+                <select name="target">
+                  <option value="all">すべてのクエスト</option>
+                  <option value="daily_required">必須クエストのみ</option>
+                  <option value="challenge">チャレンジクエストのみ</option>
+                  <option value="visible">表示中のクエストのみ</option>
+                </select>
+              </label>
+              <label>
+                項目
+                <select name="field">
+                  <option value="goldReward">Gold</option>
+                  <option value="xpReward">XP</option>
+                </select>
+              </label>
+              <label>
+                編集方法
+                <select name="operation">
+                  <option value="percent-up">％で増やす</option>
+                  <option value="percent-down">％で減らす</option>
+                  <option value="add">固定値を足す</option>
+                  <option value="subtract">固定値を引く</option>
+                  <option value="set">固定値にそろえる</option>
+                </select>
+              </label>
+              <label>
+                値
+                <input type="number" name="value" inputmode="numeric" min="0" max="999" placeholder="例：20" required>
+              </label>
+              <div class="quest-bulk-edit-actions">
+                <button class="quest-manage-button" type="submit">一括編集を実行</button>
+                <button class="quest-manage-button is-secondary" type="button" data-quest-bulk-undo hidden>直前の一括編集を取り消す</button>
+              </div>
+              <p class="form-message" data-quest-bulk-edit-message aria-live="polite"></p>
+            </form>
+          </section>
           <section class="future-form quest-manage-panel" aria-labelledby="quest-manage-title">
             <h3 id="quest-manage-title">クエスト一覧</h3>
             <div class="managed-quest-list" data-managed-quest-list></div>
