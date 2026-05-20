@@ -2161,6 +2161,7 @@ function applyBossQuestDamage(completedAt = new Date()) {
     rewardXp: boss.rewardXp,
     rewardGold: boss.rewardGold,
     nextBoss,
+    unlockedAreaName: defeatedCount < WORLD_AREAS.length ? WORLD_AREAS[defeatedCount] : "",
   };
 }
 
@@ -6178,6 +6179,34 @@ function playBossSpawnAnimation(nextBoss) {
   }
 }
 
+function closeWorldAreaUnlockModal() {
+  const modal = document.querySelector("[data-world-area-unlock-modal]");
+  if (!modal) {
+    return;
+  }
+  modal.classList.remove("is-visible");
+  window.setTimeout(() => {
+    modal.hidden = true;
+  }, 220);
+}
+
+function showWorldAreaUnlockModal(areaName) {
+  const modal = document.querySelector("[data-world-area-unlock-modal]");
+  const areaText = document.querySelector("[data-world-area-unlock-name]");
+  if (!modal || !areaName) {
+    return;
+  }
+
+  if (areaText) {
+    areaText.textContent = `${areaName}へ進めるようになった！`;
+  }
+
+  modal.hidden = false;
+  modal.classList.remove("is-visible");
+  void modal.offsetWidth;
+  modal.classList.add("is-visible");
+}
+
 function showBossBattleFeedback(result) {
   if (!result?.damaged) {
     return;
@@ -6194,6 +6223,9 @@ function showBossBattleFeedback(result) {
     showBossDefeatRewardPanel(result);
     window.setTimeout(() => playSound("achievement"), ACHIEVEMENT_SOUND_DELAY);
     window.setTimeout(() => playBossSpawnAnimation(result.nextBoss), 1180);
+    if (result.unlockedAreaName) {
+      window.setTimeout(() => showWorldAreaUnlockModal(result.unlockedAreaName), 1650);
+    }
   } else {
     showBossDamagePop(result.damage);
   }
@@ -6766,6 +6798,12 @@ document.addEventListener("click", (event) => {
   const completeConfirmBackdrop = event.target.closest("[data-complete-confirm]");
   if (completeConfirmBackdrop && event.target === completeConfirmBackdrop) {
     closeCompleteConfirm();
+    return;
+  }
+
+  const worldAreaUnlockClose = event.target.closest("[data-world-area-unlock-close]");
+  if (worldAreaUnlockClose) {
+    closeWorldAreaUnlockModal();
     return;
   }
 
