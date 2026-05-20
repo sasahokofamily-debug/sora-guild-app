@@ -5800,6 +5800,32 @@ h3 {
   font-weight: 900;
 }
 
+.guide-panel {
+  gap: 10px;
+}
+
+.guide-panel article {
+  border: 1px solid rgba(201, 154, 53, 0.18);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(255, 247, 223, 0.42);
+}
+
+.guide-panel h4 {
+  margin: 0 0 4px;
+  color: var(--wood-dark);
+  font-size: 0.92rem;
+  font-weight: 950;
+}
+
+.guide-panel p {
+  margin: 0;
+  color: rgba(75, 51, 38, 0.84);
+  font-size: 0.8rem;
+  font-weight: 820;
+  line-height: 1.55;
+}
+
 .backup-panel p {
   margin: 0;
   color: var(--muted);
