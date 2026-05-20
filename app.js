@@ -7,6 +7,7 @@ const ACHIEVEMENTS_KEY = "guildAchievements";
 const WEEKLY_REPORT_HISTORY_KEY = "sora_guild_app_weekly_report_history_dev";
 const PARENT_NOTES_KEY = "sora_guild_app_parent_notes_dev";
 const ONBOARDING_KEY = "hasSeenOnboarding";
+const INITIAL_SETUP_KEY = "sora_guild_app_initial_setup_done_dev";
 const LOGIN_BONUS_SETTINGS_KEY = "sora_guild_app_login_bonus_settings_dev";
 const DAILY_CLEAR_BONUS_SETTINGS_KEY = "sora_guild_app_daily_clear_bonus_settings_dev";
 const DAILY_CLEAR_BONUS_DATE_KEY = "sora_guild_app_daily_clear_bonus_date_dev";
@@ -233,6 +234,7 @@ const BACKUP_STORAGE_KEYS = [
   WEEKLY_REPORT_SENT_WEEK_KEY,
   PARENT_NOTES_KEY,
   ONBOARDING_KEY,
+  INITIAL_SETUP_KEY,
   LOGIN_BONUS_SETTINGS_KEY,
   DAILY_CLEAR_BONUS_SETTINGS_KEY,
   DAILY_CLEAR_BONUS_DATE_KEY,
@@ -265,6 +267,7 @@ const BACKUP_STORAGE_KEY_ALIASES = {
   notes: PARENT_NOTES_KEY,
   parentNotes: PARENT_NOTES_KEY,
   hasSeenOnboarding: ONBOARDING_KEY,
+  initialSetupDone: INITIAL_SETUP_KEY,
   loginBonusSettings: LOGIN_BONUS_SETTINGS_KEY,
   dailyClearBonusSettings: DAILY_CLEAR_BONUS_SETTINGS_KEY,
   dailyClearBonusDate: DAILY_CLEAR_BONUS_DATE_KEY,
@@ -5435,6 +5438,101 @@ function renderOnboardingSlide() {
   }
 }
 
+function isInitialSetupComplete() {
+  if (localStorage.getItem(INITIAL_SETUP_KEY) === "true") {
+    return true;
+  }
+
+  const hasAppSettings = localStorage.getItem(APP_SETTINGS_KEY) !== null;
+  const hasNotificationSettings = localStorage.getItem(NOTIFICATION_SETTINGS_KEY) !== null;
+  if (hasAppSettings && hasNotificationSettings) {
+    localStorage.setItem(INITIAL_SETUP_KEY, "true");
+    return true;
+  }
+
+  return false;
+}
+
+function setSetupMessage(message, isError = false) {
+  const element = document.querySelector("[data-setup-message]");
+  if (!element) {
+    return;
+  }
+
+  element.textContent = message;
+  element.classList.toggle("is-error", isError);
+}
+
+function renderInitialSetupForm() {
+  const form = document.querySelector("[data-initial-setup-form]");
+  if (!form) {
+    return;
+  }
+
+  const app = normalizeAppSettings(appSettings, progress.name);
+  const notice = normalizeNotificationSettings(notificationSettings);
+  form.elements.childName.value = app.childName;
+  form.elements.appDisplayName.value = app.appDisplayName;
+  form.elements.notificationEmail.value = notice.notificationEmail;
+}
+
+function showInitialSetupIfNeeded() {
+  if (isInitialSetupComplete()) {
+    return false;
+  }
+
+  const modal = document.querySelector("[data-setup-modal]");
+  if (!modal) {
+    return false;
+  }
+
+  renderInitialSetupForm();
+  modal.hidden = false;
+  document.body.classList.add("is-setup-open");
+  return true;
+}
+
+function closeInitialSetup() {
+  const modal = document.querySelector("[data-setup-modal]");
+  if (modal) {
+    modal.hidden = true;
+  }
+  document.body.classList.remove("is-setup-open");
+}
+
+function handleInitialSetupSubmit(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+  const childName = String(formData.get("childName") || "").trim();
+  const appDisplayName = String(formData.get("appDisplayName") || "").trim();
+  const notificationEmail = String(formData.get("notificationEmail") || "").trim();
+
+  if (!childName || !appDisplayName) {
+    setSetupMessage("子どもの名前とアプリ名を入力してください", true);
+    return;
+  }
+  if (!isValidEmailAddress(notificationEmail)) {
+    setSetupMessage("通知先メールアドレスを入力してください", true);
+    return;
+  }
+
+  appSettings = normalizeAppSettings({ childName, appDisplayName });
+  notificationSettings = normalizeNotificationSettings({
+    ...notificationSettings,
+    notificationEmail,
+  });
+  saveAppSettings();
+  saveNotificationSettings();
+  syncProgressNameFromAppSettings();
+  applyAppDisplayName();
+  renderAppSettingsForm();
+  renderNotificationSettingsForm();
+  localStorage.setItem(INITIAL_SETUP_KEY, "true");
+  closeInitialSetup();
+  showOnboardingIfNeeded();
+}
+
 function showOnboardingIfNeeded() {
   if (localStorage.getItem(ONBOARDING_KEY) === "true") {
     return false;
@@ -6861,6 +6959,7 @@ document.querySelector("[data-screen='quests']")?.addEventListener(
 );
 
 document.querySelector("[data-parent-auth-form]")?.addEventListener("submit", handleParentAuthSubmit);
+document.querySelector("[data-initial-setup-form]")?.addEventListener("submit", handleInitialSetupSubmit);
 document.querySelector("[data-pin-change-form]")?.addEventListener("submit", handlePinChangeSubmit);
 document.querySelector("[data-app-settings-form]")?.addEventListener("submit", handleAppSettingsSubmit);
 document.querySelector("[data-audio-settings-form]")?.addEventListener("submit", handleAudioSettingsSubmit);
@@ -6884,16 +6983,19 @@ const loginBonusResult = applyLoginBonus();
 render();
 showBackupRestoreMessageIfNeeded();
 initializeBgm();
-const isOnboardingVisible = showOnboardingIfNeeded();
-if (!isOnboardingVisible) {
+const isSetupVisible = showInitialSetupIfNeeded();
+const isOnboardingVisible = !isSetupVisible && showOnboardingIfNeeded();
+if (!isSetupVisible && !isOnboardingVisible) {
   window.setTimeout(showAppReminderToast, loginBonusResult.granted ? 2100 : 450);
 }
-if (loginBonusResult.granted && !isOnboardingVisible) {
+if (loginBonusResult.granted && !isSetupVisible && !isOnboardingVisible) {
   showLoginBonusToast(loginBonusResult);
 }
 syncCharacterStageState(getLevel(progress.xp));
 sendWeeklyReport();
 const startupAchievements = checkAchievements({ showToast: false });
 if (startupAchievements.length > 0) {
-  window.setTimeout(() => showAchievementToast(startupAchievements), loginBonusResult.granted ? 2200 : 350);
+  if (!isSetupVisible) {
+    window.setTimeout(() => showAchievementToast(startupAchievements), loginBonusResult.granted ? 2200 : 350);
+  }
 }

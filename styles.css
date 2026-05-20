@@ -113,7 +113,8 @@ body.is-evolution-flash::before {
   animation: evolutionBackgroundFlash 1080ms ease both;
 }
 
-body.is-onboarding-open {
+body.is-onboarding-open,
+body.is-setup-open {
   overflow: hidden;
 }
 
@@ -4075,6 +4076,7 @@ h3 {
   transform: translateY(3px);
 }
 
+.setup-modal,
 .onboarding-modal {
   position: fixed;
   inset: 0;
@@ -4086,10 +4088,12 @@ h3 {
   backdrop-filter: blur(3px);
 }
 
+.setup-modal[hidden],
 .onboarding-modal[hidden] {
   display: none;
 }
 
+.setup-card,
 .onboarding-card {
   position: relative;
   display: grid;
@@ -4110,6 +4114,53 @@ h3 {
   text-align: center;
 }
 
+.setup-card label {
+  display: grid;
+  gap: 6px;
+  color: var(--wood-dark);
+  font-size: 0.84rem;
+  font-weight: 950;
+  text-align: left;
+}
+
+.setup-card input {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(111, 63, 38, 0.24);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background: rgba(255, 247, 223, 0.82);
+  box-sizing: border-box;
+  font-size: 0.96rem;
+  font-weight: 850;
+}
+
+.setup-submit {
+  min-height: 48px;
+  border: 1px solid rgba(241, 210, 122, 0.68);
+  border-radius: 8px;
+  color: var(--cream);
+  background:
+    linear-gradient(180deg, rgba(255, 247, 223, 0.16), transparent 38%),
+    linear-gradient(180deg, #c4493e 0%, #a83730 48%, var(--red) 100%);
+  box-shadow: 0 7px 0 #5b211e, 0 12px 20px rgba(59, 33, 26, 0.24);
+  font-weight: 950;
+}
+
+.setup-card .form-message {
+  min-height: 1.2em;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.setup-card .form-message.is-error {
+  color: #8d2f2a;
+}
+
 .onboarding-skip {
   position: absolute;
   top: 10px;
@@ -4124,6 +4175,7 @@ h3 {
   font-weight: 900;
 }
 
+.setup-card .section-kicker,
 .onboarding-card .section-kicker {
   margin-top: 12px;
   margin-bottom: 0;
@@ -4131,6 +4183,7 @@ h3 {
   text-shadow: none;
 }
 
+.setup-card h3,
 .onboarding-card h3 {
   margin: 0;
   color: var(--ink);
@@ -4138,6 +4191,7 @@ h3 {
   line-height: 1.35;
 }
 
+.setup-card p:not(.section-kicker),
 .onboarding-card p:not(.section-kicker) {
   margin: 0;
   color: rgba(111, 77, 59, 0.88);
@@ -6309,6 +6363,7 @@ h3 {
   .managed-quest-item,
   .managed-quest-empty,
   .reward-history-item,
+  .setup-card,
   .onboarding-card,
   .complete-confirm-card
 ) {
@@ -6370,6 +6425,7 @@ h3 {
   .managed-quest-item,
   .managed-quest-empty,
   .reward-history-item,
+  .setup-card,
   .onboarding-card,
   .complete-confirm-card
 )::before {
@@ -6424,6 +6480,7 @@ h3 {
   .managed-quest-item,
   .managed-quest-empty,
   .reward-history-item,
+  .setup-card,
   .onboarding-card,
   .complete-confirm-card
 ) > * {

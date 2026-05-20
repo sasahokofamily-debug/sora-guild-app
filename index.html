@@ -884,6 +884,27 @@
           <span data-evolution-modal-stage>新しい姿になりました</span>
         </div>
       </div>
+      <div class="setup-modal" data-setup-modal hidden>
+        <form class="setup-card" data-initial-setup-form role="dialog" aria-modal="true" aria-labelledby="setup-title">
+          <p class="section-kicker">First Setup</p>
+          <h3 id="setup-title">はじめの設定</h3>
+          <p>使い始める前に、名前と通知先を設定します。</p>
+          <label>
+            子どもの名前
+            <input type="text" name="childName" placeholder="そら" maxlength="20" required>
+          </label>
+          <label>
+            アプリ名
+            <input type="text" name="appDisplayName" placeholder="そらクエスト" maxlength="30" required>
+          </label>
+          <label>
+            通知先メール
+            <input type="email" name="notificationEmail" placeholder="family@example.com" autocomplete="email" required>
+          </label>
+          <p class="form-message" data-setup-message aria-live="polite"></p>
+          <button class="setup-submit" type="submit">設定してはじめる</button>
+        </form>
+      </div>
       <div class="onboarding-modal" data-onboarding-modal hidden>
         <div class="onboarding-card" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
           <button class="onboarding-skip" type="button" data-onboarding-skip>スキップ</button>
