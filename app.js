@@ -50,6 +50,18 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   rewardEnabled: true,
   weeklyEnabled: true,
 };
+const WORLD_AREAS = [
+  "はじまりの村",
+  "キノコの森",
+  "氷の洞窟",
+  "砂漠の遺跡",
+  "巨人の森",
+  "ドラゴンの山",
+  "古代神殿",
+  "闇の城",
+  "星の神殿",
+  "光の天空城",
+];
 const DEFAULT_AUDIO_SETTINGS = {
   bgmEnabled: true,
   sfxEnabled: true,
@@ -5370,6 +5382,39 @@ function renderBossBattle() {
   }
 }
 
+function renderWorldMap() {
+  const card = document.querySelector("[data-world-map-card]");
+  const list = document.querySelector("[data-world-map-list]");
+  const progress = document.querySelector("[data-world-map-progress]");
+  if (!card || !list) {
+    return;
+  }
+
+  bossState = normalizeBossState(bossState);
+  const clearedCount = Math.max(0, Math.min(WORLD_AREAS.length, bossState.defeatedCount || 0));
+  const currentIndex = Math.min(clearedCount, WORLD_AREAS.length - 1);
+  if (progress) {
+    progress.textContent = `${currentIndex + 1} / ${WORLD_AREAS.length}`;
+  }
+
+  list.innerHTML = "";
+  WORLD_AREAS.forEach((areaName, index) => {
+    const isCleared = index < clearedCount;
+    const isCurrent = index === currentIndex;
+    const isLocked = index > currentIndex;
+    const item = document.createElement("article");
+    item.className = `world-map-area${isCleared ? " is-cleared" : ""}${isCurrent ? " is-current" : ""}${isLocked ? " is-locked" : ""}`;
+    item.innerHTML = `
+      <span class="world-map-marker" aria-hidden="true">${isCleared ? "✓" : isCurrent ? "★" : "?"}</span>
+      <div>
+        <strong>${escapeHtml(isLocked ? "？？？" : areaName)}</strong>
+        <small>${isCleared ? "踏破済み" : isCurrent ? "現在地" : "未到達エリア"}</small>
+      </div>
+    `;
+    list.append(item);
+  });
+}
+
 function renderAppReminder() {
   const summary = getDailyRequiredQuestSummary();
   const reminder = document.querySelector("[data-home-reminder]");
@@ -6612,6 +6657,7 @@ function render() {
   renderHomeDailyMission();
   renderSummerEventCard();
   renderBossBattle();
+  renderWorldMap();
   renderAppReminder();
   renderParentNote();
   renderTodayQuests();

@@ -1708,6 +1708,114 @@ h3 {
   font-weight: 950;
 }
 
+.world-map-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 15px;
+  color: var(--muted);
+}
+
+.world-map-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.world-map-head h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.world-map-head strong {
+  flex: 0 0 auto;
+  border: 1px solid rgba(201, 154, 53, 0.34);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: var(--wood-dark);
+  background: rgba(255, 247, 223, 0.5);
+  font-size: 0.75rem;
+  font-weight: 950;
+}
+
+.world-map-lead {
+  margin: 0;
+  color: rgba(111, 77, 59, 0.84);
+  font-size: 0.8rem;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.world-map-list {
+  display: grid;
+  gap: 8px;
+}
+
+.world-map-area {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  border: 1px solid rgba(111, 77, 59, 0.2);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(255, 247, 223, 0.42);
+}
+
+.world-map-area.is-current {
+  border-color: rgba(201, 154, 53, 0.62);
+  background:
+    radial-gradient(circle at 8% 50%, rgba(241, 210, 122, 0.34), transparent 5rem),
+    rgba(255, 247, 223, 0.72);
+  box-shadow: 0 0 0 1px rgba(201, 154, 53, 0.12), 0 0 18px rgba(241, 210, 122, 0.18);
+}
+
+.world-map-area.is-locked {
+  opacity: 0.68;
+  filter: saturate(0.72);
+}
+
+.world-map-marker {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(201, 154, 53, 0.34);
+  border-radius: 999px;
+  color: var(--wood-dark);
+  background: rgba(241, 210, 122, 0.28);
+  font-size: 0.86rem;
+  font-weight: 950;
+}
+
+.world-map-area.is-current .world-map-marker {
+  color: #fff8e6;
+  background: linear-gradient(180deg, #c4493e, #7b2830);
+  box-shadow: 0 0 14px rgba(196, 73, 62, 0.26);
+}
+
+.world-map-area strong,
+.world-map-area small {
+  display: block;
+}
+
+.world-map-area strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.world-map-area small {
+  margin-top: 2px;
+  color: rgba(111, 77, 59, 0.78);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
 .boss-card.is-hit {
   animation: bossCardHit 620ms ease both;
 }
@@ -6364,6 +6472,8 @@ h3 {
   .stat-card,
   .streak-panel > div,
   .daily-mission-card,
+  .world-map-card,
+  .world-map-area,
   .app-reminder-card,
   .parent-note-card,
   .recent-achievement-card,
@@ -6426,6 +6536,8 @@ h3 {
   .stat-card,
   .streak-panel > div,
   .daily-mission-card,
+  .world-map-card,
+  .world-map-area,
   .app-reminder-card,
   .parent-note-card,
   .recent-achievement-card,
@@ -6481,6 +6593,8 @@ h3 {
   .stat-card,
   .streak-panel > div,
   .daily-mission-card,
+  .world-map-card,
+  .world-map-area,
   .app-reminder-card,
   .parent-note-card,
   .recent-achievement-card,
