@@ -7,10 +7,12 @@
   "scope": "./",
   "lang": "ja",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait",
   "background_color": "#3a2414",
   "theme_color": "#6b4f2a",
   "categories": ["education", "productivity", "games"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "assets/icons/pwa-icon-192.png",

@@ -1,4 +1,4 @@
-const CACHE_NAME = "sora-quest-pwa-v1";
+const CACHE_NAME = "sora-quest-pwa-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -23,7 +23,15 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL))
+      .then((cache) =>
+        Promise.all(
+          APP_SHELL.map((url) =>
+            cache.add(url).catch((error) => {
+              console.warn("PWAキャッシュに追加できませんでした", url, error);
+            })
+          )
+        )
+      )
       .then(() => self.skipWaiting())
   );
 });
