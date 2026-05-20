@@ -913,8 +913,8 @@
       <div class="setup-modal" data-setup-modal hidden>
         <form class="setup-card" data-initial-setup-form role="dialog" aria-modal="true" aria-labelledby="setup-title">
           <p class="section-kicker">First Setup</p>
-          <h3 id="setup-title">はじめの設定</h3>
-          <p>使い始める前に、名前と通知先を設定します。</p>
+          <h3 id="setup-title">ようこそ、そらクエストへ。</h3>
+          <p>毎日の宿題やお手伝いを、冒険に変えるアプリです。まずは家族だけのクエスト名を決めましょう。</p>
           <label>
             子どもの名前
             <input type="text" name="childName" placeholder="そら" maxlength="20" required>
@@ -925,10 +925,16 @@
           </label>
           <label>
             通知先メール
-            <input type="email" name="notificationEmail" placeholder="family@example.com" autocomplete="email" required>
+            <input type="email" name="notificationEmail" placeholder="family@example.com" autocomplete="email">
           </label>
+          <small>通知先メールはあとからギルド画面で設定できます。</small>
+          <label>
+            親管理PIN
+            <input type="password" name="parentPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="任意：4桁の数字">
+          </label>
+          <small>未入力の場合はあとから設定できます。</small>
           <p class="form-message" data-setup-message aria-live="polite"></p>
-          <button class="setup-submit" type="submit">設定してはじめる</button>
+          <button class="setup-submit" type="submit">冒険をはじめる</button>
         </form>
       </div>
       <div class="onboarding-modal" data-onboarding-modal hidden>

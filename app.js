@@ -565,6 +565,7 @@ const characterEvolutionStages = [
 ];
 const characterImageStages = [1, 2, 3, 4, 5];
 
+const hadExistingAppDataAtStartup = [STORAGE_KEY, QUESTS_KEY, REWARDS_KEY, APP_SETTINGS_KEY, NOTIFICATION_SETTINGS_KEY].some((key) => localStorage.getItem(key) !== null);
 let progress = loadProgress();
 let managedQuests = loadManagedQuests();
 let rewards = loadRewards();
@@ -5443,9 +5444,7 @@ function isInitialSetupComplete() {
     return true;
   }
 
-  const hasAppSettings = localStorage.getItem(APP_SETTINGS_KEY) !== null;
-  const hasNotificationSettings = localStorage.getItem(NOTIFICATION_SETTINGS_KEY) !== null;
-  if (hasAppSettings && hasNotificationSettings) {
+  if (hadExistingAppDataAtStartup) {
     localStorage.setItem(INITIAL_SETUP_KEY, "true");
     return true;
   }
@@ -5474,6 +5473,7 @@ function renderInitialSetupForm() {
   form.elements.childName.value = app.childName;
   form.elements.appDisplayName.value = app.appDisplayName;
   form.elements.notificationEmail.value = notice.notificationEmail;
+  form.elements.parentPin.value = "";
 }
 
 function showInitialSetupIfNeeded() {
@@ -5507,13 +5507,18 @@ function handleInitialSetupSubmit(event) {
   const childName = String(formData.get("childName") || "").trim();
   const appDisplayName = String(formData.get("appDisplayName") || "").trim();
   const notificationEmail = String(formData.get("notificationEmail") || "").trim();
+  const parentPin = String(formData.get("parentPin") || "").trim();
 
   if (!childName || !appDisplayName) {
     setSetupMessage("子どもの名前とアプリ名を入力してください", true);
     return;
   }
-  if (!isValidEmailAddress(notificationEmail)) {
-    setSetupMessage("通知先メールアドレスを入力してください", true);
+  if (notificationEmail && !isValidEmailAddress(notificationEmail)) {
+    setSetupMessage("通知先メールアドレスの形式を確認してください", true);
+    return;
+  }
+  if (parentPin && !/^\d{4}$/.test(parentPin)) {
+    setSetupMessage("親管理PINは4桁の数字で入力してください", true);
     return;
   }
 
@@ -5524,6 +5529,9 @@ function handleInitialSetupSubmit(event) {
   });
   saveAppSettings();
   saveNotificationSettings();
+  if (parentPin) {
+    saveParentPin(parentPin);
+  }
   syncProgressNameFromAppSettings();
   applyAppDisplayName();
   renderAppSettingsForm();

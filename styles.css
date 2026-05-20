@@ -4136,6 +4136,15 @@ h3 {
   font-weight: 850;
 }
 
+.setup-card small {
+  margin-top: -6px;
+  color: rgba(111, 77, 59, 0.76);
+  font-size: 0.74rem;
+  font-weight: 850;
+  line-height: 1.45;
+  text-align: left;
+}
+
 .setup-submit {
   min-height: 48px;
   border: 1px solid rgba(241, 210, 122, 0.68);
