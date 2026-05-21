@@ -1315,9 +1315,9 @@ h3 {
 
 .stat-card strong {
   display: inline-flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: center;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
   margin-top: 8px;
   color: var(--navy);
@@ -1334,6 +1334,7 @@ h3 {
   color: inherit;
   font-size: 1em;
   font-weight: inherit;
+  line-height: 1;
 }
 
 .stat-card strong .stat-unit {
@@ -1341,6 +1342,7 @@ h3 {
   font-size: 0.44em;
   font-weight: 900;
   line-height: 1;
+  margin-bottom: 0.1em;
 }
 
 .stat-card strong,
@@ -1368,6 +1370,7 @@ h3 {
 .growth-summary-grid strong,
 .ability-card > strong {
   width: 100%;
+  overflow: hidden;
 }
 
 [data-number-size="compact"] {
@@ -4820,9 +4823,9 @@ h3 {
 
 .record-row strong {
   display: inline-flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: center;
-  gap: 4px;
+  gap: 5px;
   color: var(--navy);
   font-size: clamp(2.15rem, 9vw, 3.2rem);
   font-weight: 900;
@@ -4835,6 +4838,7 @@ h3 {
   color: inherit;
   font-size: 1em;
   font-weight: inherit;
+  line-height: 1;
 }
 
 .record-row strong:not([data-record-level]) {
@@ -4847,6 +4851,7 @@ h3 {
   font-size: 0.44em;
   font-weight: 900;
   line-height: 1;
+  margin-bottom: 0.1em;
 }
 
 .growth-panel {
@@ -4902,29 +4907,34 @@ h3 {
 
 .growth-summary-grid strong {
   display: inline-flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: center;
-  gap: 3px;
+  gap: 5px;
   min-width: 0;
   color: var(--navy);
   font-size: clamp(2.05rem, 10vw, 3rem);
   font-weight: 900;
-  line-height: 0.92;
+  line-height: 1;
   white-space: nowrap;
   text-shadow: 0 1px 0 rgba(255, 247, 223, 0.72);
 }
 
 .growth-summary-grid strong > span:not(.growth-unit) {
+  flex: 0 1 auto;
+  min-width: 0;
   color: inherit;
   font-size: 1em;
   font-weight: inherit;
+  line-height: 1;
 }
 
 .growth-summary-grid .growth-unit {
+  flex: 0 0 auto;
   color: var(--navy);
   font-size: 0.36em;
   font-weight: 900;
   line-height: 1;
+  margin-bottom: 0.14em;
 }
 
 .ability-grid {

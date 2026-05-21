@@ -1,4 +1,4 @@
-const CACHE_NAME = "sora-quest-pwa-v13";
+const CACHE_NAME = "sora-quest-pwa-v14";
 const APP_SHELL = [
   "./",
   "./index.html",
