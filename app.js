@@ -63,6 +63,18 @@ const WORLD_AREAS = [
   "星の神殿",
   "光の天空城",
 ];
+const WORLD_AREA_THEMES = [
+  "village",
+  "mushroom",
+  "ice",
+  "desert",
+  "giant-forest",
+  "dragon",
+  "ancient-temple",
+  "dark-castle",
+  "star-temple",
+  "sky-castle",
+];
 const DEFAULT_AUDIO_SETTINGS = {
   bgmEnabled: true,
   sfxEnabled: true,
@@ -5573,17 +5585,28 @@ function renderBossBattle() {
   }
 }
 
+function getCurrentWorldAreaIndex() {
+  bossState = normalizeBossState(bossState);
+  const clearedCount = Math.max(0, Math.min(WORLD_AREAS.length, bossState.defeatedCount || 0));
+  return Math.min(clearedCount, WORLD_AREAS.length - 1);
+}
+
+function applyWorldTheme() {
+  const theme = WORLD_AREA_THEMES[getCurrentWorldAreaIndex()] || WORLD_AREA_THEMES[0];
+  document.body.dataset.worldTheme = theme;
+}
+
 function renderWorldMap() {
   const card = document.querySelector("[data-world-map-card]");
   const list = document.querySelector("[data-world-map-list]");
   const progress = document.querySelector("[data-world-map-progress]");
+  applyWorldTheme();
   if (!card || !list) {
     return;
   }
 
-  bossState = normalizeBossState(bossState);
+  const currentIndex = getCurrentWorldAreaIndex();
   const clearedCount = Math.max(0, Math.min(WORLD_AREAS.length, bossState.defeatedCount || 0));
-  const currentIndex = Math.min(clearedCount, WORLD_AREAS.length - 1);
   if (progress) {
     progress.textContent = `${currentIndex + 1} / ${WORLD_AREAS.length}`;
   }
@@ -6880,6 +6903,7 @@ function render() {
   renderHomeDailyMission();
   renderSummerEventCard();
   renderBossBattle();
+  applyWorldTheme();
   renderWorldMap();
   renderAppReminder();
   renderParentNote();
