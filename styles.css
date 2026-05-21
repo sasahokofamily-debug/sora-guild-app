@@ -45,6 +45,9 @@
   --asset-quest-card-background: url("assets/quest-card.png");
   --asset-bottom-nav-background: none;
   --asset-nav-item-background: none;
+  --world-theme-background: none;
+  --world-theme-dark-overlay:
+    linear-gradient(180deg, rgba(24, 15, 11, 0.3), rgba(18, 25, 38, 0.34));
   --world-theme-overlay:
     linear-gradient(180deg, rgba(39, 26, 22, 0.08), rgba(29, 43, 66, 0.1));
 }
@@ -67,13 +70,15 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
   color: var(--ink);
   background-image:
+    var(--world-theme-background),
     var(--asset-app-background),
     radial-gradient(circle at top left, rgba(241, 210, 122, 0.34), transparent 30rem),
     linear-gradient(145deg, #7a4a2c 0%, #51301f 42%, #1d2b42 100%);
-  background-position: center, center, center;
-  background-size: cover, cover, cover;
-  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-position: center, center, center, center;
+  background-size: cover, cover, cover, cover;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
   background-attachment: fixed;
+  transition: background-color 420ms ease;
 }
 
 body::before {
@@ -93,6 +98,7 @@ body::after {
   inset: 0;
   z-index: 0;
   background:
+    var(--world-theme-dark-overlay),
     var(--world-theme-overlay),
     radial-gradient(circle at 18% 19%, rgba(255, 178, 72, 0.34), rgba(241, 142, 52, 0.14) 9rem, transparent 20rem),
     radial-gradient(circle at 82% 20%, rgba(255, 192, 88, 0.3), rgba(241, 142, 52, 0.12) 8rem, transparent 19rem),
@@ -122,6 +128,9 @@ body.is-setup-open {
 }
 
 body[data-world-theme="village"] {
+  --world-theme-background: url("./assets/worlds/village-bg.webp");
+  --world-theme-dark-overlay:
+    linear-gradient(180deg, rgba(24, 35, 18, 0.28), rgba(31, 23, 16, 0.38));
   --world-theme-overlay:
     radial-gradient(circle at 22% 28%, rgba(112, 178, 82, 0.24), transparent 18rem),
     radial-gradient(circle at 76% 68%, rgba(241, 210, 122, 0.14), transparent 16rem),
@@ -130,6 +139,9 @@ body[data-world-theme="village"] {
 
 body[data-world-theme="mushroom"],
 body[data-world-theme="giant-forest"] {
+  --world-theme-background: url("./assets/worlds/mushroom-forest.webp");
+  --world-theme-dark-overlay:
+    linear-gradient(180deg, rgba(12, 35, 24, 0.34), rgba(24, 18, 28, 0.42));
   --world-theme-overlay:
     radial-gradient(circle at 20% 24%, rgba(58, 130, 78, 0.3), transparent 18rem),
     radial-gradient(circle at 78% 30%, rgba(128, 82, 145, 0.16), transparent 15rem),
@@ -137,6 +149,9 @@ body[data-world-theme="giant-forest"] {
 }
 
 body[data-world-theme="ice"] {
+  --world-theme-background: url("./assets/worlds/ice-cave.webp");
+  --world-theme-dark-overlay:
+    linear-gradient(180deg, rgba(12, 30, 44, 0.32), rgba(22, 28, 42, 0.4));
   --world-theme-overlay:
     radial-gradient(circle at 28% 22%, rgba(178, 231, 255, 0.32), transparent 17rem),
     radial-gradient(circle at 72% 58%, rgba(126, 176, 220, 0.18), transparent 16rem),
