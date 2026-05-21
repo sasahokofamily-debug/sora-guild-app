@@ -4909,10 +4909,10 @@ h3 {
   display: inline-flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 5px;
+  gap: 7px;
   min-width: 0;
   color: var(--navy);
-  font-size: clamp(2.05rem, 10vw, 3rem);
+  font-size: clamp(1.72rem, 8.1vw, 2.55rem);
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -4928,13 +4928,21 @@ h3 {
   line-height: 1;
 }
 
+.growth-summary-grid strong > span:not(.growth-unit)[data-number-size="compact"] {
+  font-size: 0.78em !important;
+}
+
+.growth-summary-grid strong > span:not(.growth-unit)[data-number-size="tiny"] {
+  font-size: 0.66em !important;
+}
+
 .growth-summary-grid .growth-unit {
   flex: 0 0 auto;
   color: var(--navy);
-  font-size: 0.36em;
+  font-size: 0.34em;
   font-weight: 900;
   line-height: 1;
-  margin-bottom: 0.14em;
+  margin-bottom: 0.16em;
 }
 
 .ability-grid {
