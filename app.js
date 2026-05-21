@@ -5562,6 +5562,7 @@ function renderBossBattle() {
   if (image) {
     image.alt = `${getBossDisplayName(boss)}の姿`;
     image.onerror = () => {
+      console.warn("仲間画像を読み込めませんでした:", boss.image);
       image.hidden = true;
       if (fallback) {
         fallback.hidden = false;
@@ -6759,7 +6760,7 @@ function renderAllyCollection() {
     item.className = `ally-card${unlocked ? " is-unlocked" : " is-locked"}`;
     item.innerHTML = `
       <div class="ally-card-image" aria-hidden="true">
-        <img src="${escapeHtml(ally.image)}" alt="" loading="lazy" onerror="this.hidden=true">
+        <img src="${escapeHtml(ally.image)}" alt="" loading="lazy" onerror="console.warn('仲間図鑑画像を読み込めませんでした:', this.getAttribute('src')); this.hidden=true">
         <span>${unlocked ? escapeHtml((ally.name || "?").slice(0, 1)) : "???"}</span>
       </div>
       <div class="ally-card-copy">

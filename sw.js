@@ -1,4 +1,4 @@
-const CACHE_NAME = "sora-quest-pwa-v9";
+const CACHE_NAME = "sora-quest-pwa-v10";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -19,7 +19,16 @@ const APP_SHELL = [
   "./assets/icons/nav-reward.png",
   "./assets/icons/nav-guild.png",
   "./assets/characters/str-stage-1.png",
-  "./assets/bosses/boss-1-slime-king.png"
+  "./assets/bosses/boss-1-slime-king.png",
+  "./assets/bosses/boss-2-goblin-trickster.png",
+  "./assets/bosses/boss-3-mushroom-mage.png",
+  "./assets/bosses/boss-4-frost-bat.png",
+  "./assets/bosses/boss-5-desert-scorpion.png",
+  "./assets/bosses/boss-6-forest-troll.png",
+  "./assets/bosses/boss-7-baby-dragon.png",
+  "./assets/bosses/boss-8-iron-golem.png",
+  "./assets/bosses/boss-9-ancient-guardian.png",
+  "./assets/bosses/boss-10-dark-lord.png"
 ];
 
 self.addEventListener("install", (event) => {
