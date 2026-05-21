@@ -78,7 +78,11 @@ body {
   background-size: cover, cover, cover, cover;
   background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
   background-attachment: fixed;
-  transition: background-color 420ms ease;
+  transition: background-color 420ms ease, filter 420ms ease;
+}
+
+body.is-world-theme-changing {
+  animation: worldThemeFade 480ms ease;
 }
 
 body::before {
@@ -127,7 +131,8 @@ body.is-setup-open {
   overflow: hidden;
 }
 
-body[data-world-theme="village"] {
+body[data-world-theme="village"],
+body.world-theme-village {
   --world-theme-background: url("./assets/worlds/village-bg.png");
   --world-theme-dark-overlay:
     linear-gradient(180deg, rgba(24, 35, 18, 0.28), rgba(31, 23, 16, 0.38));
@@ -138,7 +143,9 @@ body[data-world-theme="village"] {
 }
 
 body[data-world-theme="mushroom"],
-body[data-world-theme="giant-forest"] {
+body[data-world-theme="giant-forest"],
+body.world-theme-mushroom,
+body.world-theme-giant-forest {
   --world-theme-background: url("./assets/worlds/mushroom-forest.png");
   --world-theme-dark-overlay:
     linear-gradient(180deg, rgba(12, 35, 24, 0.34), rgba(24, 18, 28, 0.42));
@@ -148,7 +155,8 @@ body[data-world-theme="giant-forest"] {
     linear-gradient(180deg, rgba(18, 64, 44, 0.26), rgba(30, 38, 28, 0.22));
 }
 
-body[data-world-theme="ice"] {
+body[data-world-theme="ice"],
+body.world-theme-ice {
   --world-theme-background: url("./assets/worlds/ice-cave.png");
   --world-theme-dark-overlay:
     linear-gradient(180deg, rgba(12, 30, 44, 0.32), rgba(22, 28, 42, 0.4));
@@ -227,6 +235,16 @@ button {
     opacity: 0.86;
     filter: brightness(1.03) saturate(1.03);
     transform: scale(1.02) translateY(1px);
+  }
+}
+
+@keyframes worldThemeFade {
+  0% {
+    filter: brightness(0.92) saturate(0.96);
+  }
+
+  100% {
+    filter: brightness(1) saturate(1);
   }
 }
 

@@ -5596,8 +5596,22 @@ function getCurrentWorldAreaIndex() {
 }
 
 function applyWorldTheme() {
-  const theme = WORLD_AREA_THEMES[getCurrentWorldAreaIndex()] || WORLD_AREA_THEMES[0];
+  const currentIndex = getCurrentWorldAreaIndex();
+  const theme = WORLD_AREA_THEMES[currentIndex] || WORLD_AREA_THEMES[0];
+  const areaName = WORLD_AREAS[currentIndex] || WORLD_AREAS[0];
+  const previousTheme = document.body.dataset.worldTheme;
   document.body.dataset.worldTheme = theme;
+  WORLD_AREA_THEMES.forEach((themeName) => {
+    document.body.classList.remove(`world-theme-${themeName}`);
+  });
+  document.body.classList.add(`world-theme-${theme}`);
+  if (previousTheme !== theme) {
+    document.body.classList.add("is-world-theme-changing");
+    window.setTimeout(() => {
+      document.body.classList.remove("is-world-theme-changing");
+    }, 480);
+    console.log("ワールド背景テーマ:", areaName, theme);
+  }
 }
 
 function renderWorldMap() {
