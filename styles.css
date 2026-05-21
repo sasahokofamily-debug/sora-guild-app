@@ -1902,6 +1902,8 @@ h3 {
 }
 
 .world-map-card {
+  position: relative;
+  isolation: isolate;
   display: grid;
   gap: 12px;
   width: 100%;
@@ -1909,8 +1911,34 @@ h3 {
   box-sizing: border-box;
   margin-top: 16px;
   padding: 15px;
+  border: 1px solid var(--paper-border);
+  border-radius: 14px;
   color: var(--muted);
-  overflow-x: hidden;
+  background-color: #f1dfba;
+  background-image: var(--parchment-card-bg) !important;
+  background-position: center, center, center, center, center, center, center, center, center, center !important;
+  background-size: cover, auto, auto, auto, auto, auto, auto, auto, auto, auto !important;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, no-repeat !important;
+  box-shadow:
+    var(--parchment-card-shadow),
+    0 10px 22px rgba(23, 12, 9, 0.18);
+  overflow: hidden;
+}
+
+.world-map-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: var(--paper-overlay);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.world-map-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .world-map-head {
