@@ -4615,6 +4615,16 @@ function getQuestBulkEditTargetLabel(target) {
   }[target] || "対象クエスト";
 }
 
+function getQuestBulkEditFields(field) {
+  if (field === "both") {
+    return ["goldReward", "xpReward"];
+  }
+  if (field === "xp") {
+    return ["xpReward"];
+  }
+  return ["goldReward"];
+}
+
 function getQuestBulkEditFieldLabel(field) {
   return field === "xpReward" ? "XP" : "Gold";
 }
@@ -4655,10 +4665,29 @@ function calculateQuestBulkEditValue(currentValue, operation, value) {
 
 function renderQuestBulkEditControls() {
   const undoButton = document.querySelector("[data-quest-bulk-undo]");
-  if (!undoButton) {
+  const form = document.querySelector("[data-quest-bulk-edit-form]");
+  if (undoButton) {
+    undoButton.hidden = localStorage.getItem(QUEST_BULK_EDIT_BACKUP_KEY) === null;
+  }
+  updateQuestBulkEditValueInputs(form);
+}
+
+function updateQuestBulkEditValueInputs(form) {
+  if (!form) {
     return;
   }
-  undoButton.hidden = localStorage.getItem(QUEST_BULK_EDIT_BACKUP_KEY) === null;
+  const selectedField = String(form.elements.field?.value || "gold");
+  const visibleFields = new Set(getQuestBulkEditFields(selectedField));
+  form.querySelectorAll("[data-quest-bulk-value-field]").forEach((label) => {
+    const valueField = label.dataset.questBulkValueField === "xp" ? "xpReward" : "goldReward";
+    label.hidden = !visibleFields.has(valueField);
+  });
+}
+
+function getQuestBulkEditValueForField(formData, field) {
+  const key = field === "xpReward" ? "xpValue" : "goldValue";
+  const value = Number(formData.get(key));
+  return Number.isFinite(value) ? value : NaN;
 }
 
 function handleQuestBulkEditSubmit(event) {
@@ -4671,11 +4700,15 @@ function handleQuestBulkEditSubmit(event) {
   const form = event.currentTarget;
   const formData = new FormData(form);
   const target = String(formData.get("target") || "all");
-  const field = String(formData.get("field") || "goldReward");
+  const selectedField = String(formData.get("field") || "gold");
+  const fields = getQuestBulkEditFields(selectedField);
   const operation = String(formData.get("operation") || "add");
-  const value = Number(formData.get("value"));
+  const editPlans = fields.map((field) => ({
+    field,
+    value: getQuestBulkEditValueForField(formData, field),
+  }));
 
-  if (!["xpReward", "goldReward"].includes(field) || !Number.isFinite(value) || value < 0) {
+  if (editPlans.some((plan) => !Number.isFinite(plan.value) || plan.value < 0)) {
     setQuestBulkEditMessage("0以上の数値を入力してください", true);
     return;
   }
@@ -4687,9 +4720,11 @@ function handleQuestBulkEditSubmit(event) {
     return;
   }
 
-  const fieldLabel = getQuestBulkEditFieldLabel(field);
+  const editText = editPlans
+    .map((plan) => `${getQuestBulkEditFieldLabel(plan.field)}を${getQuestBulkEditOperationLabel(operation, plan.value)}`)
+    .join("、");
   const confirmed = window.confirm(
-    `${targetCount}件の${getQuestBulkEditTargetLabel(target)}の${fieldLabel}を${getQuestBulkEditOperationLabel(operation, value)}。よろしいですか？`,
+    `${targetCount}件の${getQuestBulkEditTargetLabel(target)}の${editText}。よろしいですか？`,
   );
   if (!confirmed) {
     return;
@@ -4702,7 +4737,9 @@ function handleQuestBulkEditSubmit(event) {
     }
     return {
       ...quest,
-      [field]: calculateQuestBulkEditValue(quest[field], operation, value),
+      ...Object.fromEntries(
+        editPlans.map((plan) => [plan.field, calculateQuestBulkEditValue(quest[plan.field], operation, plan.value)]),
+      ),
     };
   });
 
@@ -7166,6 +7203,11 @@ document.addEventListener("click", (event) => {
 document.addEventListener("change", (event) => {
   if (event.target.matches('[name="frequency"]')) {
     updateWeekdayPicker(event.target.closest("form"));
+    return;
+  }
+
+  if (event.target.matches('[data-quest-bulk-edit-form] [name="field"]')) {
+    updateQuestBulkEditValueInputs(event.target.closest("form"));
     return;
   }
 

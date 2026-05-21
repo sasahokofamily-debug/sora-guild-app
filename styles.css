@@ -6292,6 +6292,10 @@ h3 {
   gap: 10px;
 }
 
+.quest-bulk-edit-form [hidden] {
+  display: none;
+}
+
 .quest-bulk-edit-actions {
   display: grid;
   gap: 8px;

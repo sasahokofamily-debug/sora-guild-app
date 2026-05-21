@@ -887,8 +887,9 @@
               <label>
                 項目
                 <select name="field">
-                  <option value="goldReward">Gold</option>
-                  <option value="xpReward">XP</option>
+                  <option value="gold">Goldのみ</option>
+                  <option value="xp">XPのみ</option>
+                  <option value="both">GoldとXPの両方</option>
                 </select>
               </label>
               <label>
@@ -901,9 +902,13 @@
                   <option value="set">固定値にそろえる</option>
                 </select>
               </label>
-              <label>
-                値
-                <input type="number" name="value" inputmode="numeric" min="0" max="999" placeholder="例：20" required>
+              <label data-quest-bulk-value-field="gold">
+                Goldの値
+                <input type="number" name="goldValue" inputmode="numeric" min="0" max="999" placeholder="例：20">
+              </label>
+              <label data-quest-bulk-value-field="xp">
+                XPの値
+                <input type="number" name="xpValue" inputmode="numeric" min="0" max="999" placeholder="例：10">
               </label>
               <div class="quest-bulk-edit-actions">
                 <button class="quest-manage-button" type="submit">一括編集を実行</button>
