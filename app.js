@@ -2116,8 +2116,8 @@ function getDailyRequiredQuestSummary() {
 
 function formatBonusRewardText(xp, gold) {
   return [
-    xp > 0 ? `XP +${xp}` : "",
-    gold > 0 ? `Gold +${gold}` : "",
+    xp > 0 ? `XP +${formatNumber(xp)}` : "",
+    gold > 0 ? `Gold +${formatNumber(gold)}` : "",
   ].filter(Boolean).join(" / ");
 }
 
@@ -2597,8 +2597,8 @@ function getEstimatedQuestCountToLevel(xp) {
 
 function renderQuestRewardBadges(quest) {
   return `
-    <span class="reward-badge">XP +${quest.xpReward}</span>
-    ${quest.goldReward > 0 ? `<span class="reward-badge">Gold +${quest.goldReward}</span>` : ""}
+    <span class="reward-badge">XP +${formatNumber(quest.xpReward)}</span>
+    ${quest.goldReward > 0 ? `<span class="reward-badge">Gold +${formatNumber(quest.goldReward)}</span>` : ""}
     <span class="stat-reward-badge stat-${quest.stat}">${getStatLabel(quest.stat)} +1</span>
   `;
 }
@@ -4900,8 +4900,8 @@ function renderQuestManager() {
           </div>
           <p>${escapeHtml(quest.description)}</p>
           <div class="managed-meta-grid" aria-label="クエスト設定">
-            <span><small>XP</small><strong>${quest.xpReward}</strong></span>
-            <span><small>Gold</small><strong>${quest.goldReward}</strong></span>
+            <span><small>XP</small><strong>${formatNumber(quest.xpReward)}</strong></span>
+            <span><small>Gold</small><strong>${formatNumber(quest.goldReward)}</strong></span>
             <span><small>能力</small><strong>${getStatLabel(quest.stat)}</strong></span>
           </div>
           <div class="reward-row">
@@ -5055,7 +5055,7 @@ function renderRewardShop() {
     return;
   }
 
-  setText("[data-reward-shop-gold]", `所持Gold：${progress.gold}G`);
+  setText("[data-reward-shop-gold]", `所持Gold：${formatNumber(progress.gold)}G`);
   list.innerHTML = "";
 
   if (rewards.length === 0) {
@@ -5087,8 +5087,8 @@ function renderRewardShop() {
         <h4>${escapeHtml(reward.name)}</h4>
         <p class="reward-description">${escapeHtml(description)}</p>
         <div class="reward-cost-row">
-          <p class="reward-cost"><strong>${reward.cost}</strong><span>Gold</span></p>
-          <p class="reward-note">${canExchange ? "今すぐ交換できます" : `あと${remainingGold}Gold`}</p>
+          <p class="reward-cost"><strong data-number-size="${reward.cost >= 10000 ? "tiny" : reward.cost >= 1000 ? "compact" : ""}">${formatNumber(reward.cost)}</strong><span>Gold</span></p>
+          <p class="reward-note">${canExchange ? "今すぐ交換できます" : `あと${formatNumber(remainingGold)}Gold`}</p>
         </div>
       </div>
       <button type="button" data-exchange-reward="${escapeHtml(reward.id)}" ${canExchange ? "" : "disabled"}>${canExchange ? "交換する" : "Gold不足"}</button>
@@ -5139,10 +5139,10 @@ function renderRewardManager() {
         <div class="managed-quest-copy">
           <div class="managed-quest-title-row">
             <h4>${escapeHtml(reward.name)}</h4>
-            <span class="reward-badge">${reward.cost}G</span>
+            <span class="reward-badge">${formatNumber(reward.cost)}G</span>
           </div>
           <div class="managed-meta-grid managed-reward-meta" aria-label="ご褒美設定">
-            <span><small>必要Gold</small><strong>${reward.cost}</strong></span>
+            <span><small>必要Gold</small><strong>${formatNumber(reward.cost)}</strong></span>
           </div>
         </div>
         <div class="managed-quest-actions">
@@ -5550,9 +5550,9 @@ function renderBossBattle() {
   const fallback = document.querySelector("[data-boss-fallback]");
 
   setText("[data-boss-name]", getBossDisplayName(boss));
-  setText("[data-boss-hp]", `${bossState.currentHp} / ${boss.maxHp}`);
+  setText("[data-boss-hp]", `${formatNumber(bossState.currentHp)} / ${formatNumber(boss.maxHp)}`);
   setText("[data-boss-attack]", `なかよし力 ${getPlayerAttackDamage()}`);
-  setText("[data-boss-reward]", `仲間ボーナス XP +${boss.rewardXp} / Gold +${boss.rewardGold}`);
+  setText("[data-boss-reward]", `仲間ボーナス XP +${formatNumber(boss.rewardXp)} / Gold +${formatNumber(boss.rewardGold)}`);
   setText("[data-boss-defeated-count]", `仲間 ${bossState.defeatedCount}体`);
   const hpBar = document.querySelector("[data-boss-hp-bar]");
   if (hpBar) {
@@ -5953,7 +5953,7 @@ function renderTodayQuests() {
         </div>
         <p>${escapeHtml(quest.description)}</p>
       </div>
-      <span>${completed ? "済" : `+${quest.xpReward}XP`}</span>
+      <span>${completed ? "済" : `+${formatNumber(quest.xpReward)}XP`}</span>
     `;
 
     list.append(item);
@@ -5963,7 +5963,41 @@ function renderTodayQuests() {
 function setText(selector, value) {
   document.querySelectorAll(selector).forEach((element) => {
     element.textContent = value;
+    updateNumberFit(element, value);
   });
+}
+
+function formatNumber(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    return String(value ?? "");
+  }
+  const sign = number < 0 ? "-" : "";
+  const absolute = Math.abs(number);
+  if (absolute >= 1000000) {
+    return `${sign}${trimNumber(absolute / 1000000)}M`;
+  }
+  if (absolute >= 1000) {
+    return `${sign}${trimNumber(absolute / 1000)}K`;
+  }
+  return `${Math.round(number)}`;
+}
+
+function trimNumber(value) {
+  const rounded = value >= 100 ? Math.round(value) : Math.round(value * 10) / 10;
+  return String(rounded).replace(/\.0$/, "");
+}
+
+function updateNumberFit(element, value) {
+  const digitGroups = String(value ?? "").match(/\d+/g) || [];
+  const maxDigits = digitGroups.reduce((max, group) => Math.max(max, group.length), 0);
+  if (maxDigits >= 5) {
+    element.dataset.numberSize = "tiny";
+  } else if (maxDigits >= 4) {
+    element.dataset.numberSize = "compact";
+  } else {
+    delete element.dataset.numberSize;
+  }
 }
 
 function renderXpBar() {
@@ -5973,8 +6007,11 @@ function renderXpBar() {
   const xpNext = document.querySelector("[data-xp-next]");
 
   xpFill.style.width = `${levelInfo.progressPercent}%`;
-  xpProgress.textContent = progress.xp === 0 ? "はじまりの一歩" : `Lv${levelInfo.level} / ${levelInfo.progressXp}XP進行中`;
-  xpNext.textContent = `次のLvまで あと${levelInfo.xpToNext}XP`;
+  xpProgress.textContent =
+    progress.xp === 0 ? "はじまりの一歩" : `Lv${levelInfo.level} / ${formatNumber(levelInfo.progressXp)}XP進行中`;
+  xpNext.textContent = `次のLvまで あと${formatNumber(levelInfo.xpToNext)}XP`;
+  updateNumberFit(xpProgress, levelInfo.progressXp);
+  updateNumberFit(xpNext, levelInfo.xpToNext);
 }
 
 function renderCharacter(level) {
@@ -6208,7 +6245,7 @@ function showRewardFeedback(quest) {
     return;
   }
 
-  const rewardText = `XP +${quest.xpReward}${quest.goldReward > 0 ? ` / Gold +${quest.goldReward}` : ""}`;
+  const rewardText = `XP +${formatNumber(quest.xpReward)}${quest.goldReward > 0 ? ` / Gold +${formatNumber(quest.goldReward)}` : ""}`;
   const message =
     quest.category === "challenge"
       ? `追加依頼達成！ ボーナス獲得！ ${rewardText}`
@@ -6260,7 +6297,7 @@ function showAppReminderToast() {
   }
 
   enqueueToast(toast, {
-    message: `今日の任務が${summary.remainingCount}つ残っています`,
+    message: `今日の任務が${formatNumber(summary.remainingCount)}つ残っています`,
     timerName: "appReminder",
   });
 }
@@ -6286,8 +6323,8 @@ function appendGainBadges(layer, quest) {
   layer.innerHTML = "";
 
   [
-    { label: `+${quest.xpReward}XP`, type: "xp" },
-    quest.goldReward > 0 ? { label: `+${quest.goldReward}G`, type: "gold" } : null,
+    { label: `+${formatNumber(quest.xpReward)}XP`, type: "xp" },
+    quest.goldReward > 0 ? { label: `+${formatNumber(quest.goldReward)}G`, type: "gold" } : null,
   ].filter(Boolean).forEach((gain, index) => {
     const badge = document.createElement("span");
     badge.className = `gain-float gain-float-${gain.type}`;
@@ -6378,8 +6415,8 @@ function showBossDefeatRewardPanel(result) {
     return;
   }
 
-  setText("[data-boss-reward-xp]", `XP +${result.rewardXp || 0}`);
-  setText("[data-boss-reward-gold]", `Gold +${result.rewardGold || 0}`);
+  setText("[data-boss-reward-xp]", `XP +${formatNumber(result.rewardXp || 0)}`);
+  setText("[data-boss-reward-gold]", `Gold +${formatNumber(result.rewardGold || 0)}`);
   panel.hidden = false;
   panel.classList.remove("is-visible");
   void panel.offsetWidth;
@@ -6478,22 +6515,22 @@ function renderGrowthRecord(level, title) {
   const estimatedCount = getEstimatedQuestCountToLevel(progress.xp);
   const subTitle = getSubTitle(progress.stats);
 
-  setText("[data-today-completed]", todayGrowth.completed);
-  setText("[data-today-xp]", todayGrowth.xp);
-  setText("[data-today-gold]", todayGrowth.gold);
-  setText("[data-weekly-completed]", weeklyReport.completed);
-  setText("[data-weekly-xp]", weeklyReport.xp);
-  setText("[data-weekly-gold]", weeklyReport.gold);
+  setText("[data-today-completed]", formatNumber(todayGrowth.completed));
+  setText("[data-today-xp]", formatNumber(todayGrowth.xp));
+  setText("[data-today-gold]", formatNumber(todayGrowth.gold));
+  setText("[data-weekly-completed]", formatNumber(weeklyReport.completed));
+  setText("[data-weekly-xp]", formatNumber(weeklyReport.xp));
+  setText("[data-weekly-gold]", formatNumber(weeklyReport.gold));
   setText("[data-weekly-stat-growth]", formatWeeklyStatGrowth(weeklyReport.stats));
-  setText("[data-weekly-login-streak]", `${progress.loginStreak || 0}日`);
+  setText("[data-weekly-login-streak]", `${formatNumber(progress.loginStreak || 0)}日`);
   const weeklyEmpty = document.querySelector("[data-weekly-empty]");
   if (weeklyEmpty) {
     weeklyEmpty.hidden = weeklyReport.completed > 0;
   }
-  setText("[data-record-streak-current]", progress.streak.current);
-  setText("[data-record-streak-best]", progress.streak.best);
-  setText("[data-goal-xp]", `あと${xpToNext}XP`);
-  setText("[data-goal-count]", `あと${estimatedCount}回くらいでレベルアップ`);
+  setText("[data-record-streak-current]", formatNumber(progress.streak.current));
+  setText("[data-record-streak-best]", formatNumber(progress.streak.best));
+  setText("[data-goal-xp]", `あと${formatNumber(xpToNext)}XP`);
+  setText("[data-goal-count]", `あと${formatNumber(estimatedCount)}回くらいでレベルアップ`);
   setText("[data-current-title-record]", title.name);
   setText("[data-previous-title-record]", getPreviousTitleForRecord(level));
   setText("[data-record-sub-title]", subTitle.name);
@@ -6527,7 +6564,7 @@ function renderActivityLog() {
         <strong>${escapeHtml(logItem.questTitle)}</strong>
         <span>${dateLabel}</span>
       </div>
-      <span>+${logItem.xpReward}XP</span>
+      <span>+${formatNumber(logItem.xpReward)}XP</span>
     `;
     list.append(item);
   });
@@ -6889,22 +6926,22 @@ function render() {
     window.setTimeout(() => titleBlock?.classList.remove("is-title-changing"), 760);
   }
   currentTitleName = title.name;
-  setText("[data-level]", level);
-  setText("[data-xp]", progress.xp);
-  setText("[data-gold]", progress.gold);
-  setText("[data-streak-current]", `${progress.streak.current}日`);
-  setText("[data-streak-best]", `${progress.streak.best}日`);
-  setText("[data-login-streak]", `${progress.loginStreak}日`);
-  setText("[data-record-level]", level);
-  setText("[data-record-xp]", progress.xp);
-  setText("[data-record-gold]", progress.gold);
-  setText("[data-record-completed]", progress.completedQuestIds.length);
+  setText("[data-level]", formatNumber(level));
+  setText("[data-xp]", formatNumber(progress.xp));
+  setText("[data-gold]", formatNumber(progress.gold));
+  setText("[data-streak-current]", `${formatNumber(progress.streak.current)}日`);
+  setText("[data-streak-best]", `${formatNumber(progress.streak.best)}日`);
+  setText("[data-login-streak]", `${formatNumber(progress.loginStreak)}日`);
+  setText("[data-record-level]", formatNumber(level));
+  setText("[data-record-xp]", formatNumber(progress.xp));
+  setText("[data-record-gold]", formatNumber(progress.gold));
+  setText("[data-record-completed]", formatNumber(progress.completedQuestIds.length));
   setText("[data-notify-url-label]", formatAdminUrlStatus(NOTIFY_URL));
   setText("[data-weekly-report-url-label]", formatAdminUrlStatus(WEEKLY_REPORT_GAS_URL));
-  setText("[data-stat-str]", progress.stats.STR);
-  setText("[data-stat-int]", progress.stats.INT);
-  setText("[data-stat-end]", progress.stats.END);
-  setText("[data-stat-dex]", progress.stats.DEX);
+  setText("[data-stat-str]", formatNumber(progress.stats.STR));
+  setText("[data-stat-int]", formatNumber(progress.stats.INT));
+  setText("[data-stat-end]", formatNumber(progress.stats.END));
+  setText("[data-stat-dex]", formatNumber(progress.stats.DEX));
   document.querySelectorAll("[data-stat-card]").forEach((card) => {
     card.classList.toggle("is-strongest", card.dataset.statCard === subTitle.strongestStat);
   });

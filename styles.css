@@ -1343,6 +1343,41 @@ h3 {
   line-height: 1;
 }
 
+.stat-card strong,
+.stat-card strong span,
+.record-row strong,
+.record-row strong span,
+.growth-summary-grid strong,
+.growth-summary-grid strong span,
+.ability-card > strong,
+.boss-hp-row strong,
+.reward-cost strong,
+.managed-meta-grid strong,
+.reward-badge,
+.stat-reward-badge,
+.today-quest-item > span,
+.activity-log-item > span {
+  max-width: 100%;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.stat-card strong,
+.record-row strong,
+.growth-summary-grid strong,
+.ability-card > strong {
+  width: 100%;
+}
+
+[data-number-size="compact"] {
+  font-size: 0.82em !important;
+}
+
+[data-number-size="tiny"] {
+  font-size: 0.7em !important;
+}
+
 .streak-panel {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
