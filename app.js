@@ -5582,6 +5582,9 @@ function renderBossBattle() {
       if (fallback) {
         fallback.hidden = true;
       }
+    } else if (image.hidden) {
+      image.hidden = false;
+      image.src = boss.image;
     }
   }
 }
@@ -6760,7 +6763,7 @@ function renderAllyCollection() {
     item.className = `ally-card${unlocked ? " is-unlocked" : " is-locked"}`;
     item.innerHTML = `
       <div class="ally-card-image" aria-hidden="true">
-        <img src="${escapeHtml(ally.image)}" alt="" loading="lazy" onerror="console.warn('仲間図鑑画像を読み込めませんでした:', this.getAttribute('src')); this.hidden=true">
+        <img src="${escapeHtml(ally.image)}" alt="" loading="lazy" onload="this.hidden=false; this.parentElement.classList.remove('is-image-missing')" onerror="console.warn('仲間図鑑画像を読み込めませんでした:', this.getAttribute('src')); this.hidden=true; this.parentElement.classList.add('is-image-missing')">
         <span>${unlocked ? escapeHtml((ally.name || "?").slice(0, 1)) : "???"}</span>
       </div>
       <div class="ally-card-copy">
