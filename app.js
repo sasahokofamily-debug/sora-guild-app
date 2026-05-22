@@ -3574,7 +3574,7 @@ function completeQuest(questId, sourceElement) {
   }
 
   if (getLevel(progress.xp) > previousLevel) {
-    playLevelUpAnimation();
+    playLevelUpAnimation(previousLevel, finalLevel);
   }
 
   if (shouldPlayEvolution) {
@@ -4352,7 +4352,7 @@ function devLevelUp() {
   saveProgress();
   render();
   queueXpChangeAnimation(previousLevelProgress);
-  playLevelUpAnimation();
+  playLevelUpAnimation(previousLevel, nextLevel);
 
   if (shouldPlayEvolution) {
     playEvolutionAnimation();
@@ -6093,9 +6093,21 @@ function queueXpChangeAnimation(previousLevelProgress) {
   pendingXpAnimationStart = previousLevelProgress;
 }
 
-function playLevelUpAnimation() {
+function closeLevelUpModal() {
+  const modal = document.querySelector("[data-level-up-modal]");
+  if (!modal) {
+    return;
+  }
+
+  modal.classList.remove("is-visible");
+  modal.hidden = true;
+}
+
+function playLevelUpAnimation(previousLevel = getLevel(progress.xp) - 1, finalLevel = getLevel(progress.xp)) {
   const levelPanel = document.querySelector("[data-level-panel]");
   const levelUpToast = document.querySelector("[data-level-up-toast]");
+  const levelUpModal = document.querySelector("[data-level-up-modal]");
+  const levelUpRange = document.querySelector("[data-level-up-modal-range]");
   const characterFrame = document.querySelector(".character-frame");
   const characterImage = document.querySelector("[data-character-image]");
   if (!levelPanel || !levelUpToast) {
@@ -6113,7 +6125,18 @@ function playLevelUpAnimation() {
   if (characterImage && characterImage.dataset.evolutionPending !== "true") {
     characterImage.classList.add("is-level-up");
   }
-  enqueueToast(levelUpToast);
+  levelUpToast.classList.remove("is-visible");
+  if (levelUpRange) {
+    levelUpRange.textContent = `Lv.${formatNumber(previousLevel)} → Lv.${formatNumber(finalLevel)}`;
+  }
+  if (levelUpModal) {
+    levelUpModal.hidden = false;
+    levelUpModal.classList.remove("is-visible");
+    void levelUpModal.offsetWidth;
+    levelUpModal.classList.add("is-visible");
+  } else {
+    enqueueToast(levelUpToast);
+  }
   window.setTimeout(() => playSound("levelUp"), LEVEL_UP_SOUND_DELAY);
 
   window.clearTimeout(levelUpTimer);
@@ -7075,6 +7098,18 @@ document.addEventListener("click", (event) => {
   const worldAreaUnlockClose = event.target.closest("[data-world-area-unlock-close]");
   if (worldAreaUnlockClose) {
     closeWorldAreaUnlockModal();
+    return;
+  }
+
+  const levelUpModalClose = event.target.closest("[data-level-up-modal-close]");
+  if (levelUpModalClose) {
+    closeLevelUpModal();
+    return;
+  }
+
+  const levelUpModalBackdrop = event.target.closest("[data-level-up-modal]");
+  if (levelUpModalBackdrop && event.target === levelUpModalBackdrop) {
+    closeLevelUpModal();
     return;
   }
 
