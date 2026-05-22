@@ -58,15 +58,18 @@
 
 html {
   min-height: 100%;
+  overflow-x: hidden;
   background: #51301f;
 }
 
 body {
   display: flex;
   justify-content: center;
+  width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0;
+  overflow-x: hidden;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
   color: var(--ink);
   background-image:
@@ -79,6 +82,13 @@ body {
   background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
   background-attachment: fixed;
   transition: background-color 420ms ease, filter 420ms ease;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
 }
 
 body.is-world-theme-changing {
@@ -7059,6 +7069,44 @@ h3 {
 }
 
 @media (max-width: 679px) {
+  .app-shell {
+    width: 100%;
+    max-width: var(--app-content-width);
+    padding-right: clamp(12px, 4vw, 16px);
+    padding-bottom: calc(132px + env(safe-area-inset-bottom));
+    padding-left: clamp(12px, 4vw, 16px);
+  }
+
+  .screen,
+  .screen-stack,
+  #home,
+  #quests,
+  #growth,
+  #rewards,
+  #admin,
+  .panel,
+  .xp-panel,
+  .stat-card,
+  .growth-panel,
+  .quest-card,
+  .reward-shop-item,
+  .admin-section,
+  .future-form,
+  .boss-card,
+  .world-map-card {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .stat-grid,
+  .record-list,
+  .growth-summary-grid,
+  .quest-category-progress,
+  .managed-meta-grid,
+  .reward-input-grid {
+    min-width: 0;
+  }
+
   .world-map-card {
     gap: 10px;
     padding: 12px;
@@ -7135,8 +7183,24 @@ h3 {
     padding: 10px;
   }
 
+  .admin-section-heading {
+    align-items: flex-start;
+  }
+
+  .admin-section-heading > div {
+    min-width: 0;
+  }
+
   .admin-section-heading h3 {
     font-size: 1rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-section-toggle {
+    min-width: 56px;
+    padding-right: 10px;
+    padding-left: 10px;
   }
 
   .future-form {
@@ -7158,8 +7222,14 @@ h3 {
     font-size: 0.95rem;
   }
 
+  .future-form .setting-check {
+    align-items: flex-start;
+    line-height: 1.45;
+  }
+
   .reward-input-grid,
   .backup-actions,
+  .quest-bulk-edit-actions,
   .managed-quest-actions {
     grid-template-columns: 1fr;
   }
@@ -7178,6 +7248,9 @@ h3 {
 
   .notification-setting-list strong {
     justify-self: start;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .weekday-options {
@@ -7219,12 +7292,148 @@ h3 {
   #home .boss-meta {
     justify-content: center;
   }
+
+  .quest-category-tabs {
+    gap: 6px;
+  }
+
+  .quest-category-tabs button {
+    min-width: 0;
+    padding-right: 6px;
+    padding-left: 6px;
+    font-size: 0.84rem;
+    line-height: 1.2;
+  }
+
+  .quest-category-progress {
+    gap: 8px;
+  }
+
+  .quest-category-progress article {
+    min-width: 0;
+    padding: 10px 8px;
+  }
+
+  .quest-card {
+    padding: 14px 12px;
+  }
+
+  .quest-title-badges,
+  .reward-row {
+    gap: 5px;
+  }
+
+  .reward-badge,
+  .stat-reward-badge,
+  .status-badge,
+  .quest-type-badge,
+  .quest-category-badge,
+  .quest-bonus-badge,
+  .quest-frequency-badge,
+  .quest-priority-badge {
+    min-height: 26px;
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    line-height: 1.15;
+  }
+
+  .record-list {
+    gap: 8px;
+  }
+
+  .record-row {
+    min-width: 0;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .record-row strong {
+    width: 100%;
+    gap: 4px;
+    font-size: clamp(1.7rem, 8vw, 2.25rem);
+    white-space: nowrap;
+  }
+
+  .record-row strong .record-unit {
+    flex: 0 0 auto;
+    font-size: 0.36em;
+  }
+
+  .growth-summary-grid {
+    gap: 8px;
+  }
+
+  .growth-summary-grid article {
+    min-height: 92px;
+    padding: 12px 6px 14px;
+  }
+
+  .growth-summary-grid span,
+  .title-history-list span {
+    font-size: 0.64rem;
+    line-height: 1.25;
+  }
+
+  .growth-summary-grid strong {
+    width: 100%;
+    gap: 4px;
+    font-size: clamp(1.42rem, 7.2vw, 2rem);
+    letter-spacing: 0;
+  }
+
+  .growth-summary-grid strong > span:not(.growth-unit) {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .growth-summary-grid strong > span:not(.growth-unit)[data-number-size="compact"] {
+    font-size: 0.72em !important;
+  }
+
+  .growth-summary-grid strong > span:not(.growth-unit)[data-number-size="tiny"] {
+    font-size: 0.62em !important;
+  }
+
+  .growth-summary-grid .growth-unit {
+    flex: 0 0 auto;
+    font-size: 0.32em;
+    margin-bottom: 0.14em;
+  }
+
+  .reward-cost-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .reward-cost,
+  .reward-note {
+    min-width: 0;
+  }
+
+  .reward-note {
+    width: 100%;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  .managed-quest-title-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .managed-meta-grid strong,
+  .reward-cost strong,
+  .quest-category-progress strong {
+    overflow-wrap: anywhere;
+  }
 }
 
 @media (max-width: 360px) {
   .app-shell {
     padding-top: calc(18px + env(safe-area-inset-top));
     padding-right: 10px;
+    padding-bottom: calc(136px + env(safe-area-inset-bottom));
     padding-left: 10px;
   }
 
@@ -7296,7 +7505,34 @@ h3 {
   }
 
   .record-row strong {
-    font-size: 2rem;
+    font-size: clamp(1.52rem, 7.6vw, 1.9rem);
+  }
+
+  .growth-summary-grid {
+    gap: 6px;
+  }
+
+  .growth-summary-grid article {
+    min-height: 88px;
+    padding: 11px 5px 13px;
+  }
+
+  .growth-summary-grid strong {
+    gap: 3px;
+    font-size: clamp(1.22rem, 6.8vw, 1.72rem);
+  }
+
+  .growth-summary-grid strong > span:not(.growth-unit)[data-number-size="compact"] {
+    font-size: 0.68em !important;
+  }
+
+  .growth-summary-grid strong > span:not(.growth-unit)[data-number-size="tiny"] {
+    font-size: 0.58em !important;
+  }
+
+  .growth-summary-grid .growth-unit {
+    font-size: 0.3em;
+    margin-bottom: 0.12em;
   }
 
   .achievement-list,
