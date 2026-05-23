@@ -5251,7 +5251,7 @@ h3 {
 }
 
 .ability-card > strong .compact-stat-number[data-number-size="compact"] {
-  font-size: 0.78em !important;
+  font-size: 0.72em !important;
 }
 
 .ability-card > strong .compact-stat-number[data-number-size="tiny"] {
@@ -7654,18 +7654,13 @@ h3 {
     margin-bottom: 0.14em;
   }
 
-  .ability-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-
   .ability-card {
     min-height: 96px;
-    padding: 12px 8px;
+    padding: 11px 5px;
   }
 
   .ability-card > strong {
-    font-size: clamp(1.34rem, 6.8vw, 1.92rem);
+    font-size: clamp(1.14rem, 5.8vw, 1.68rem);
   }
 
   .reward-cost-row {
