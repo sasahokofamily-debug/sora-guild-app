@@ -6992,10 +6992,10 @@ function render() {
   setText("[data-record-completed]", formatNumber(progress.completedQuestIds.length));
   setText("[data-notify-url-label]", formatAdminUrlStatus(NOTIFY_URL));
   setText("[data-weekly-report-url-label]", formatAdminUrlStatus(WEEKLY_REPORT_GAS_URL));
-  setText("[data-stat-str]", formatNumber(progress.stats.STR));
-  setText("[data-stat-int]", formatNumber(progress.stats.INT));
-  setText("[data-stat-end]", formatNumber(progress.stats.END));
-  setText("[data-stat-dex]", formatNumber(progress.stats.DEX));
+  setCompactStatValue("[data-stat-str]", progress.stats.STR);
+  setCompactStatValue("[data-stat-int]", progress.stats.INT);
+  setCompactStatValue("[data-stat-end]", progress.stats.END);
+  setCompactStatValue("[data-stat-dex]", progress.stats.DEX);
   document.querySelectorAll("[data-stat-card]").forEach((card) => {
     card.classList.toggle("is-strongest", card.dataset.statCard === subTitle.strongestStat);
   });

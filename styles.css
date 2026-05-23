@@ -1532,6 +1532,7 @@ h3 {
 .stat-card strong,
 .record-row strong,
 .growth-summary-grid strong,
+.ability-card > strong,
 .reward-cost {
   display: inline-flex;
   align-items: baseline;
@@ -1553,6 +1554,7 @@ h3 {
 .stat-card strong > span:not(.stat-unit),
 .record-row strong > span:not(.record-unit),
 .growth-summary-grid strong > span:not(.growth-unit),
+.ability-card > strong > .compact-stat-value,
 .reward-cost strong {
   flex: 0 1 auto;
   min-width: 0;
@@ -1565,6 +1567,7 @@ h3 {
 .stat-card strong .stat-unit,
 .record-row strong .record-unit,
 .growth-summary-grid .growth-unit,
+.ability-card .compact-stat-unit,
 .reward-cost span {
   flex: 0 0 auto;
   line-height: 1;
@@ -5234,11 +5237,21 @@ h3 {
 }
 
 .ability-card > strong {
+  width: 100%;
   color: var(--navy);
-  font-size: clamp(2rem, 9vw, 2.75rem);
+  font-size: clamp(1.55rem, 7.2vw, 2.45rem);
   font-weight: 900;
-  line-height: 0.95;
+  line-height: 1;
   text-shadow: 0 1px 0 rgba(255, 247, 223, 0.72);
+  overflow: hidden;
+}
+
+.ability-card > strong .compact-stat-number {
+  font-size: 1em;
+}
+
+.ability-card > strong .compact-stat-value {
+  width: 100%;
 }
 
 .ability-card small {
@@ -7631,6 +7644,20 @@ h3 {
     flex: 0 0 auto;
     font-size: 0.32em;
     margin-bottom: 0.14em;
+  }
+
+  .ability-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .ability-card {
+    min-height: 96px;
+    padding: 12px 8px;
+  }
+
+  .ability-card > strong {
+    font-size: clamp(1.55rem, 8vw, 2.22rem);
   }
 
   .reward-cost-row {
