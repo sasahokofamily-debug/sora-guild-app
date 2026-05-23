@@ -5239,7 +5239,7 @@ h3 {
 .ability-card > strong {
   width: 100%;
   color: var(--navy);
-  font-size: clamp(1.55rem, 7.2vw, 2.45rem);
+  font-size: clamp(1.42rem, 6.4vw, 2.16rem);
   font-weight: 900;
   line-height: 1;
   text-shadow: 0 1px 0 rgba(255, 247, 223, 0.72);
@@ -5248,6 +5248,14 @@ h3 {
 
 .ability-card > strong .compact-stat-number {
   font-size: 1em;
+}
+
+.ability-card > strong .compact-stat-number[data-number-size="compact"] {
+  font-size: 0.78em !important;
+}
+
+.ability-card > strong .compact-stat-number[data-number-size="tiny"] {
+  font-size: 0.64em !important;
 }
 
 .ability-card > strong .compact-stat-value {
@@ -7657,7 +7665,7 @@ h3 {
   }
 
   .ability-card > strong {
-    font-size: clamp(1.55rem, 8vw, 2.22rem);
+    font-size: clamp(1.34rem, 6.8vw, 1.92rem);
   }
 
   .reward-cost-row {

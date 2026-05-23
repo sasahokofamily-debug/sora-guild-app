@@ -5968,9 +5968,18 @@ function setText(selector, value) {
 }
 
 function renderCompactStatValue(value, unit = "", prefix = "") {
+  const number = Number(value);
+  const formatted = formatNumber(value);
+  const absolute = Math.abs(number);
+  const numberSize =
+    Number.isFinite(absolute) && (absolute >= 100000 || formatted.length >= 5)
+      ? "tiny"
+      : Number.isFinite(absolute) && (absolute >= 100 || formatted.length >= 3)
+        ? "compact"
+        : "";
   return `
     <span class="compact-stat-value">
-      <span class="compact-stat-number">${escapeHtml(`${prefix}${formatNumber(value)}`)}</span>
+      <span class="compact-stat-number"${numberSize ? ` data-number-size="${numberSize}"` : ""}>${escapeHtml(`${prefix}${formatted}`)}</span>
       ${unit ? `<span class="compact-stat-unit">${escapeHtml(unit)}</span>` : ""}
     </span>
   `;
@@ -5982,6 +5991,10 @@ function setCompactStatValue(selector, value, unit = "", prefix = "") {
     const number = element.querySelector(".compact-stat-number");
     if (number) {
       updateNumberFit(number, formatNumber(value));
+      const rawNumber = Math.abs(Number(value));
+      if (Number.isFinite(rawNumber) && rawNumber >= 100 && number.dataset.numberSize !== "tiny") {
+        number.dataset.numberSize = "compact";
+      }
     }
   });
 }
