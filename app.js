@@ -2597,8 +2597,8 @@ function getEstimatedQuestCountToLevel(xp) {
 
 function renderQuestRewardBadges(quest) {
   return `
-    <span class="reward-badge">XP +${formatNumber(quest.xpReward)}</span>
-    ${quest.goldReward > 0 ? `<span class="reward-badge">Gold +${formatNumber(quest.goldReward)}</span>` : ""}
+    <span class="reward-badge">${renderCompactStatValue(quest.xpReward, "XP", "+")}</span>
+    ${quest.goldReward > 0 ? `<span class="reward-badge">${renderCompactStatValue(quest.goldReward, "Gold", "+")}</span>` : ""}
     <span class="stat-reward-badge stat-${quest.stat}">${getStatLabel(quest.stat)} +1</span>
   `;
 }
@@ -5967,7 +5967,26 @@ function setText(selector, value) {
   });
 }
 
-function formatNumber(value) {
+function renderCompactStatValue(value, unit = "", prefix = "") {
+  return `
+    <span class="compact-stat-value">
+      <span class="compact-stat-number">${escapeHtml(`${prefix}${formatNumber(value)}`)}</span>
+      ${unit ? `<span class="compact-stat-unit">${escapeHtml(unit)}</span>` : ""}
+    </span>
+  `;
+}
+
+function setCompactStatValue(selector, value, unit = "", prefix = "") {
+  document.querySelectorAll(selector).forEach((element) => {
+    element.innerHTML = renderCompactStatValue(value, unit, prefix);
+    const number = element.querySelector(".compact-stat-number");
+    if (number) {
+      updateNumberFit(number, formatNumber(value));
+    }
+  });
+}
+
+function formatCompactNumber(value) {
   const number = Number(value);
   if (!Number.isFinite(number)) {
     return String(value ?? "");
@@ -5975,21 +5994,33 @@ function formatNumber(value) {
   const sign = number < 0 ? "-" : "";
   const absolute = Math.abs(number);
   if (absolute >= 1000000) {
-    return `${sign}${trimNumber(absolute / 1000000)}M`;
+    return `${sign}${trimCompactDecimal(absolute / 1000000)}M`;
+  }
+  if (absolute >= 10000) {
+    return `${sign}${Math.min(999, Math.round(absolute / 1000))}K`;
   }
   if (absolute >= 1000) {
-    return `${sign}${trimNumber(absolute / 1000)}K`;
+    return `${sign}${trimCompactDecimal(absolute / 1000)}K`;
   }
   return `${Math.round(number)}`;
 }
 
-function trimNumber(value) {
-  const rounded = value >= 100 ? Math.round(value) : Math.round(value * 10) / 10;
+function formatNumber(value) {
+  return formatCompactNumber(value);
+}
+
+function trimCompactDecimal(value) {
+  const rounded = Math.round(value * 10) / 10;
   return String(rounded).replace(/\.0$/, "");
 }
 
 function updateNumberFit(element, value) {
-  const digitGroups = String(value ?? "").match(/\d+/g) || [];
+  const displayValue = String(value ?? "");
+  if (/[KM]/.test(displayValue)) {
+    element.dataset.numberSize = displayValue.length >= 5 ? "tiny" : "compact";
+    return;
+  }
+  const digitGroups = displayValue.match(/\d+/g) || [];
   const maxDigits = digitGroups.reduce((max, group) => Math.max(max, group.length), 0);
   if (maxDigits >= 5) {
     element.dataset.numberSize = "tiny";
@@ -6438,8 +6469,8 @@ function showBossDefeatRewardPanel(result) {
     return;
   }
 
-  setText("[data-boss-reward-xp]", `XP +${formatNumber(result.rewardXp || 0)}`);
-  setText("[data-boss-reward-gold]", `Gold +${formatNumber(result.rewardGold || 0)}`);
+  setCompactStatValue("[data-boss-reward-xp]", result.rewardXp || 0, "XP", "+");
+  setCompactStatValue("[data-boss-reward-gold]", result.rewardGold || 0, "Gold", "+");
   panel.hidden = false;
   panel.classList.remove("is-visible");
   void panel.offsetWidth;

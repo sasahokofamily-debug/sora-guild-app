@@ -1528,12 +1528,65 @@ h3 {
   letter-spacing: 0;
 }
 
+.compact-stat-value,
+.stat-card strong,
+.record-row strong,
+.growth-summary-grid strong,
+.reward-cost {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  max-width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.reward-badge .compact-stat-value,
+.boss-reward-panel .compact-stat-value {
+  width: auto;
+  gap: 3px;
+  font-size: inherit;
+}
+
+.compact-stat-number,
+.stat-card strong > span:not(.stat-unit),
+.record-row strong > span:not(.record-unit),
+.growth-summary-grid strong > span:not(.growth-unit),
+.reward-cost strong {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.compact-stat-unit,
+.stat-card strong .stat-unit,
+.record-row strong .record-unit,
+.growth-summary-grid .growth-unit,
+.reward-cost span {
+  flex: 0 0 auto;
+  line-height: 1;
+}
+
 .stat-card strong,
 .record-row strong,
 .growth-summary-grid strong,
 .ability-card > strong {
   width: 100%;
   overflow: hidden;
+}
+
+.boss-hp-row strong,
+.boss-meta span,
+.achievement-card .achievement-progress,
+.collectible-title-progress,
+.today-progress-head strong {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
 }
 
 [data-number-size="compact"] {
@@ -2089,7 +2142,7 @@ h3 {
 
 .boss-hp-row strong {
   color: var(--navy);
-  font-size: 0.96rem;
+  font-size: clamp(0.78rem, 3.4vw, 0.96rem);
   white-space: nowrap;
 }
 
