@@ -143,9 +143,11 @@ body.is-setup-open {
 
 body[data-world-theme="village"],
 body.world-theme-village {
-  --world-theme-background: url("./assets/worlds/village-bg.png");
+  --world-theme-background:
+    var(--current-world-image, url("./assets/worlds/village-bg.png")),
+    linear-gradient(145deg, rgba(69, 114, 54, 0.56), rgba(137, 94, 45, 0.34));
   --world-theme-dark-overlay:
-    linear-gradient(180deg, rgba(24, 35, 18, 0.28), rgba(31, 23, 16, 0.38));
+    linear-gradient(180deg, rgba(24, 35, 18, 0.32), rgba(31, 23, 16, 0.42));
   --world-theme-overlay:
     radial-gradient(circle at 22% 28%, rgba(112, 178, 82, 0.24), transparent 18rem),
     radial-gradient(circle at 76% 68%, rgba(241, 210, 122, 0.14), transparent 16rem),
@@ -153,12 +155,12 @@ body.world-theme-village {
 }
 
 body[data-world-theme="mushroom"],
-body[data-world-theme="giant-forest"],
-body.world-theme-mushroom,
-body.world-theme-giant-forest {
-  --world-theme-background: url("./assets/worlds/mushroom-forest.png");
+body.world-theme-mushroom {
+  --world-theme-background:
+    var(--current-world-image, url("./assets/worlds/mushroom-forest.png")),
+    linear-gradient(145deg, rgba(24, 79, 50, 0.58), rgba(69, 45, 76, 0.36));
   --world-theme-dark-overlay:
-    linear-gradient(180deg, rgba(12, 35, 24, 0.34), rgba(24, 18, 28, 0.42));
+    linear-gradient(180deg, rgba(12, 35, 24, 0.38), rgba(24, 18, 28, 0.45));
   --world-theme-overlay:
     radial-gradient(circle at 20% 24%, rgba(58, 130, 78, 0.3), transparent 18rem),
     radial-gradient(circle at 78% 30%, rgba(128, 82, 145, 0.16), transparent 15rem),
@@ -167,51 +169,102 @@ body.world-theme-giant-forest {
 
 body[data-world-theme="ice"],
 body.world-theme-ice {
-  --world-theme-background: url("./assets/worlds/ice-cave.png");
+  --world-theme-background:
+    var(--current-world-image, url("./assets/worlds/ice-cave.png")),
+    linear-gradient(145deg, rgba(37, 90, 129, 0.58), rgba(208, 238, 255, 0.22));
   --world-theme-dark-overlay:
-    linear-gradient(180deg, rgba(12, 30, 44, 0.32), rgba(22, 28, 42, 0.4));
+    linear-gradient(180deg, rgba(12, 30, 44, 0.36), rgba(22, 28, 42, 0.43));
   --world-theme-overlay:
     radial-gradient(circle at 28% 22%, rgba(178, 231, 255, 0.32), transparent 17rem),
     radial-gradient(circle at 72% 58%, rgba(126, 176, 220, 0.18), transparent 16rem),
     linear-gradient(180deg, rgba(31, 76, 107, 0.24), rgba(245, 250, 255, 0.08));
 }
 
-body[data-world-theme="desert"] {
+body[data-world-theme="desert"],
+body.world-theme-desert {
+  --world-theme-background:
+    var(--current-world-image, url("./assets/worlds/desert-ruins.png")),
+    linear-gradient(145deg, rgba(174, 103, 33, 0.6), rgba(96, 57, 30, 0.38));
+  --world-theme-dark-overlay:
+    linear-gradient(180deg, rgba(72, 43, 20, 0.34), rgba(48, 31, 22, 0.44));
   --world-theme-overlay:
     radial-gradient(circle at 24% 26%, rgba(255, 176, 77, 0.32), transparent 18rem),
     radial-gradient(circle at 78% 64%, rgba(202, 129, 47, 0.2), transparent 16rem),
     linear-gradient(180deg, rgba(160, 91, 28, 0.22), rgba(69, 39, 25, 0.2));
 }
 
-body[data-world-theme="dragon"] {
+body[data-world-theme="giant-forest"],
+body.world-theme-giant-forest {
+  --world-theme-background:
+    var(--current-world-image, url("./assets/worlds/giant-forest.png")),
+    linear-gradient(145deg, rgba(20, 82, 49, 0.62), rgba(43, 67, 34, 0.42));
+  --world-theme-dark-overlay:
+    linear-gradient(180deg, rgba(10, 34, 22, 0.4), rgba(24, 30, 22, 0.46));
+  --world-theme-overlay:
+    radial-gradient(circle at 18% 22%, rgba(75, 160, 82, 0.28), transparent 18rem),
+    radial-gradient(circle at 76% 58%, rgba(188, 151, 82, 0.16), transparent 16rem),
+    linear-gradient(180deg, rgba(16, 71, 40, 0.26), rgba(58, 48, 30, 0.22));
+}
+
+body[data-world-theme="dragon"],
+body.world-theme-dragon {
+  --world-theme-background:
+    var(--current-world-image, url("./assets/worlds/dragon-mountain.png")),
+    linear-gradient(145deg, rgba(103, 34, 28, 0.62), rgba(187, 75, 35, 0.34));
+  --world-theme-dark-overlay:
+    linear-gradient(180deg, rgba(55, 18, 16, 0.42), rgba(36, 21, 18, 0.5));
   --world-theme-overlay:
     radial-gradient(circle at 24% 32%, rgba(218, 67, 46, 0.28), transparent 18rem),
     radial-gradient(circle at 80% 30%, rgba(255, 139, 43, 0.22), transparent 16rem),
     linear-gradient(180deg, rgba(82, 24, 20, 0.3), rgba(39, 26, 22, 0.24));
 }
 
-body[data-world-theme="ancient-temple"] {
+body[data-world-theme="ancient-temple"],
+body.world-theme-ancient-temple {
+  --world-theme-background:
+    var(--current-world-image, url("./assets/worlds/ancient-temple.png")),
+    linear-gradient(145deg, rgba(104, 87, 58, 0.58), rgba(54, 64, 79, 0.36));
+  --world-theme-dark-overlay:
+    linear-gradient(180deg, rgba(50, 43, 31, 0.36), rgba(25, 31, 43, 0.44));
   --world-theme-overlay:
     radial-gradient(circle at 22% 22%, rgba(197, 171, 118, 0.22), transparent 16rem),
     radial-gradient(circle at 80% 60%, rgba(104, 87, 141, 0.18), transparent 17rem),
     linear-gradient(180deg, rgba(91, 72, 46, 0.18), rgba(31, 39, 55, 0.22));
 }
 
-body[data-world-theme="dark-castle"] {
+body[data-world-theme="dark-castle"],
+body.world-theme-dark-castle {
+  --world-theme-background:
+    var(--current-world-image, url("./assets/worlds/dark-castle.png")),
+    linear-gradient(145deg, rgba(33, 24, 56, 0.66), rgba(79, 24, 36, 0.42));
+  --world-theme-dark-overlay:
+    linear-gradient(180deg, rgba(13, 12, 24, 0.48), rgba(22, 12, 18, 0.56));
   --world-theme-overlay:
     radial-gradient(circle at 24% 24%, rgba(113, 76, 145, 0.24), transparent 16rem),
     radial-gradient(circle at 78% 30%, rgba(142, 47, 42, 0.18), transparent 14rem),
     linear-gradient(180deg, rgba(18, 16, 31, 0.36), rgba(22, 12, 18, 0.32));
 }
 
-body[data-world-theme="star-temple"] {
+body[data-world-theme="star-temple"],
+body.world-theme-star-temple {
+  --world-theme-background:
+    var(--current-world-image, url("./assets/worlds/star-temple.png")),
+    linear-gradient(145deg, rgba(21, 34, 91, 0.64), rgba(66, 49, 111, 0.38));
+  --world-theme-dark-overlay:
+    linear-gradient(180deg, rgba(11, 18, 45, 0.44), rgba(13, 15, 36, 0.52));
   --world-theme-overlay:
     radial-gradient(circle at 20% 24%, rgba(118, 138, 230, 0.28), transparent 18rem),
     radial-gradient(circle at 74% 26%, rgba(241, 210, 122, 0.18), transparent 11rem),
     linear-gradient(180deg, rgba(18, 30, 72, 0.34), rgba(12, 16, 38, 0.28));
 }
 
-body[data-world-theme="sky-castle"] {
+body[data-world-theme="sky-castle"],
+body.world-theme-sky-castle {
+  --world-theme-background:
+    var(--current-world-image, url("./assets/worlds/sky-castle.png")),
+    linear-gradient(145deg, rgba(80, 139, 180, 0.58), rgba(224, 194, 103, 0.26));
+  --world-theme-dark-overlay:
+    linear-gradient(180deg, rgba(39, 75, 100, 0.34), rgba(58, 45, 30, 0.4));
   --world-theme-overlay:
     radial-gradient(circle at 26% 20%, rgba(180, 226, 255, 0.28), transparent 18rem),
     radial-gradient(circle at 76% 42%, rgba(255, 237, 171, 0.22), transparent 15rem),

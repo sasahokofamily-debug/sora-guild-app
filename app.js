@@ -13,6 +13,7 @@ const LOGIN_BONUS_SETTINGS_KEY = "sora_guild_app_login_bonus_settings_dev";
 const DAILY_CLEAR_BONUS_SETTINGS_KEY = "sora_guild_app_daily_clear_bonus_settings_dev";
 const DAILY_CLEAR_BONUS_DATE_KEY = "sora_guild_app_daily_clear_bonus_date_dev";
 const BOSS_STATE_KEY = "sora_guild_app_boss_state_dev";
+const ALLY_JOINED_DATES_KEY = "sora_guild_app_ally_joined_dates_dev";
 const APP_SETTINGS_KEY = "sora_guild_app_app_settings_dev";
 const NOTIFICATION_SETTINGS_KEY = "sora_guild_app_notification_settings_dev";
 const AUDIO_SETTINGS_KEY = "sora_guild_app_audio_settings_dev";
@@ -63,18 +64,19 @@ const WORLD_AREAS = [
   "星の神殿",
   "光の天空城",
 ];
-const WORLD_AREA_THEMES = [
-  "village",
-  "mushroom",
-  "ice",
-  "desert",
-  "giant-forest",
-  "dragon",
-  "ancient-temple",
-  "dark-castle",
-  "star-temple",
-  "sky-castle",
+const WORLD_THEMES = [
+  { key: "village", image: "./assets/worlds/village-bg.png" },
+  { key: "mushroom", image: "./assets/worlds/mushroom-forest.png" },
+  { key: "ice", image: "./assets/worlds/ice-cave.png" },
+  { key: "desert", image: "./assets/worlds/desert-ruins.png" },
+  { key: "giant-forest", image: "./assets/worlds/giant-forest.png" },
+  { key: "dragon", image: "./assets/worlds/dragon-mountain.png" },
+  { key: "ancient-temple", image: "./assets/worlds/ancient-temple.png" },
+  { key: "dark-castle", image: "./assets/worlds/dark-castle.png" },
+  { key: "star-temple", image: "./assets/worlds/star-temple.png" },
+  { key: "sky-castle", image: "./assets/worlds/sky-castle.png" },
 ];
+const WORLD_AREA_THEMES = WORLD_THEMES.map((theme) => theme.key);
 const DEFAULT_AUDIO_SETTINGS = {
   bgmEnabled: true,
   sfxEnabled: true,
@@ -264,6 +266,7 @@ const BACKUP_STORAGE_KEYS = [
   DAILY_CLEAR_BONUS_SETTINGS_KEY,
   DAILY_CLEAR_BONUS_DATE_KEY,
   BOSS_STATE_KEY,
+  ALLY_JOINED_DATES_KEY,
   APP_SETTINGS_KEY,
   NOTIFICATION_SETTINGS_KEY,
   AUDIO_SETTINGS_KEY,
@@ -298,6 +301,8 @@ const BACKUP_STORAGE_KEY_ALIASES = {
   dailyClearBonusDate: DAILY_CLEAR_BONUS_DATE_KEY,
   bossData: BOSS_STATE_KEY,
   bossState: BOSS_STATE_KEY,
+  allyJoinedDates: ALLY_JOINED_DATES_KEY,
+  recruitedAllyDates: ALLY_JOINED_DATES_KEY,
   appSettings: APP_SETTINGS_KEY,
   appName: APP_SETTINGS_KEY,
   notificationSettings: NOTIFICATION_SETTINGS_KEY,
@@ -600,6 +605,7 @@ let weeklyReportHistory = loadWeeklyReportHistory();
 let loginBonusSettings = loadLoginBonusSettings();
 let dailyClearBonusSettings = loadDailyClearBonusSettings();
 let bossState = loadBossState();
+let allyJoinedDates = loadAllyJoinedDates();
 let appSettings = loadAppSettings(progress.name);
 let notificationSettings = loadNotificationSettings();
 let audioSettings = loadAudioSettings();
@@ -1012,6 +1018,52 @@ function loadBossState() {
 
 function saveBossState() {
   localStorage.setItem(BOSS_STATE_KEY, JSON.stringify(bossState));
+}
+
+function normalizeAllyJoinedDates(rawDates = {}) {
+  if (!rawDates || typeof rawDates !== "object" || Array.isArray(rawDates)) {
+    return {};
+  }
+
+  return Object.entries(rawDates).reduce((dates, [allyId, joinedDate]) => {
+    const safeId = String(allyId || "").trim();
+    const safeDate = String(joinedDate || "").trim();
+    if (safeId && safeDate) {
+      dates[safeId] = safeDate;
+    }
+    return dates;
+  }, {});
+}
+
+function loadAllyJoinedDates() {
+  try {
+    const stored = localStorage.getItem(ALLY_JOINED_DATES_KEY);
+    return normalizeAllyJoinedDates(stored ? JSON.parse(stored) : {});
+  } catch {
+    return {};
+  }
+}
+
+function saveAllyJoinedDates() {
+  localStorage.setItem(ALLY_JOINED_DATES_KEY, JSON.stringify(allyJoinedDates));
+}
+
+function recordAllyJoinedDate(allyId, joinedAt = new Date()) {
+  const safeId = String(allyId || "").trim();
+  if (!safeId || allyJoinedDates[safeId]) {
+    return;
+  }
+
+  allyJoinedDates = {
+    ...allyJoinedDates,
+    [safeId]: getDateKey(joinedAt),
+  };
+  saveAllyJoinedDates();
+}
+
+function formatAllyJoinedDate(joinedDate) {
+  const safeDate = String(joinedDate || "").trim();
+  return safeDate ? safeDate.replace(/-/g, "/") : "以前に仲間になりました";
 }
 
 function loadAchievements() {
@@ -2156,6 +2208,8 @@ function applyBossQuestDamage(completedAt = new Date()) {
     totalGoldEarned: Math.max(0, progress.totalGoldEarned || progress.gold || 0) + boss.rewardGold,
     titleHistory: updateTitleHistory(progress.titleHistory, previousLevel, nextLevel, completedAt.toISOString()),
   };
+
+  recordAllyJoinedDate(boss.id, completedAt);
 
   const defeatedCount = bossState.defeatedCount + 1;
   const nextBoss = getBossInfo(defeatedCount);
@@ -5597,10 +5651,12 @@ function getCurrentWorldAreaIndex() {
 
 function applyWorldTheme() {
   const currentIndex = getCurrentWorldAreaIndex();
-  const theme = WORLD_AREA_THEMES[currentIndex] || WORLD_AREA_THEMES[0];
+  const themeConfig = WORLD_THEMES[currentIndex] || WORLD_THEMES[0];
+  const theme = themeConfig.key;
   const areaName = WORLD_AREAS[currentIndex] || WORLD_AREAS[0];
   const previousTheme = document.body.dataset.worldTheme;
   document.body.dataset.worldTheme = theme;
+  document.body.style.setProperty("--current-world-image", `url("${themeConfig.image}")`);
   WORLD_AREA_THEMES.forEach((themeName) => {
     document.body.classList.remove(`world-theme-${themeName}`);
   });
@@ -6867,7 +6923,7 @@ function renderAllyCollection() {
   }
 
   list.innerHTML = "";
-  const appendAllyCard = (ally, unlocked, unlockedDate = "記録なし") => {
+  const appendAllyCard = (ally, unlocked, unlockedDate = "") => {
     const profileHtml = unlocked
       ? `
         <dl class="ally-profile">
@@ -6889,14 +6945,14 @@ function renderAllyCollection() {
         <h4>${escapeHtml(unlocked ? ally.name : "？？？")}</h4>
         <p>${escapeHtml(unlocked ? ally.description : "まだ出会っていない仲間です。")}</p>
         ${profileHtml}
-        <small>仲間になった日：${unlocked ? unlockedDate : "まだ"}</small>
+        ${unlocked ? `<small class="ally-joined-date">仲間になった日：${escapeHtml(formatAllyJoinedDate(unlockedDate))}</small>` : ""}
       </div>
     `;
     list.append(item);
   };
 
   BOSS_DEFINITIONS.forEach((ally, index) => {
-    appendAllyCard(ally, index < alliedCount);
+    appendAllyCard(ally, index < alliedCount, allyJoinedDates[ally.id]);
   });
   appendAllyCard(SUMMER_EVENT_ALLY, summerAllyUnlocked, summerEventProgress.end);
 }
