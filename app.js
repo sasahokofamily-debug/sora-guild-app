@@ -63,6 +63,11 @@ const WORLD_AREAS = [
   "闇の城",
   "星の神殿",
   "光の天空城",
+  "月影の森",
+  "雷鳴の断崖",
+  "水晶渓谷",
+  "静寂の墓所",
+  "灼熱火山",
 ];
 const WORLD_THEMES = [
   { key: "village", image: "./assets/worlds/village-bg.png" },
@@ -75,6 +80,11 @@ const WORLD_THEMES = [
   { key: "dark-castle", image: "./assets/worlds/dark-castle.png" },
   { key: "star-temple", image: "./assets/worlds/star-temple.png" },
   { key: "sky-castle", image: "./assets/worlds/sky-castle.png" },
+  { key: "moon-forest" },
+  { key: "thunder-cliff" },
+  { key: "crystal-valley" },
+  { key: "silent-graveyard" },
+  { key: "flame-volcano" },
 ];
 const WORLD_AREA_THEMES = WORLD_THEMES.map((theme) => theme.key);
 const DEFAULT_AUDIO_SETTINGS = {
@@ -202,6 +212,66 @@ const BOSS_DEFINITIONS = [
     rewardXp: 650,
     rewardGold: 320,
     image: "./assets/bosses/boss-10-dark-lord.png",
+  },
+  {
+    id: "shadow-wolf",
+    name: "シャドウウルフ",
+    description: "月明かりの森を走る、静かな狼。",
+    specialty: "夜道を案内すること",
+    favorite: "月の光",
+    quote: "暗い道でも、ぼくが一緒だよ。",
+    maxHp: 2000,
+    rewardXp: 120,
+    rewardGold: 120,
+    image: "./assets/bosses/boss-11-shadow-wolf.png",
+  },
+  {
+    id: "thunderbird",
+    name: "サンダーバード",
+    description: "雷雲の中を飛ぶ、力強い鳥。",
+    specialty: "空を見渡すこと",
+    favorite: "嵐のあとの青空",
+    quote: "こわい音も、前に進む力になる！",
+    maxHp: 2600,
+    rewardXp: 140,
+    rewardGold: 140,
+    image: "./assets/bosses/boss-12-thunderbird.png",
+  },
+  {
+    id: "crystal-wyvern",
+    name: "クリスタルワイバーン",
+    description: "水晶の谷にすむ、美しい竜。",
+    specialty: "光を集めること",
+    favorite: "きらきら光る石",
+    quote: "小さな光も、大切な力だよ。",
+    maxHp: 3400,
+    rewardXp: 160,
+    rewardGold: 160,
+    image: "./assets/bosses/boss-13-crystal-wyvern.png",
+  },
+  {
+    id: "necromancer",
+    name: "ネクロマンサー",
+    description: "静かな墓所で古い物語を守る魔法使い。",
+    specialty: "忘れられた記録を読むこと",
+    favorite: "古い本",
+    quote: "過去を知ると、今が少し強くなる。",
+    maxHp: 4400,
+    rewardXp: 180,
+    rewardGold: 180,
+    image: "./assets/bosses/boss-14-necromancer.png",
+  },
+  {
+    id: "flame-dragon",
+    name: "フレイムドラゴン",
+    description: "灼熱火山にすむ、情熱のドラゴン。",
+    specialty: "勇気の炎を灯すこと",
+    favorite: "あたたかい心",
+    quote: "きみのがんばりが、炎になる！",
+    maxHp: 6000,
+    rewardXp: 220,
+    rewardGold: 220,
+    image: "./assets/bosses/boss-15-flame-dragon.png",
   },
 ];
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
@@ -5656,7 +5726,8 @@ function applyWorldTheme() {
   const areaName = WORLD_AREAS[currentIndex] || WORLD_AREAS[0];
   const previousTheme = document.body.dataset.worldTheme;
   document.body.dataset.worldTheme = theme;
-  document.body.style.setProperty("--current-world-image", `url("${themeConfig.image}")`);
+  const themeImage = themeConfig.image ? `url("${themeConfig.image}")` : "none";
+  document.body.style.setProperty("--current-world-image", themeImage);
   WORLD_AREA_THEMES.forEach((themeName) => {
     document.body.classList.remove(`world-theme-${themeName}`);
   });
@@ -6917,7 +6988,8 @@ function renderAllyCollection() {
   const alliedCount = Math.min(BOSS_DEFINITIONS.length, Math.max(0, bossState.defeatedCount || 0));
   const summerEventProgress = getSummerEventProgress();
   const summerAllyUnlocked = summerEventProgress.completed;
-  const totalAllyCount = BOSS_DEFINITIONS.length + 1;
+  const includeSummerAlly = summerAllyUnlocked || isSummerEventActive();
+  const totalAllyCount = BOSS_DEFINITIONS.length + (includeSummerAlly ? 1 : 0);
   if (count) {
     count.textContent = `${alliedCount + (summerAllyUnlocked ? 1 : 0)} / ${totalAllyCount}`;
   }
@@ -6954,7 +7026,9 @@ function renderAllyCollection() {
   BOSS_DEFINITIONS.forEach((ally, index) => {
     appendAllyCard(ally, index < alliedCount, allyJoinedDates[ally.id]);
   });
-  appendAllyCard(SUMMER_EVENT_ALLY, summerAllyUnlocked, summerEventProgress.end);
+  if (includeSummerAlly) {
+    appendAllyCard(SUMMER_EVENT_ALLY, summerAllyUnlocked, summerEventProgress.end);
+  }
 }
 
 function renderSummerEventCard() {
