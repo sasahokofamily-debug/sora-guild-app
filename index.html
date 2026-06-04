@@ -1006,6 +1006,26 @@
           <button type="button" data-world-area-unlock-close>冒険を続ける</button>
         </div>
       </div>
+      <div class="ally-joined-modal" data-ally-joined-modal hidden>
+        <div class="ally-joined-card" role="dialog" aria-modal="true" aria-labelledby="ally-joined-title">
+          <span class="ally-joined-spark ally-joined-spark-a"></span>
+          <span class="ally-joined-spark ally-joined-spark-b"></span>
+          <span class="ally-joined-spark ally-joined-spark-c"></span>
+          <p class="section-kicker">New Ally</p>
+          <h3 id="ally-joined-title">✨ NEW ALLY ✨</h3>
+          <div class="ally-joined-image-frame">
+            <img data-ally-joined-image alt="新しい仲間の姿" hidden>
+            <span data-ally-joined-fallback>?</span>
+          </div>
+          <strong data-ally-joined-name>新しい仲間が増えた！</strong>
+          <blockquote data-ally-joined-quote>これから一緒に冒険しよう！</blockquote>
+          <div class="ally-joined-rewards" aria-label="仲間ボーナス">
+            <span data-ally-joined-xp>+0 XP</span>
+            <span data-ally-joined-gold>+0 Gold</span>
+          </div>
+          <button type="button" data-ally-joined-close>冒険を続ける</button>
+        </div>
+      </div>
       <div class="level-up-toast" data-level-up-toast aria-live="polite">レベルアップ！</div>
       <div class="level-up-modal" data-level-up-modal hidden>
         <div class="level-up-modal-card" role="dialog" aria-modal="true" aria-labelledby="level-up-modal-title">

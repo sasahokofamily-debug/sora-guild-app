@@ -1121,7 +1121,7 @@ function saveAllyJoinedDates() {
 function recordAllyJoinedDate(allyId, joinedAt = new Date()) {
   const safeId = String(allyId || "").trim();
   if (!safeId || allyJoinedDates[safeId]) {
-    return;
+    return false;
   }
 
   allyJoinedDates = {
@@ -1129,6 +1129,7 @@ function recordAllyJoinedDate(allyId, joinedAt = new Date()) {
     [safeId]: getDateKey(joinedAt),
   };
   saveAllyJoinedDates();
+  return true;
 }
 
 function formatAllyJoinedDate(joinedDate) {
@@ -2279,7 +2280,8 @@ function applyBossQuestDamage(completedAt = new Date()) {
     titleHistory: updateTitleHistory(progress.titleHistory, previousLevel, nextLevel, completedAt.toISOString()),
   };
 
-  recordAllyJoinedDate(boss.id, completedAt);
+  const isFirstCycleAlly = bossState.defeatedCount < BOSS_DEFINITIONS.length;
+  const isNewAlly = isFirstCycleAlly && recordAllyJoinedDate(boss.id, completedAt);
 
   const defeatedCount = bossState.defeatedCount + 1;
   const nextBoss = getBossInfo(defeatedCount);
@@ -2297,6 +2299,7 @@ function applyBossQuestDamage(completedAt = new Date()) {
     boss,
     rewardXp: boss.rewardXp,
     rewardGold: boss.rewardGold,
+    isNewAlly,
     nextBoss,
     unlockedAreaName: defeatedCount < WORLD_AREAS.length ? WORLD_AREAS[defeatedCount] : "",
   };
@@ -6622,6 +6625,72 @@ function showBossDefeatRewardPanel(result) {
   }, 2100);
 }
 
+function closeAllyJoinedModal() {
+  const modal = document.querySelector("[data-ally-joined-modal]");
+  if (!modal) {
+    return;
+  }
+
+  modal.classList.remove("is-visible");
+  window.setTimeout(() => {
+    modal.hidden = true;
+  }, 220);
+}
+
+function showAllyJoinedModal(allyData, rewardData = {}) {
+  const modal = document.querySelector("[data-ally-joined-modal]");
+  if (!modal || !allyData) {
+    return;
+  }
+
+  const image = modal.querySelector("[data-ally-joined-image]");
+  const fallback = modal.querySelector("[data-ally-joined-fallback]");
+  const name = modal.querySelector("[data-ally-joined-name]");
+  const quote = modal.querySelector("[data-ally-joined-quote]");
+  const xp = modal.querySelector("[data-ally-joined-xp]");
+  const gold = modal.querySelector("[data-ally-joined-gold]");
+
+  if (name) {
+    name.textContent = `${getBossDisplayName(allyData)}が仲間になった！`;
+  }
+  if (quote) {
+    quote.textContent = `「${allyData.quote || "これから一緒に冒険しよう！"}」`;
+  }
+  if (xp) {
+    xp.textContent = `+${formatNumber(rewardData.rewardXp || 0)} XP`;
+  }
+  if (gold) {
+    gold.textContent = `+${formatNumber(rewardData.rewardGold || 0)} Gold`;
+  }
+  if (fallback) {
+    fallback.textContent = (allyData.name || "?").slice(0, 1);
+    fallback.hidden = false;
+  }
+  if (image) {
+    image.hidden = true;
+    image.onload = () => {
+      image.hidden = false;
+      if (fallback) {
+        fallback.hidden = true;
+      }
+    };
+    image.onerror = () => {
+      console.warn("仲間加入画像を読み込めませんでした:", allyData.image);
+      image.hidden = true;
+      if (fallback) {
+        fallback.hidden = false;
+      }
+    };
+    image.src = allyData.image || "";
+  }
+
+  playSound("achievement");
+  modal.hidden = false;
+  modal.classList.remove("is-visible");
+  void modal.offsetWidth;
+  modal.classList.add("is-visible");
+}
+
 function playBossSpawnAnimation(nextBoss) {
   const card = document.querySelector("[data-boss-card]");
   const toast = document.querySelector("[data-boss-toast]");
@@ -6684,10 +6753,14 @@ function showBossBattleFeedback(result) {
   playBossDamageAnimation(result.defeated);
   if (result.defeated) {
     showBossDefeatRewardPanel(result);
-    window.setTimeout(() => playSound("achievement"), ACHIEVEMENT_SOUND_DELAY);
-    window.setTimeout(() => playBossSpawnAnimation(result.nextBoss), 1180);
+    if (result.isNewAlly) {
+      window.setTimeout(() => showAllyJoinedModal(result.boss, result), 360);
+    } else {
+      window.setTimeout(() => playSound("achievement"), ACHIEVEMENT_SOUND_DELAY);
+    }
+    window.setTimeout(() => playBossSpawnAnimation(result.nextBoss), result.isNewAlly ? 1700 : 1180);
     if (result.unlockedAreaName) {
-      window.setTimeout(() => showWorldAreaUnlockModal(result.unlockedAreaName), 1650);
+      window.setTimeout(() => showWorldAreaUnlockModal(result.unlockedAreaName), result.isNewAlly ? 2300 : 1650);
     }
   } else {
     showBossDamagePop(result.damage);
@@ -7272,6 +7345,18 @@ document.addEventListener("click", (event) => {
   const worldAreaUnlockClose = event.target.closest("[data-world-area-unlock-close]");
   if (worldAreaUnlockClose) {
     closeWorldAreaUnlockModal();
+    return;
+  }
+
+  const allyJoinedClose = event.target.closest("[data-ally-joined-close]");
+  if (allyJoinedClose) {
+    closeAllyJoinedModal();
+    return;
+  }
+
+  const allyJoinedBackdrop = event.target.closest("[data-ally-joined-modal]");
+  if (allyJoinedBackdrop && event.target === allyJoinedBackdrop) {
+    closeAllyJoinedModal();
     return;
   }
 

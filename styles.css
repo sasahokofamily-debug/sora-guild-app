@@ -1432,6 +1432,217 @@ h3 {
   animation-delay: 460ms;
 }
 
+.ally-joined-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 32;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(241, 210, 122, 0.34), transparent 18rem),
+    rgba(23, 12, 9, 0.58);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+.ally-joined-modal[hidden] {
+  display: none;
+}
+
+.ally-joined-modal.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ally-joined-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(100%, 360px);
+  max-height: min(88vh, 680px);
+  overflow: hidden auto;
+  border: 1px solid rgba(241, 210, 122, 0.82);
+  border-radius: 16px;
+  padding: 22px 18px 18px;
+  color: var(--ink);
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 248, 220, 0.9), transparent 8rem),
+    var(--parchment-card-bg);
+  box-shadow:
+    var(--paper-inner-shadow),
+    0 24px 46px rgba(23, 12, 9, 0.44),
+    0 0 38px rgba(241, 210, 122, 0.3);
+  transform: scale(0.96);
+}
+
+.ally-joined-modal.is-visible .ally-joined-card {
+  animation: worldAreaUnlockCard 560ms ease both;
+}
+
+.ally-joined-card h3 {
+  margin: 0;
+  color: #8c301f;
+  font-size: clamp(1.35rem, 7vw, 1.9rem);
+  font-weight: 950;
+  line-height: 1.15;
+  text-shadow: 0 2px 0 rgba(255, 247, 223, 0.7), 0 0 18px rgba(241, 210, 122, 0.3);
+}
+
+.ally-joined-image-frame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(190px, 58vw);
+  aspect-ratio: 1;
+  margin: 2px 0 4px;
+  border: 1px solid rgba(201, 154, 53, 0.34);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(241, 210, 122, 0.38), rgba(255, 247, 223, 0.36) 48%, rgba(111, 63, 38, 0.08));
+  box-shadow:
+    inset 0 0 22px rgba(255, 247, 223, 0.36),
+    0 14px 24px rgba(48, 29, 20, 0.22),
+    0 0 26px rgba(241, 210, 122, 0.24);
+}
+
+.ally-joined-image-frame img {
+  width: 94%;
+  height: 94%;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 14px 14px rgba(48, 29, 20, 0.28))
+    drop-shadow(0 0 12px rgba(241, 210, 122, 0.34));
+}
+
+.ally-joined-modal.is-visible .ally-joined-image-frame img:not([hidden]) {
+  animation: allyJoinedImagePop 760ms ease both;
+}
+
+.ally-joined-image-frame span {
+  color: rgba(91, 55, 35, 0.54);
+  font-size: 3rem;
+  font-weight: 950;
+}
+
+.ally-joined-card strong[data-ally-joined-name] {
+  color: var(--wood-dark);
+  font-size: 1.08rem;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.ally-joined-card blockquote {
+  width: 100%;
+  margin: 0;
+  border-left: 3px solid rgba(201, 154, 53, 0.52);
+  border-radius: 10px;
+  padding: 9px 10px;
+  color: rgba(75, 51, 38, 0.92);
+  background: rgba(255, 247, 223, 0.46);
+  font-size: 0.88rem;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.ally-joined-rewards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.ally-joined-rewards span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  border: 1px solid rgba(201, 154, 53, 0.42);
+  border-radius: 999px;
+  padding: 6px 12px;
+  color: var(--navy);
+  background: rgba(241, 210, 122, 0.42);
+  font-size: 0.86rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.ally-joined-card button {
+  min-height: 44px;
+  margin-top: 2px;
+  border: 1px solid rgba(241, 210, 122, 0.74);
+  border-radius: 999px;
+  padding: 0 20px;
+  color: var(--cream);
+  font-weight: 950;
+  background:
+    linear-gradient(180deg, rgba(255, 247, 223, 0.18), transparent 40%),
+    linear-gradient(180deg, #c4493e 0%, #a83730 52%, var(--red) 100%);
+  box-shadow: 0 6px 0 #5b211e, 0 12px 20px rgba(59, 33, 26, 0.24);
+}
+
+.ally-joined-card button:active {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 #5b211e, 0 8px 16px rgba(59, 33, 26, 0.2);
+}
+
+.ally-joined-spark {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--gold-light);
+  box-shadow: 0 0 15px rgba(241, 210, 122, 0.9);
+  opacity: 0;
+}
+
+.ally-joined-spark-a {
+  top: 18%;
+  left: 17%;
+}
+
+.ally-joined-spark-b {
+  top: 16%;
+  right: 18%;
+}
+
+.ally-joined-spark-c {
+  right: 25%;
+  bottom: 25%;
+}
+
+.ally-joined-modal.is-visible .ally-joined-spark {
+  animation: evolutionSpark 1050ms ease-in-out 160ms both;
+}
+
+.ally-joined-modal.is-visible .ally-joined-spark-b {
+  animation-delay: 320ms;
+}
+
+.ally-joined-modal.is-visible .ally-joined-spark-c {
+  animation-delay: 500ms;
+}
+
+@keyframes allyJoinedImagePop {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.82);
+  }
+  62% {
+    opacity: 1;
+    transform: translateY(0) scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .xp-panel.is-level-up {
   animation: levelUpPulse 980ms ease both;
 }
