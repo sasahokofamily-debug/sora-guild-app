@@ -411,6 +411,7 @@ const defaultProgress = {
   titleHistory: [],
   unlockedCollectibleTitleIds: [],
   equippedCollectibleTitleId: "",
+  lastLoginDate: "",
   lastLoginBonusDate: "",
   loginStreak: 0,
   totalLoginDays: 0,
@@ -774,6 +775,12 @@ function loadProgress() {
       titleHistory: Array.isArray(parsed.titleHistory) ? parsed.titleHistory.map(normalizeTitleHistoryItem).filter(Boolean) : [],
       unlockedCollectibleTitleIds: normalizeStringList(parsed.unlockedCollectibleTitleIds),
       equippedCollectibleTitleId: typeof parsed.equippedCollectibleTitleId === "string" ? parsed.equippedCollectibleTitleId : "",
+      lastLoginDate:
+        typeof parsed.lastLoginDate === "string"
+          ? parsed.lastLoginDate
+          : typeof parsed.lastLoginBonusDate === "string"
+            ? parsed.lastLoginBonusDate
+            : "",
       lastLoginBonusDate: typeof parsed.lastLoginBonusDate === "string" ? parsed.lastLoginBonusDate : "",
       loginStreak: Number.isFinite(parsed.loginStreak) ? Math.max(0, Math.round(parsed.loginStreak)) : 0,
       totalLoginDays: Number.isFinite(parsed.totalLoginDays)
@@ -1455,9 +1462,11 @@ function reconcileProgressFromHistory(currentProgress) {
 
 function applyLoginBonus() {
   const today = getDateKey();
-  if (progress.lastLoginBonusDate === today) {
+  const lastLoginDate = progress.lastLoginDate || progress.lastLoginBonusDate || "";
+  if (lastLoginDate === today) {
     return {
       granted: false,
+      loginUpdated: false,
       streakBonus: false,
       dailyXp: 0,
       dailyGold: 0,
@@ -1468,7 +1477,7 @@ function applyLoginBonus() {
   }
 
   const settings = normalizeLoginBonusSettings(loginBonusSettings);
-  const dayDifference = progress.lastLoginBonusDate ? getDayDifference(progress.lastLoginBonusDate, today) : Number.POSITIVE_INFINITY;
+  const dayDifference = lastLoginDate ? getDayDifference(lastLoginDate, today) : Number.POSITIVE_INFINITY;
   const nextLoginStreak = dayDifference === 1 ? Math.max(0, progress.loginStreak) + 1 : 1;
   const streakBonus = settings.streakEnabled && nextLoginStreak % settings.streakIntervalDays === 0;
   const dailyXp = settings.dailyEnabled ? settings.dailyXp : 0;
@@ -1482,14 +1491,16 @@ function applyLoginBonus() {
     ...progress,
     xp: progress.xp + totalXpGain,
     gold: progress.gold + totalGoldGain,
+    lastLoginDate: today,
     loginStreak: nextLoginStreak,
     totalLoginDays: Math.max(0, progress.totalLoginDays || 0) + 1,
     totalGoldEarned: Math.max(0, progress.totalGoldEarned || progress.gold || 0) + totalGoldGain,
-    lastLoginBonusDate: today,
+    lastLoginBonusDate: totalXpGain > 0 || totalGoldGain > 0 ? today : progress.lastLoginBonusDate,
   };
   saveProgress();
   return {
     granted: totalXpGain > 0 || totalGoldGain > 0,
+    loginUpdated: true,
     streakBonus,
     dailyXp,
     dailyGold,
@@ -4107,6 +4118,7 @@ function applyResetTarget(target) {
   if (target === "login") {
     progress = {
       ...progress,
+      lastLoginDate: "",
       lastLoginBonusDate: "",
       loginStreak: 0,
       totalLoginDays: 0,
