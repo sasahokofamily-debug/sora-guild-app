@@ -275,7 +275,7 @@ body.world-theme-sky-castle {
 body[data-world-theme="moon-forest"],
 body.world-theme-moon-forest {
   --world-theme-background:
-    var(--current-world-image, none),
+    var(--current-world-image, url("./assets/worlds/moonlit-forest.png")),
     linear-gradient(145deg, rgba(20, 28, 56, 0.68), rgba(38, 65, 54, 0.42));
   --world-theme-dark-overlay:
     linear-gradient(180deg, rgba(8, 13, 31, 0.46), rgba(22, 34, 28, 0.52));
@@ -288,7 +288,7 @@ body.world-theme-moon-forest {
 body[data-world-theme="thunder-cliff"],
 body.world-theme-thunder-cliff {
   --world-theme-background:
-    var(--current-world-image, none),
+    var(--current-world-image, url("./assets/worlds/thunder-cliffs.png")),
     linear-gradient(145deg, rgba(49, 57, 91, 0.66), rgba(178, 143, 54, 0.28));
   --world-theme-dark-overlay:
     linear-gradient(180deg, rgba(23, 27, 47, 0.44), rgba(45, 37, 24, 0.5));
@@ -301,7 +301,7 @@ body.world-theme-thunder-cliff {
 body[data-world-theme="crystal-valley"],
 body.world-theme-crystal-valley {
   --world-theme-background:
-    var(--current-world-image, none),
+    var(--current-world-image, url("./assets/worlds/crystal-valley.png")),
     linear-gradient(145deg, rgba(65, 113, 145, 0.58), rgba(170, 220, 222, 0.28));
   --world-theme-dark-overlay:
     linear-gradient(180deg, rgba(25, 54, 75, 0.38), rgba(28, 42, 58, 0.44));
@@ -314,7 +314,7 @@ body.world-theme-crystal-valley {
 body[data-world-theme="silent-graveyard"],
 body.world-theme-silent-graveyard {
   --world-theme-background:
-    var(--current-world-image, none),
+    var(--current-world-image, url("./assets/worlds/silent-crypt.png")),
     linear-gradient(145deg, rgba(44, 42, 61, 0.68), rgba(80, 69, 58, 0.34));
   --world-theme-dark-overlay:
     linear-gradient(180deg, rgba(19, 18, 30, 0.48), rgba(33, 29, 31, 0.54));
@@ -327,7 +327,7 @@ body.world-theme-silent-graveyard {
 body[data-world-theme="flame-volcano"],
 body.world-theme-flame-volcano {
   --world-theme-background:
-    var(--current-world-image, none),
+    var(--current-world-image, url("./assets/worlds/volcanic-mountain.png")),
     linear-gradient(145deg, rgba(104, 27, 20, 0.7), rgba(211, 79, 30, 0.36));
   --world-theme-dark-overlay:
     linear-gradient(180deg, rgba(48, 14, 12, 0.48), rgba(38, 20, 14, 0.56));
