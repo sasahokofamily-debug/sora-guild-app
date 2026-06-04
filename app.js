@@ -14,6 +14,8 @@ const DAILY_CLEAR_BONUS_SETTINGS_KEY = "sora_guild_app_daily_clear_bonus_setting
 const DAILY_CLEAR_BONUS_DATE_KEY = "sora_guild_app_daily_clear_bonus_date_dev";
 const BOSS_STATE_KEY = "sora_guild_app_boss_state_dev";
 const ALLY_JOINED_DATES_KEY = "sora_guild_app_ally_joined_dates_dev";
+const CHAPTER2_UNLOCKED_KEY = "sora_guild_app_chapter2_unlocked_dev";
+const CHAPTER2_UNLOCK_SHOWN_KEY = "sora_guild_app_chapter2_unlock_shown_dev";
 const APP_SETTINGS_KEY = "sora_guild_app_app_settings_dev";
 const NOTIFICATION_SETTINGS_KEY = "sora_guild_app_notification_settings_dev";
 const AUDIO_SETTINGS_KEY = "sora_guild_app_audio_settings_dev";
@@ -337,6 +339,8 @@ const BACKUP_STORAGE_KEYS = [
   DAILY_CLEAR_BONUS_DATE_KEY,
   BOSS_STATE_KEY,
   ALLY_JOINED_DATES_KEY,
+  CHAPTER2_UNLOCKED_KEY,
+  CHAPTER2_UNLOCK_SHOWN_KEY,
   APP_SETTINGS_KEY,
   NOTIFICATION_SETTINGS_KEY,
   AUDIO_SETTINGS_KEY,
@@ -373,6 +377,8 @@ const BACKUP_STORAGE_KEY_ALIASES = {
   bossState: BOSS_STATE_KEY,
   allyJoinedDates: ALLY_JOINED_DATES_KEY,
   recruitedAllyDates: ALLY_JOINED_DATES_KEY,
+  chapter2Unlocked: CHAPTER2_UNLOCKED_KEY,
+  chapter2UnlockShown: CHAPTER2_UNLOCK_SHOWN_KEY,
   appSettings: APP_SETTINGS_KEY,
   appName: APP_SETTINGS_KEY,
   notificationSettings: NOTIFICATION_SETTINGS_KEY,
@@ -2284,6 +2290,10 @@ function applyBossQuestDamage(completedAt = new Date()) {
   const isNewAlly = isFirstCycleAlly && recordAllyJoinedDate(boss.id, completedAt);
 
   const defeatedCount = bossState.defeatedCount + 1;
+  const unlocksChapter2 = isNewAlly && defeatedCount === 10 && localStorage.getItem(CHAPTER2_UNLOCK_SHOWN_KEY) !== "true";
+  if (defeatedCount >= 10) {
+    localStorage.setItem(CHAPTER2_UNLOCKED_KEY, "true");
+  }
   const nextBoss = getBossInfo(defeatedCount);
   bossState = normalizeBossState({
     defeatedCount,
@@ -2300,6 +2310,7 @@ function applyBossQuestDamage(completedAt = new Date()) {
     rewardXp: boss.rewardXp,
     rewardGold: boss.rewardGold,
     isNewAlly,
+    unlocksChapter2,
     nextBoss,
     unlockedAreaName: defeatedCount < WORLD_AREAS.length ? WORLD_AREAS[defeatedCount] : "",
   };
@@ -6637,6 +6648,37 @@ function closeAllyJoinedModal() {
   }, 220);
 }
 
+function closeChapter2UnlockModal() {
+  const modal = document.querySelector("[data-chapter2-unlock-modal]");
+  if (!modal) {
+    return;
+  }
+
+  modal.classList.remove("is-visible");
+  window.setTimeout(() => {
+    modal.hidden = true;
+  }, 220);
+}
+
+function showChapter2UnlockModal() {
+  const modal = document.querySelector("[data-chapter2-unlock-modal]");
+  if (!modal || localStorage.getItem(CHAPTER2_UNLOCK_SHOWN_KEY) === "true") {
+    return;
+  }
+
+  localStorage.setItem(CHAPTER2_UNLOCKED_KEY, "true");
+  localStorage.setItem(CHAPTER2_UNLOCK_SHOWN_KEY, "true");
+  document.querySelector("[data-world-map-card]")?.classList.add("is-chapter-unlocked");
+  window.setTimeout(() => {
+    document.querySelector("[data-world-map-card]")?.classList.remove("is-chapter-unlocked");
+  }, 1500);
+  playSound("achievement");
+  modal.hidden = false;
+  modal.classList.remove("is-visible");
+  void modal.offsetWidth;
+  modal.classList.add("is-visible");
+}
+
 function showAllyJoinedModal(allyData, rewardData = {}) {
   const modal = document.querySelector("[data-ally-joined-modal]");
   if (!modal || !allyData) {
@@ -6759,8 +6801,12 @@ function showBossBattleFeedback(result) {
       window.setTimeout(() => playSound("achievement"), ACHIEVEMENT_SOUND_DELAY);
     }
     window.setTimeout(() => playBossSpawnAnimation(result.nextBoss), result.isNewAlly ? 1700 : 1180);
+    if (result.unlocksChapter2) {
+      window.setTimeout(showChapter2UnlockModal, 2200);
+    }
     if (result.unlockedAreaName) {
-      window.setTimeout(() => showWorldAreaUnlockModal(result.unlockedAreaName), result.isNewAlly ? 2300 : 1650);
+      const areaDelay = result.unlocksChapter2 ? 2850 : result.isNewAlly ? 2300 : 1650;
+      window.setTimeout(() => showWorldAreaUnlockModal(result.unlockedAreaName), areaDelay);
     }
   } else {
     showBossDamagePop(result.damage);
@@ -7357,6 +7403,18 @@ document.addEventListener("click", (event) => {
   const allyJoinedBackdrop = event.target.closest("[data-ally-joined-modal]");
   if (allyJoinedBackdrop && event.target === allyJoinedBackdrop) {
     closeAllyJoinedModal();
+    return;
+  }
+
+  const chapter2UnlockClose = event.target.closest("[data-chapter2-unlock-close]");
+  if (chapter2UnlockClose) {
+    closeChapter2UnlockModal();
+    return;
+  }
+
+  const chapter2UnlockBackdrop = event.target.closest("[data-chapter2-unlock-modal]");
+  if (chapter2UnlockBackdrop && event.target === chapter2UnlockBackdrop) {
+    closeChapter2UnlockModal();
     return;
   }
 

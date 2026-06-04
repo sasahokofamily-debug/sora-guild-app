@@ -1643,6 +1643,154 @@ h3 {
   }
 }
 
+.chapter2-unlock-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 33;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 50% 36%, rgba(241, 210, 122, 0.36), transparent 18rem),
+    linear-gradient(180deg, rgba(17, 24, 61, 0.36), rgba(23, 12, 9, 0.62));
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+.chapter2-unlock-modal[hidden] {
+  display: none;
+}
+
+.chapter2-unlock-modal.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.chapter2-unlock-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 11px;
+  width: min(100%, 360px);
+  border: 1px solid rgba(241, 210, 122, 0.86);
+  border-radius: 16px;
+  padding: 24px 18px 20px;
+  color: var(--ink);
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 248, 220, 0.92), transparent 8rem),
+    var(--parchment-card-bg);
+  box-shadow:
+    var(--paper-inner-shadow),
+    0 24px 48px rgba(23, 12, 9, 0.46),
+    0 0 40px rgba(241, 210, 122, 0.34);
+  overflow: hidden;
+  transform: scale(0.96);
+}
+
+.chapter2-unlock-modal.is-visible .chapter2-unlock-card {
+  animation: worldAreaUnlockCard 620ms ease both;
+}
+
+.chapter2-unlock-card h3 {
+  margin: 0;
+  color: #8c301f;
+  font-size: clamp(1.34rem, 7vw, 1.86rem);
+  font-weight: 950;
+  line-height: 1.2;
+  text-shadow: 0 2px 0 rgba(255, 247, 223, 0.72), 0 0 20px rgba(241, 210, 122, 0.3);
+}
+
+.chapter2-unlock-card strong {
+  color: var(--wood-dark);
+  font-size: 1rem;
+  font-weight: 950;
+  line-height: 1.45;
+}
+
+.chapter2-unlock-card p:not(.section-kicker) {
+  margin: 0;
+  color: rgba(75, 51, 38, 0.9);
+  font-size: 0.92rem;
+  font-weight: 900;
+  line-height: 1.55;
+}
+
+.chapter2-unlock-card button {
+  min-height: 44px;
+  margin-top: 2px;
+  border: 1px solid rgba(241, 210, 122, 0.74);
+  border-radius: 999px;
+  padding: 0 20px;
+  color: var(--cream);
+  font-weight: 950;
+  background:
+    linear-gradient(180deg, rgba(255, 247, 223, 0.18), transparent 40%),
+    linear-gradient(180deg, #c4493e 0%, #a83730 52%, var(--red) 100%);
+  box-shadow: 0 6px 0 #5b211e, 0 12px 20px rgba(59, 33, 26, 0.24);
+}
+
+.chapter2-unlock-card button:active {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 #5b211e, 0 8px 16px rgba(59, 33, 26, 0.2);
+}
+
+.chapter2-spark {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--gold-light);
+  box-shadow: 0 0 15px rgba(241, 210, 122, 0.9);
+  opacity: 0;
+}
+
+.chapter2-spark-a {
+  top: 20%;
+  left: 16%;
+}
+
+.chapter2-spark-b {
+  top: 17%;
+  right: 17%;
+}
+
+.chapter2-spark-c {
+  right: 24%;
+  bottom: 25%;
+}
+
+.chapter2-unlock-modal.is-visible .chapter2-spark {
+  animation: evolutionSpark 1120ms ease-in-out 160ms both;
+}
+
+.chapter2-unlock-modal.is-visible .chapter2-spark-b {
+  animation-delay: 320ms;
+}
+
+.chapter2-unlock-modal.is-visible .chapter2-spark-c {
+  animation-delay: 520ms;
+}
+
+.world-map-card.is-chapter-unlocked {
+  animation: chapterWorldMapGlow 1500ms ease both;
+}
+
+@keyframes chapterWorldMapGlow {
+  0%, 100% {
+    box-shadow: var(--parchment-card-shadow);
+  }
+  45% {
+    box-shadow:
+      var(--paper-inner-shadow),
+      0 0 0 1px rgba(241, 210, 122, 0.58),
+      0 0 30px rgba(241, 210, 122, 0.44),
+      0 14px 28px rgba(23, 12, 9, 0.28);
+  }
+}
+
 .xp-panel.is-level-up {
   animation: levelUpPulse 980ms ease both;
 }
