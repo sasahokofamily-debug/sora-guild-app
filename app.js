@@ -1263,17 +1263,25 @@ function primeSfxOnInteraction() {
 
 function playBgm() {
   if (!bgmEnabled) {
-    return Promise.resolve();
+    return Promise.resolve(false);
   }
   const audio = getBgmAudio();
   audio.volume = getAudioVolume();
   const playPromise = audio.play();
   if (playPromise && typeof playPromise.catch === "function") {
-    return playPromise.catch((error) => {
-      console.warn("BGM再生を開始できませんでした", error);
-    });
+    return playPromise
+      .then(() => {
+        bgmStarted = true;
+        return true;
+      })
+      .catch((error) => {
+        bgmStarted = false;
+        console.warn("BGM再生を開始できませんでした", error);
+        return false;
+      });
   }
-  return Promise.resolve();
+  bgmStarted = true;
+  return Promise.resolve(true);
 }
 
 function pauseBgm() {
@@ -1291,23 +1299,30 @@ function armBgmStartOnInteraction() {
     if (bgmStarted) {
       return;
     }
-    bgmInteractionArmed = false;
     removeBgmInteractionListeners(start);
-    bgmStarted = true;
     primeSfxOnInteraction();
-    playBgm();
+    playBgm().then((started) => {
+      bgmInteractionArmed = false;
+      if (!started && bgmEnabled) {
+        armBgmStartOnInteraction();
+      }
+    });
   };
   addBgmInteractionListeners(start);
 }
 
 function addBgmInteractionListeners(handler) {
+  document.addEventListener("pointerdown", handler, { capture: true, passive: true });
   document.addEventListener("touchstart", handler, { capture: true, passive: true });
   document.addEventListener("click", handler, { capture: true });
+  document.addEventListener("keydown", handler, { capture: true });
 }
 
 function removeBgmInteractionListeners(handler) {
+  document.removeEventListener("pointerdown", handler, { capture: true });
   document.removeEventListener("touchstart", handler, { capture: true });
   document.removeEventListener("click", handler, { capture: true });
+  document.removeEventListener("keydown", handler, { capture: true });
 }
 
 function setBgmEnabled(enabled) {
