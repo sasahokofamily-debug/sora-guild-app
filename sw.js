@@ -1,4 +1,4 @@
-const CACHE_NAME = "sora-quest-pwa-v26";
+const CACHE_NAME = "sora-quest-pwa-v27";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -15,6 +15,11 @@ const APP_SHELL = [
   "./assets/worlds/ancient-temple.png",
   "./assets/worlds/dark-castle.png",
   "./assets/worlds/sky-castle.png",
+  "./assets/worlds/moonlit-forest.png",
+  "./assets/worlds/thunder-cliffs.png",
+  "./assets/worlds/crystal-valley.png",
+  "./assets/worlds/silent-crypt.png",
+  "./assets/worlds/volcanic-mountain.png",
   "./assets/quest-card.png",
   "./assets/textures/parchment-card.png",
   "./assets/icons/pwa-icon-192.png",

@@ -80,11 +80,11 @@ const WORLD_THEMES = [
   { key: "dark-castle", image: "./assets/worlds/dark-castle.png" },
   { key: "star-temple", image: "./assets/worlds/star-temple.png" },
   { key: "sky-castle", image: "./assets/worlds/sky-castle.png" },
-  { key: "moon-forest" },
-  { key: "thunder-cliff" },
-  { key: "crystal-valley" },
-  { key: "silent-graveyard" },
-  { key: "flame-volcano" },
+  { key: "moon-forest", image: "./assets/worlds/moonlit-forest.png" },
+  { key: "thunder-cliff", image: "./assets/worlds/thunder-cliffs.png" },
+  { key: "crystal-valley", image: "./assets/worlds/crystal-valley.png" },
+  { key: "silent-graveyard", image: "./assets/worlds/silent-crypt.png" },
+  { key: "flame-volcano", image: "./assets/worlds/volcanic-mountain.png" },
 ];
 const WORLD_AREA_THEMES = WORLD_THEMES.map((theme) => theme.key);
 const DEFAULT_AUDIO_SETTINGS = {
