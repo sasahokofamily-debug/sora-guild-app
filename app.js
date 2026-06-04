@@ -1288,6 +1288,25 @@ function pauseBgm() {
   if (bgmAudio) {
     bgmAudio.pause();
   }
+  bgmStarted = false;
+}
+
+function pauseBgmForInactiveApp() {
+  pauseBgm();
+  if (bgmEnabled && !document.hidden) {
+    armBgmStartOnInteraction();
+  }
+}
+
+function handleAudioLifecycleChange() {
+  if (document.hidden) {
+    pauseBgm();
+    return;
+  }
+
+  if (bgmEnabled) {
+    armBgmStartOnInteraction();
+  }
 }
 
 function armBgmStartOnInteraction() {
@@ -7737,6 +7756,9 @@ document.querySelector("[data-reward-create-form]")?.addEventListener("submit", 
 document.querySelector("[data-parent-note-form]")?.addEventListener("submit", handleParentNoteSubmit);
 document.addEventListener("submit", handleQuestEditSubmit);
 document.addEventListener("submit", handleRewardEditSubmit);
+document.addEventListener("visibilitychange", handleAudioLifecycleChange);
+window.addEventListener("pagehide", pauseBgmForInactiveApp);
+window.addEventListener("beforeunload", pauseBgmForInactiveApp);
 
 if (!progress.visitedScreens.includes("home")) {
   progress = {
