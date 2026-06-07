@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DevSphere</title>
+  <style>
+    :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#f0f6fc;--muted:#8b949e;--blue:#2f81f7;--green:#238636;--red:#da3633;--yellow:#f1e05a;--orange:#e34c26;--purple:#563d7c}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea,select{font:inherit}button{border:1px solid var(--line);background:#21262d;color:var(--text);border-radius:8px;padding:8px 12px;cursor:pointer}button.primary{background:var(--green);border-color:var(--green)}button.danger{background:var(--red);border-color:var(--red)}button:disabled{opacity:.45;cursor:not-allowed}.login{position:fixed;inset:0;z-index:50;display:grid;place-items:start center;overflow:auto;padding:20px;background:linear-gradient(135deg,#010409,#0d1117)}.login.hidden{display:none}.login-card{width:min(440px,94vw);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;margin:18px auto}.login-card label{display:grid;gap:6px;margin:10px 0;color:var(--muted);font-size:13px}.login-card input{padding:11px;border-radius:8px;border:1px solid var(--line);background:#010409;color:var(--text)}.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px;border-bottom:1px solid var(--line);background:#010409;position:sticky;top:0;z-index:10}.brand{font-weight:900}.pill{border:1px solid var(--line);border-radius:999px;padding:5px 9px;color:var(--muted);font-size:12px}.layout{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 58px)}@media(max-width:900px){.layout{grid-template-columns:1fr}.preview-wrap{min-height:55vh}}.pane{border-right:1px solid var(--line);min-width:0}.tabs{display:flex;gap:6px;padding:10px;border-bottom:1px solid var(--line);background:#0d1117}.tab.active{background:var(--blue);border-color:var(--blue)}.tools{display:flex;gap:6px;flex-wrap:wrap;padding:10px;border-bottom:1px solid var(--line)}.status{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;color:var(--muted);font-size:12px;border-bottom:1px solid var(--line)}textarea.editor{width:100%;height:62vh;display:block;background:#010409;color:var(--text);border:0;resize:vertical;padding:14px;font-family:Consolas,Monaco,monospace;font-size:14px;line-height:1.55;tab-size:2;outline:none}iframe{width:100%;height:100%;border:0;background:white}.preview-wrap{display:grid;grid-template-rows:auto 1fr;min-width:0}.preview-head{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px;border-bottom:1px solid var(--line);background:var(--panel)}.modal{position:fixed;inset:0;z-index:40;display:none;place-items:start center;overflow:auto;padding:20px;background:rgba(1,4,9,.72)}.modal.show{display:grid}.modal-card{width:min(980px,94vw);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin:20px auto}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.card{border:1px solid var(--line);border-radius:12px;background:#0d1117;padding:12px}.card h3{margin:0 0 8px}.setting-row{display:grid;gap:6px;margin:8px 0}.setting-row input,.setting-row select{padding:9px;border:1px solid var(--line);border-radius:8px;background:#010409;color:var(--text)}pre{white-space:pre-wrap;background:#010409;border:1px solid var(--line);border-radius:10px;padding:12px;max-height:420px;overflow:auto}.diff-add{color:#7ee787}.diff-remove{color:#ff7b72}.lang{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.bar{height:8px;width:150px;border-radius:99px;overflow:hidden;display:flex;border:1px solid var(--line)}.dot{width:10px;height:10px;border-radius:50%;display:inline-block}.circle{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);font-size:9px;font-weight:900;background:conic-gradient(var(--c) var(--p),#30363d 0)}
+  </style>
+</head>
+<body>
+  <div class="login" id="login">
+    <div class="login-card">
+      <h1>DevSphere Login</h1>
+      <p class="pill">初期: user / 1234</p>
+      <label>ユーザー名<input id="loginUser" value="user"></label>
+      <label>PIN<input id="loginPin" type="password" value="1234"></label>
+      <button class="primary" id="loginBtn" type="button">ログイン</button>
+      <button id="googleBtn" type="button">Googleで進行</button>
+      <p id="loginMsg"></p>
+      <details><summary>新規登録</summary><label>ユーザー名<input id="signupUser"></label><label>PIN<input id="signupPin" type="password"></label><button id="signupBtn" type="button">登録する</button></details>
+    </div>
+  </div>
+
+  <header class="top">
+    <span class="brand">DevSphere</span>
+    <span class="pill" id="loginInfo">未ログイン</span>
+    <span class="pill" id="adminInfo">Locked</span>
+    <span class="pill">管理者: A+G</span>
+    <button id="saveBtn">保存</button>
+    <button id="historyBtn">履歴</button>
+    <button id="backupBtn">バックアップ</button>
+    <button id="logoutBtn">ログアウト</button>
+  </header>
+
+  <main class="layout">
+    <section class="pane">
+      <div class="tabs"><button class="tab active" data-file="html">HTML</button><button class="tab" data-file="css">CSS</button><button class="tab" data-file="js">JS</button></div>
+      <div class="tools"><button class="primary" id="runBtn">実行</button><button id="formatBtn">整える</button><button id="copyBtn">コピー</button><button id="clearBtn">クリア</button></div>
+      <div class="status"><span id="fileLabel">HTML</span><span id="countLabel">0行 / 0文字</span><div class="lang" id="langStats"></div></div>
+      <textarea class="editor" id="htmlCode"></textarea>
+      <textarea class="editor" id="cssCode" hidden></textarea>
+      <textarea class="editor" id="jsCode" hidden></textarea>
+    </section>
+    <section class="preview-wrap"><div class="preview-head"><strong>Preview</strong><span class="pill" id="saveName">保存名: DevSphere</span></div><iframe id="preview" sandbox="allow-scripts allow-forms allow-modals"></iframe></section>
+  </main>
+
+  <div class="modal" id="historyModal"><div class="modal-card"><h2>更新履歴 / 差分</h2><div class="grid"><div class="card"><div id="historyList"></div></div><div class="card"><pre id="diffView">履歴を選択してください。</pre></div></div><p style="text-align:right"><button id="closeHistory">閉じる</button></p></div></div>
+  <div class="modal" id="backupModal"><div class="modal-card"><h2>バックアップ</h2><button class="primary" id="exportBtn">JSONを書き出し</button> <button id="importBtn">JSONから復元</button><textarea class="editor" id="backupText" style="height:260px"></textarea><p style="text-align:right"><button id="closeBackup">閉じる</button></p></div></div>
+  <div class="modal" id="adminModal"><div class="modal-card"><h2>管理者モード</h2><label>PIN<input id="adminPin" type="password" value="1234"></label><button class="primary" id="adminUnlock">解除</button> <button id="adminLock">終了</button><p id="adminMsg"></p><div id="adminPanel" hidden><div class="grid"><div class="card"><h3>本体コントロール</h3><div class="setting-row"><label>タイトル</label><input id="coreTitle" value="DevSphere"></div><div class="setting-row"><label>背景</label><input id="coreBg" type="color" value="#0d1117"></div><button id="applyCore">反映</button></div><div class="card"><h3>ログイン設定</h3><div class="setting-row"><label>ユーザー名</label><input id="loginSetUser"></div><div class="setting-row"><label>PIN</label><input id="loginSetPin" type="password"></div><button id="saveLoginSet">保存</button></div></div></div><p style="text-align:right"><button id="closeAdmin">閉じる</button></p></div></div>
+
+<script>
+const $=id=>document.getElementById(id);const STORAGE='devsphere.github.ready.v1';let active='html';let admin=false;let history=[];let last=null;let state={html:'<!doctype html>\n<html lang="ja">\n<head>\n  <meta charset="utf-8">\n  <title>My App</title>\n</head>\n<body>\n  <h1>Hello DevSphere</h1>\n</body>\n</html>',css:'body {\n  font-family: system-ui, sans-serif;\n  padding: 24px;\n}',js:'console.log("Hello DevSphere");',login:{user:'user',pin:'1234'},provider:'guest'};
+function load(){try{const s=JSON.parse(localStorage.getItem(STORAGE)||'null');if(s){state={...state,...s.state};history=s.history||[];last=s.last||null}}catch(e){}$('htmlCode').value=state.html;$('cssCode').value=state.css;$('jsCode').value=state.js;update();run();}
+function persist(){state.html=$('htmlCode').value;state.css=$('cssCode').value;state.js=$('jsCode').value;localStorage.setItem(STORAGE,JSON.stringify({state,history,last}));}
+function snap(){return{html:$('htmlCode').value,css:$('cssCode').value,js:$('jsCode').value,time:new Date().toLocaleString()}}
+function addHist(action){const after=snap();const before=last;if(before&&before.html===after.html&&before.css===after.css&&before.js===after.js)return false;history.unshift({id:Date.now(),action,time:after.time,before,after});history=history.slice(0,80);last=after;persist();return true}
+function esc(s){return String(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function diff(a,b){a=String(a||'').split('\n');b=String(b||'').split('\n');let out='';for(let i=0;i<Math.max(a.length,b.length);i++){if(a[i]===b[i])out+='  '+esc(a[i]||'')+'\n';else{if(a[i]!=null)out+='<span class="diff-remove">- '+esc(a[i])+'</span>\n';if(b[i]!=null)out+='<span class="diff-add">+ '+esc(b[i])+'</span>\n';}}return out}
+function showDiff(h){$('diffView').innerHTML='<b>'+esc(h.action)+' / '+esc(h.time)+'</b>\n\n--- HTML\n'+diff(h.before&&h.before.html,h.after.html)+'\n--- CSS\n'+diff(h.before&&h.before.css,h.after.css)+'\n--- JS\n'+diff(h.before&&h.before.js,h.after.js)}
+function renderHist(){$('historyList').innerHTML=history.length?history.map((h,i)=>'<button style="display:block;width:100%;margin:4px 0" data-h="'+i+'">'+esc(h.time)+'<br>'+esc(h.action)+'</button>').join(''):'履歴なし';document.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>showDiff(history[+b.dataset.h]));}
+function run(){const html=$('htmlCode').value,css=$('cssCode').value,js=$('jsCode').value;$('preview').srcdoc=html+'<style>'+css+'</style><script>'+js+'<\/script>';}
+function switchFile(f){active=f;['html','css','js'].forEach(k=>$(k+'Code').hidden=k!==f);document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.file===f));$('fileLabel').textContent=f.toUpperCase();update();}
+function update(){const v=$(active+'Code').value;$('countLabel').textContent=v.split('\n').length+'行 / '+Array.from(v).length+'文字';renderLang();}
+function renderLang(){const len={html:$('htmlCode').value.length,css:$('cssCode').value.length,js:$('jsCode').value.length};const total=len.html+len.css+len.js||1;const items=[['HTML',len.html,'var(--orange)'],['CSS',len.css,'var(--purple)'],['JS',len.js,'var(--yellow)']];$('langStats').innerHTML='<div class="bar">'+items.map(x=>'<span style="width:'+(x[1]/total*100)+'%;background:'+x[2]+'"></span>').join('')+'</div>'+items.map(x=>'<span class="circle" style="--c:'+x[2]+';--p:'+(x[1]/total*100)+'%">'+Math.round(x[1]/total*100)+'%</span>').join('')}
+function login(provider='normal'){const u=$('loginUser').value.trim(),p=$('loginPin').value.trim();if(u!==state.login.user||p!==state.login.pin){$('loginMsg').textContent='ログインできません';return}state.provider=provider;sessionStorage.setItem('devsphere.login','1');$('login').classList.add('hidden');$('loginInfo').textContent='ログイン中：'+(provider==='google'?'簡易Google':'通常ログイン')+' / '+u;persist();}
+function google(){state.login={user:'google-user@example.com',pin:'google'};$('loginUser').value=state.login.user;$('loginPin').value=state.login.pin;login('google')}
+function logout(){sessionStorage.removeItem('devsphere.login');$('login').classList.remove('hidden')}
+function openAdmin(){if(!sessionStorage.getItem('devsphere.login'))return;$('adminModal').classList.add('show')}
+function unlockAdmin(){if($('adminPin').value!=='1234'){$('adminMsg').textContent='PINが違います';return}admin=true;$('adminInfo').textContent='Admin';$('adminPanel').hidden=false}
+window.addEventListener('keydown',e=>{window._keys=window._keys||{};window._keys[e.key.toLowerCase()]=1;if(window._keys.a&&window._keys.g){e.preventDefault();openAdmin()}});window.addEventListener('keyup',e=>{window._keys=window._keys||{};delete window._keys[e.key.toLowerCase()]});
+$('loginBtn').onclick=()=>login();$('googleBtn').onclick=google;$('signupBtn').onclick=()=>{state.login={user:$('signupUser').value||'user',pin:$('signupPin').value||'1234'};persist();$('loginUser').value=state.login.user;$('loginPin').value=state.login.pin;login('normal')};$('logoutBtn').onclick=logout;$('runBtn').onclick=run;$('saveBtn').onclick=()=>{persist();alert(addHist('save')?'保存しました':'変更なし')};$('historyBtn').onclick=()=>{renderHist();$('historyModal').classList.add('show')};$('closeHistory').onclick=()=>$('historyModal').classList.remove('show');$('backupBtn').onclick=()=>{$('backupText').value=JSON.stringify({state,history,last},null,2);$('backupModal').classList.add('show')};$('closeBackup').onclick=()=>$('backupModal').classList.remove('show');$('exportBtn').onclick=()=>{const blob=new Blob([$('backupText').value],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='devsphere-backup.json';a.click()};$('importBtn').onclick=()=>{const d=JSON.parse($('backupText').value);state=d.state||state;history=d.history||[];last=d.last||null;persist();load();alert('復元しました')};$('adminUnlock').onclick=unlockAdmin;$('adminLock').onclick=()=>{admin=false;$('adminInfo').textContent='Locked';$('adminPanel').hidden=true};$('closeAdmin').onclick=()=>$('adminModal').classList.remove('show');$('applyCore').onclick=()=>{document.title=$('coreTitle').value;document.body.style.background=$('coreBg').value};$('saveLoginSet').onclick=()=>{state.login={user:$('loginSetUser').value||'user',pin:$('loginSetPin').value||'1234'};persist();alert('保存しました')};document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>switchFile(t.dataset.file));['htmlCode','cssCode','jsCode'].forEach(id=>$(id).addEventListener('input',()=>{update();persist()}));$('formatBtn').onclick=()=>{const e=$(active+'Code');e.value=e.value.replace(/></g,'>\n<');update();persist()};$('copyBtn').onclick=()=>navigator.clipboard.writeText($(active+'Code').value);$('clearBtn').onclick=()=>{if(confirm('クリアしますか？')){$(active+'Code').value='';update();persist()}};load();if(sessionStorage.getItem('devsphere.login')){$('login').classList.add('hidden');$('loginInfo').textContent='ログイン中：'+(state.provider==='google'?'簡易Google':'通常ログイン')+' / '+state.login.user}
+</script>
+</body>
+</html>
