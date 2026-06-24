@@ -2132,14 +2132,18 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 10px;
-  border: 1px solid rgba(176, 126, 43, 0.42);
-  border-radius: 8px;
-  padding: 11px 14px;
+  margin: -6px 0 14px;
+  border: 1px solid rgba(241, 210, 122, 0.28);
+  border-radius: 999px;
+  padding: 6px 12px;
   color: var(--muted);
+  background:
+    linear-gradient(180deg, rgba(255, 247, 223, 0.9), rgba(235, 211, 166, 0.72)),
+    var(--asset-card-background);
   box-shadow:
-    var(--paper-inner-shadow),
-    0 12px 24px rgba(32, 18, 12, 0.18);
+    inset 0 1px 2px rgba(255, 255, 255, 0.32),
+    inset 0 -1px 2px rgba(80, 50, 20, 0.12),
+    0 8px 16px rgba(32, 18, 12, 0.18);
 }
 
 .app-time-values {
@@ -2147,7 +2151,7 @@ h3 {
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: center;
-  gap: 8px 14px;
+  gap: 7px 12px;
   min-width: 0;
   width: 100%;
   text-align: center;
@@ -2155,7 +2159,7 @@ h3 {
 
 .app-time-values strong {
   color: var(--navy);
-  font-size: clamp(1.05rem, 4.8vw, 1.35rem);
+  font-size: clamp(0.9rem, 4vw, 1.08rem);
   font-weight: 950;
   line-height: 1;
   white-space: nowrap;
@@ -2164,7 +2168,7 @@ h3 {
 .app-time-values span {
   color: var(--wood-dark);
   font-variant-numeric: tabular-nums;
-  font-size: clamp(1.45rem, 7vw, 2rem);
+  font-size: clamp(1.12rem, 5.2vw, 1.45rem);
   font-weight: 950;
   line-height: 1;
   white-space: nowrap;
