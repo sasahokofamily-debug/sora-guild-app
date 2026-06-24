@@ -2129,67 +2129,42 @@ h3 {
 }
 
 .app-time-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 8px 12px;
-  margin-top: 12px;
+  justify-content: center;
+  margin-top: 10px;
   border: 1px solid rgba(176, 126, 43, 0.42);
   border-radius: 8px;
-  padding: 12px 14px;
+  padding: 9px 12px;
   color: var(--muted);
   box-shadow:
     var(--paper-inner-shadow),
     0 12px 24px rgba(32, 18, 12, 0.18);
 }
 
-.app-time-card .section-kicker {
-  margin-bottom: 2px;
-  color: rgba(201, 154, 53, 0.9);
-  text-shadow: none;
-}
-
-.app-time-heading {
-  min-width: 0;
-}
-
-.app-time-card h3 {
-  margin: 0;
-  color: var(--ink);
-  font-size: 1rem;
-  line-height: 1.2;
-}
-
-.app-time-card small {
-  grid-column: 1 / -1;
-  color: rgba(83, 65, 52, 0.78);
-  font-size: 0.74rem;
-  font-weight: 800;
-  line-height: 1.35;
-}
-
 .app-time-values {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  flex-wrap: wrap;
+  align-items: baseline;
   justify-content: center;
-  gap: 3px;
+  gap: 8px 12px;
   min-width: 0;
-  text-align: right;
+  width: 100%;
+  text-align: center;
 }
 
 .app-time-values strong {
   color: var(--navy);
-  font-size: clamp(0.78rem, 3.2vw, 0.95rem);
+  font-size: clamp(0.92rem, 4vw, 1.08rem);
   font-weight: 950;
-  line-height: 1.2;
+  line-height: 1;
   white-space: nowrap;
 }
 
 .app-time-values span {
   color: var(--wood-dark);
   font-variant-numeric: tabular-nums;
-  font-size: clamp(1.55rem, 8vw, 2.15rem);
+  font-size: clamp(1.1rem, 5.5vw, 1.55rem);
   font-weight: 950;
   line-height: 1;
   white-space: nowrap;
