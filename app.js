@@ -686,6 +686,7 @@ let allyJoinedDates = loadAllyJoinedDates();
 let appSettings = loadAppSettings(progress.name);
 let notificationSettings = loadNotificationSettings();
 let audioSettings = loadAudioSettings();
+let currentAppDateKey = getDateKey();
 progress = reconcileProgressFromHistory(progress);
 syncProgressNameFromAppSettings();
 let rewardToastTimer;
@@ -1567,6 +1568,51 @@ function getDateKey(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+function getJapanDateTimeParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("ja-JP-u-ca-gregory", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+  return Object.fromEntries(parts.map((part) => [part.type, part.value]));
+}
+
+function normalizeDateKeyInput(value) {
+  const dateKey = String(value || "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(dateKey) ? dateKey : "";
+}
+
+function formatDateKeyShort(dateKey) {
+  const normalized = normalizeDateKeyInput(dateKey);
+  if (!normalized) {
+    return "";
+  }
+  const [, month, day] = normalized.split("-");
+  return `${Number(month)}/${Number(day)}`;
+}
+
+function renderCurrentAppDateTime(date = new Date()) {
+  const parts = getJapanDateTimeParts(date);
+  const dateText = `${parts.year}/${parts.month}/${parts.day}（${parts.weekday}）`;
+  const timeText = `${parts.hour}:${parts.minute}`;
+  setText("[data-current-date]", dateText);
+  setText("[data-current-time]", timeText);
+}
+
+function tickAppDateTime() {
+  const nextDateKey = getDateKey();
+  renderCurrentAppDateTime();
+  if (nextDateKey !== currentAppDateKey) {
+    currentAppDateKey = nextDateKey;
+    render();
+  }
+}
+
 function getYearDateKey(year, month, day) {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
@@ -1842,6 +1888,8 @@ function normalizeQuest(rawQuest) {
   const frequency = ["once", "daily", "weekly", "weekday"].includes(rawQuest.frequency) ? rawQuest.frequency : "daily";
   const stat = ["STR", "INT", "END", "DEX"].includes(rawQuest.stat) ? rawQuest.stat : inferQuestStat(rawQuest);
   const scheduleDays = normalizeQuestScheduleDays(rawQuest.scheduleDays);
+  const availableFrom = normalizeDateKeyInput(rawQuest.availableFrom);
+  const availableUntil = normalizeDateKeyInput(rawQuest.availableUntil);
 
   if (!title || !Number.isFinite(xpReward) || !Number.isFinite(goldReward)) {
     return null;
@@ -1855,6 +1903,8 @@ function normalizeQuest(rawQuest) {
     priority,
     frequency,
     scheduleDays,
+    availableFrom,
+    availableUntil,
     stat,
     description: String(rawQuest.description || "").trim(),
     xpReward: Math.max(0, Math.round(xpReward)),
@@ -2240,7 +2290,21 @@ function isQuestCompleted(quest) {
   return progress.completedQuestIds.includes(getQuestCompletionKey(quest));
 }
 
+function isQuestWithinActivePeriod(quest, date = new Date()) {
+  const today = getDateKey(date);
+  if (quest.availableFrom && today < quest.availableFrom) {
+    return false;
+  }
+  if (quest.availableUntil && today > quest.availableUntil) {
+    return false;
+  }
+  return true;
+}
+
 function isQuestVisible(quest) {
+  if (!isQuestWithinActivePeriod(quest)) {
+    return false;
+  }
   if (!normalizeQuestScheduleDays(quest.scheduleDays).includes(getJapanDayOfWeek())) {
     return false;
   }
@@ -2248,6 +2312,21 @@ function isQuestVisible(quest) {
     return !isQuestCompleted(quest);
   }
   return true;
+}
+
+function getQuestPeriodLabel(quest) {
+  const from = normalizeDateKeyInput(quest.availableFrom);
+  const until = normalizeDateKeyInput(quest.availableUntil);
+  if (from && until) {
+    return `期間 ${formatDateKeyShort(from)}〜${formatDateKeyShort(until)}`;
+  }
+  if (from) {
+    return `${formatDateKeyShort(from)}から`;
+  }
+  if (until) {
+    return `${formatDateKeyShort(until)}まで`;
+  }
+  return "";
 }
 
 function sortQuestsForDisplay(quests) {
@@ -4673,6 +4752,8 @@ function handleQuestCreateSubmit(event) {
     priority: formData.get("priority"),
     frequency: formData.get("frequency"),
     scheduleDays,
+    availableFrom: formData.get("availableFrom"),
+    availableUntil: formData.get("availableUntil"),
     stat: formData.get("stat"),
     title: formData.get("title"),
     description: formData.get("description"),
@@ -4690,6 +4771,13 @@ function handleQuestCreateSubmit(event) {
   if (normalizeScheduleDays(scheduleDays).length === 0) {
     if (message) {
       message.textContent = "曜日を1つ以上選んでください";
+    }
+    return;
+  }
+
+  if (quest.availableFrom && quest.availableUntil && quest.availableFrom > quest.availableUntil) {
+    if (message) {
+      message.textContent = "表示終了日は開始日以降にしてください";
     }
     return;
   }
@@ -4998,6 +5086,7 @@ function renderQuestManager() {
     const item = document.createElement("article");
     const typeLabel = getQuestTypeLabel(quest.type);
     const priorityLabel = getQuestPriorityLabel(quest.priority);
+    const periodLabel = getQuestPeriodLabel(quest);
     item.className = `managed-quest-item managed-quest-${quest.type} managed-quest-category-${quest.category}`;
 
     if (quest.id === editingQuestId) {
@@ -5036,6 +5125,16 @@ function renderQuestManager() {
             </select>
           </label>
           ${renderWeekdayPicker(quest.scheduleDays)}
+          <div class="quest-period-grid">
+            <label>
+              表示開始日
+              <input type="date" name="availableFrom" value="${escapeHtml(quest.availableFrom || "")}">
+            </label>
+            <label>
+              表示終了日
+              <input type="date" name="availableUntil" value="${escapeHtml(quest.availableUntil || "")}">
+            </label>
+          </div>
           <label>
             成長する能力
             <select name="stat">
@@ -5080,6 +5179,7 @@ function renderQuestManager() {
               <span class="quest-category-badge quest-category-${quest.category}">${getQuestCategoryLabel(quest.category)}</span>
               <span class="quest-priority-badge priority-${quest.priority}">${priorityLabel}</span>
               <span class="quest-frequency-badge">${getQuestFrequencyLabel(quest.frequency, quest.scheduleDays)}</span>
+              ${periodLabel ? `<span class="quest-period-badge">${periodLabel}</span>` : ""}
             </div>
           </div>
           <p>${escapeHtml(quest.description)}</p>
@@ -5125,6 +5225,8 @@ function handleQuestEditSubmit(event) {
     priority: formData.get("priority"),
     frequency: formData.get("frequency"),
     scheduleDays,
+    availableFrom: formData.get("availableFrom"),
+    availableUntil: formData.get("availableUntil"),
     stat: formData.get("stat"),
     title: formData.get("title"),
     description: formData.get("description"),
@@ -5143,6 +5245,13 @@ function handleQuestEditSubmit(event) {
   if (normalizeScheduleDays(scheduleDays).length === 0) {
     if (message) {
       message.textContent = "曜日を1つ以上選んでください";
+    }
+    return;
+  }
+
+  if (quest.availableFrom && quest.availableUntil && quest.availableFrom > quest.availableUntil) {
+    if (message) {
+      message.textContent = "表示終了日は開始日以降にしてください";
     }
     return;
   }
@@ -5566,6 +5675,7 @@ function renderQuests() {
     const typeLabel = getQuestTypeLabel(quest.type);
     const frequencyLabel = getQuestFrequencyLabel(quest.frequency, quest.scheduleDays);
     const priorityLabel = getQuestPriorityLabel(quest.priority);
+    const periodLabel = getQuestPeriodLabel(quest);
     const card = document.createElement("article");
     card.className = `quest-card quest-card-${quest.type} quest-card-category-${quest.category} quest-card-priority-${quest.priority}${completed ? " is-completed" : ""}${isNextQuest ? " is-next-quest" : ""}`;
     card.dataset.questCard = quest.id;
@@ -5583,6 +5693,7 @@ function renderQuests() {
           ${quest.category === "challenge" ? '<span class="quest-bonus-badge">ボーナス</span>' : ""}
           <span class="quest-priority-badge priority-${quest.priority}">${priorityLabel}</span>
           <span class="quest-frequency-badge">${frequencyLabel}</span>
+          ${periodLabel ? `<span class="quest-period-badge">${periodLabel}</span>` : ""}
           ${completed ? '<span class="status-badge">完了済み</span>' : ""}
         </div>
       </div>
@@ -7263,6 +7374,7 @@ function renderRecentAchievements() {
 function render() {
   applyDailyStreakReset();
   applyAppDisplayName();
+  renderCurrentAppDateTime();
   const level = getLevel(progress.xp);
   const title = getTitle(level);
   progress.stats = normalizeStats(progress.stats);
@@ -7769,6 +7881,7 @@ if (!progress.visitedScreens.includes("home")) {
 }
 const loginBonusResult = applyLoginBonus();
 render();
+window.setInterval(tickAppDateTime, 30000);
 showBackupRestoreMessageIfNeeded();
 initializeBgm();
 const isSetupVisible = showInitialSetupIfNeeded();

@@ -196,6 +196,18 @@
             </div>
           </section>
 
+          <section class="app-time-card" aria-label="現在日時">
+            <div>
+              <p class="section-kicker">Guild Clock</p>
+              <h3>ギルド時計</h3>
+            </div>
+            <div class="app-time-values">
+              <strong data-current-date>今日</strong>
+              <span data-current-time>--:--</span>
+            </div>
+            <small>日本時間でクエストの表示日を判定します</small>
+          </section>
+
           <section class="daily-mission-card" data-home-daily-mission aria-labelledby="home-daily-mission-title">
             <div class="daily-mission-head">
               <div>
@@ -841,6 +853,16 @@
                 <label><input type="checkbox" name="scheduleDays" value="6" checked><span>土</span></label>
               </div>
             </fieldset>
+            <div class="quest-period-grid">
+              <label>
+                表示開始日
+                <input type="date" name="availableFrom">
+              </label>
+              <label>
+                表示終了日
+                <input type="date" name="availableUntil">
+              </label>
+            </div>
             <label>
               成長する能力
               <select name="stat">
