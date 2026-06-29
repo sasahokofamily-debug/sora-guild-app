@@ -2228,6 +2228,9 @@ async function sendWeeklyReportToGas(report, options = {}) {
     if (!response.ok || responseData.success === false) {
       throw new Error(responseData.message || responseData.error || `HTTP ${response.status}`);
     }
+    if (payload.sendEmailNow && responseData.emailSent !== true) {
+      throw new Error("GASはレポート保存のみ完了しました。最新版GASを再デプロイしてください。");
+    }
 
     return responseData;
   } catch (error) {
