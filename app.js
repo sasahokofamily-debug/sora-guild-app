@@ -2181,7 +2181,7 @@ function setWeeklyReportSendMessage(message, isError = false) {
   });
 }
 
-async function sendWeeklyReportToGas(report) {
+async function sendWeeklyReportToGas(report, options = {}) {
   if (!WEEKLY_REPORT_GAS_URL || WEEKLY_REPORT_GAS_URL.includes("ここに貼り付け")) {
     throw new Error("週間レポートGAS URLが未設定です");
   }
@@ -2196,6 +2196,7 @@ async function sendWeeklyReportToGas(report) {
   const payload = {
     type: "weeklyReport",
     notificationEmail: settings.notificationEmail,
+    sendEmailNow: options.sendEmailNow === true,
     ...report,
   };
 
@@ -2249,7 +2250,7 @@ function sendWeeklyReport({ manual = false } = {}) {
   }
 
   const report = createWeeklyReportPayload();
-  return sendWeeklyReportToGas(report)
+  return sendWeeklyReportToGas(report, { sendEmailNow: manual })
     .then(() => {
       if (!manual) {
         localStorage.setItem(WEEKLY_REPORT_SENT_WEEK_KEY, weekStart);

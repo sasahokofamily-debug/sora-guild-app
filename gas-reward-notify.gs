@@ -59,10 +59,12 @@ function doPost(e) {
 
     if (data.type === "weeklyReport") {
       const report = saveWeeklyReport(data);
+      const emailSent = data.sendEmailNow === true ? sendWeeklyReportEmail(report) : false;
       return createJsonResponse({
         success: true,
-        message: "週間レポートを保存しました",
+        message: emailSent ? "週間レポートを保存し、メール送信しました" : "週間レポートを保存しました",
         type: "weeklyReport",
+        emailSent,
         report,
       });
     }
@@ -190,14 +192,16 @@ function sendWeeklyReport() {
   properties.setProperty(WEEKLY_REPORT_LAST_SENT_WEEK_KEY, currentWeekId);
 }
 
-function sendWeeklyReportEmail() {
-  const stored = PropertiesService.getScriptProperties().getProperty(WEEKLY_REPORT_PROPERTY_KEY);
-  let report = null;
-  try {
-    report = stored ? JSON.parse(stored) : null;
-  } catch (error) {
-    console.warn("保存済み週間レポートのJSON解析に失敗しました", error);
-    report = null;
+function sendWeeklyReportEmail(reportOverride) {
+  let report = reportOverride && typeof reportOverride === "object" ? reportOverride : null;
+  if (!report) {
+    const stored = PropertiesService.getScriptProperties().getProperty(WEEKLY_REPORT_PROPERTY_KEY);
+    try {
+      report = stored ? JSON.parse(stored) : null;
+    } catch (error) {
+      console.warn("保存済み週間レポートのJSON解析に失敗しました", error);
+      report = null;
+    }
   }
   const currentWeekStart = getCurrentWeekStartKey();
   const safeReport = report || {
@@ -266,6 +270,7 @@ function sendWeeklyReportEmail() {
     body: plainText,
     htmlBody,
   });
+  return true;
 }
 
 function saveWeeklyReportToSheet(report) {
