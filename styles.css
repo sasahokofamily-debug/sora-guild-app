@@ -2132,10 +2132,10 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: -6px 0 14px;
+  margin: -8px 0 10px;
   border: 1px solid rgba(241, 210, 122, 0.28);
   border-radius: 999px;
-  padding: 6px 12px;
+  padding: 4px 10px;
   color: var(--muted);
   background:
     linear-gradient(180deg, rgba(255, 247, 223, 0.9), rgba(235, 211, 166, 0.72)),
@@ -2148,18 +2148,18 @@ h3 {
 
 .app-time-values {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: baseline;
-  justify-content: center;
-  gap: 7px 12px;
+  justify-content: space-between;
+  gap: 10px;
   min-width: 0;
   width: 100%;
-  text-align: center;
+  text-align: left;
 }
 
 .app-time-values strong {
   color: var(--navy);
-  font-size: clamp(0.9rem, 4vw, 1.08rem);
+  font-size: clamp(0.82rem, 3.5vw, 0.98rem);
   font-weight: 950;
   line-height: 1;
   white-space: nowrap;
@@ -2168,10 +2168,11 @@ h3 {
 .app-time-values span {
   color: var(--wood-dark);
   font-variant-numeric: tabular-nums;
-  font-size: clamp(1.12rem, 5.2vw, 1.45rem);
+  font-size: clamp(1rem, 4.6vw, 1.28rem);
   font-weight: 950;
   line-height: 1;
   white-space: nowrap;
+  text-align: right;
 }
 
 .daily-mission-card {
