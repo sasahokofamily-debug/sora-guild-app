@@ -25,8 +25,8 @@ const SFX_ENABLED_KEY = "sora_guild_app_sfx_enabled_dev";
 const CHARACTER_STAGE_KEY = "sora_guild_app_character_stage_dev";
 const PARENT_PIN_KEY = "sora_guild_app_parent_pin_dev";
 const NOTIFY_URL = "https://script.google.com/macros/s/AKfycbzPl6o5pJGvx_3F2GGuGz7PbC1ZmYKUnz9ewcx_F_hr1s7uEQmeNmDn-vZK2hQMUa13Dg/exec";
-// 週間レポート用GAS WebアプリURL。デプロイ後の /exec URL をここに貼り付けます。
-const WEEKLY_REPORT_GAS_URL = "https://script.google.com/macros/s/AKfycbz0-CEA4p6uLRctEVfWKDJo53BSEWpj-V6A8hMOjbTgrT33hMfvqZ6wGFDD6_N4rt4C/exec";
+// ご褒美通知と週間レポートは同じGAS WebアプリURLへ送信します。
+const WEEKLY_REPORT_GAS_URL = NOTIFY_URL;
 const WEEKLY_REPORT_SENT_WEEK_KEY = "sora_guild_app_last_weekly_report_sent_week_dev";
 const BACKUP_RESTORE_MESSAGE_KEY = "sora_guild_app_backup_restore_message";
 const isTestMode = false;

@@ -1,4 +1,6 @@
-const NOTIFY_EMAIL = "sasahokofamily@gmail.com";
+// そらクエスト通知用GAS。
+// この1つのWebアプリURLで、ご褒美交換通知と週間レポート保存を受け取ります。
+// 通知先メールアドレスはアプリ側の親管理画面から notificationEmail として送られます。
 const WEEKLY_REPORT_SPREADSHEET_ID = "";
 const WEEKLY_REPORT_PROPERTY_KEY = "WEEKLY_REPORT_DATA";
 const WEEKLY_REPORT_LAST_SENT_WEEK_KEY = "WEEKLY_REPORT_LAST_SENT_WEEK";
@@ -27,6 +29,14 @@ const WEEKLY_REPORT_HEADERS = [
 // - SpreadsheetApp: weekly_reports シートへの保存
 // - ScriptApp: 週次トリガー作成時のみ
 // UrlFetchApp.fetch は現在このGAS内では使用していません。
+function doGet() {
+  return createJsonResponse({
+    success: true,
+    message: "そらクエスト通知GASは有効です。",
+    handlers: ["rewardExchange", "weeklyReport"],
+  });
+}
+
 function doPost(e) {
   try {
     if (!e || !e.postData || typeof e.postData.contents !== "string") {
