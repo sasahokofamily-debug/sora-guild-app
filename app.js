@@ -401,6 +401,7 @@ let currentFirebaseUser = null;
 let appStarted = false;
 let isRestoringCloudData = false;
 let cloudSaveTimer = null;
+let cloudLastSavedAt = null;
 
 function isAppStorageKey(key) {
   return BACKUP_STORAGE_KEYS.includes(key) || key === QUEST_BULK_EDIT_BACKUP_KEY;
@@ -489,6 +490,46 @@ function updateAuthUserUi(user) {
   setText("[data-auth-user-name]", user?.displayName || user?.email || "ログイン中");
 }
 
+function formatCloudSyncTime(date = new Date()) {
+  const parts = getJapanDateTimeParts(date);
+  return `${parts.hour}:${parts.minute}`;
+}
+
+function updateCloudSyncUi(status = "hidden", savedAt = cloudLastSavedAt) {
+  const chip = document.querySelector("[data-cloud-sync]");
+  const text = document.querySelector("[data-cloud-sync-text]");
+  if (!chip || !text) {
+    return;
+  }
+
+  chip.classList.remove("is-pending", "is-syncing", "is-saved", "is-error");
+
+  if (!currentFirebaseUser || status === "hidden") {
+    chip.hidden = true;
+    text.textContent = "";
+    return;
+  }
+
+  chip.hidden = false;
+  chip.classList.add(`is-${status}`);
+
+  if (status === "pending") {
+    text.textContent = "保存待ち";
+    return;
+  }
+  if (status === "syncing") {
+    text.textContent = "保存中";
+    return;
+  }
+  if (status === "error") {
+    text.textContent = "保存失敗";
+    return;
+  }
+
+  cloudLastSavedAt = savedAt || new Date();
+  text.textContent = `保存済み ${formatCloudSyncTime(cloudLastSavedAt)}`;
+}
+
 function getUserDataRef(user) {
   if (!firebaseDb || !firebaseModules || !user) {
     return null;
@@ -504,25 +545,33 @@ async function saveCloudDataNow() {
   if (!ref) {
     return false;
   }
-  const storage = captureAppStorage();
-  await firebaseModules.setDoc(
-    ref,
-    {
-      uid: currentFirebaseUser.uid,
-      email: currentFirebaseUser.email || "",
-      displayName: currentFirebaseUser.displayName || "",
-      storage,
-      updatedAt: firebaseModules.serverTimestamp(),
-    },
-    { merge: true },
-  );
-  return true;
+  updateCloudSyncUi("syncing");
+  try {
+    const storage = captureAppStorage();
+    await firebaseModules.setDoc(
+      ref,
+      {
+        uid: currentFirebaseUser.uid,
+        email: currentFirebaseUser.email || "",
+        displayName: currentFirebaseUser.displayName || "",
+        storage,
+        updatedAt: firebaseModules.serverTimestamp(),
+      },
+      { merge: true },
+    );
+    updateCloudSyncUi("saved", new Date());
+    return true;
+  } catch (error) {
+    updateCloudSyncUi("error");
+    throw error;
+  }
 }
 
 function scheduleCloudSave() {
   if (!currentFirebaseUser || isRestoringCloudData) {
     return;
   }
+  updateCloudSyncUi("pending");
   window.clearTimeout(cloudSaveTimer);
   cloudSaveTimer = window.setTimeout(() => {
     saveCloudDataNow().catch((error) => {
@@ -664,7 +713,9 @@ async function initializeFirebaseAuthGate() {
     firebaseModules.onAuthStateChanged(firebaseAuth, async (user) => {
       if (!user) {
         currentFirebaseUser = null;
+        cloudLastSavedAt = null;
         updateAuthUserUi(null);
+        updateCloudSyncUi("hidden");
         setAuthUiState({ loginRequired: true });
         setLoginMessage("Googleアカウントでログインしてください。");
         return;
@@ -672,16 +723,21 @@ async function initializeFirebaseAuthGate() {
 
       currentFirebaseUser = user;
       updateAuthUserUi(user);
+      updateCloudSyncUi("syncing");
       setAuthUiState({ loading: true });
       setLoginMessage("冒険データを読み込んでいます...");
 
       try {
-        await loadCloudDataForUser(user);
+        const loadResult = await loadCloudDataForUser(user);
+        if (loadResult !== "migrated" && loadResult !== "created") {
+          updateCloudSyncUi("saved", new Date());
+        }
         setAuthUiState({ loading: false, loginRequired: false });
         setLoginMessage("");
         startApp();
       } catch (error) {
         console.error("Firestoreからの読み込みに失敗しました", error);
+        updateCloudSyncUi("error");
         setAuthUiState({ loginRequired: true });
         setLoginMessage(`データ読み込みに失敗しました：${error?.message || error}`, true);
       }

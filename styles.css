@@ -514,6 +514,51 @@ body.is-login-required .app-shell {
   background: rgba(120, 42, 34, 0.46);
 }
 
+.cloud-sync-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  border: 1px solid rgba(241, 210, 122, 0.3);
+  border-radius: 999px;
+  padding: 6px 11px;
+  color: #fff7df;
+  font-size: 0.76rem;
+  font-weight: 900;
+  background: rgba(24, 13, 10, 0.32);
+}
+
+.cloud-sync-chip[hidden] {
+  display: none;
+}
+
+.cloud-sync-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #8fe08b;
+  box-shadow: 0 0 9px rgba(143, 224, 139, 0.58);
+}
+
+.cloud-sync-chip.is-syncing .cloud-sync-dot,
+.cloud-sync-chip.is-pending .cloud-sync-dot {
+  background: #f3c260;
+  box-shadow: 0 0 10px rgba(243, 194, 96, 0.65);
+}
+
+.cloud-sync-chip.is-error .cloud-sync-dot {
+  background: #ff8b6f;
+  box-shadow: 0 0 10px rgba(255, 139, 111, 0.62);
+}
+
+.cloud-sync-chip span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .eyebrow,
 .section-kicker {
   margin: 0 0 4px;
