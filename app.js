@@ -6611,7 +6611,7 @@ function renderTodayQuests() {
   }
 
   list.innerHTML = "";
-  const todayQuests = getVisibleQuests();
+  const todayQuests = getVisibleQuestsByCategory("daily_required");
   const completedCount = todayQuests.filter(isQuestCompleted).length;
   const totalCount = todayQuests.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
