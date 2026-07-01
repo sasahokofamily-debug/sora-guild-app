@@ -475,9 +475,13 @@ function setLoginMessage(message, isError = false) {
 function setAuthUiState({ loading = false, loginRequired = false } = {}) {
   document.body.classList.toggle("is-auth-loading", loading);
   document.body.classList.toggle("is-login-required", loginRequired);
+  const splash = document.querySelector("[data-app-splash]");
+  if (splash) {
+    splash.hidden = !loading;
+  }
   const gate = document.querySelector("[data-login-gate]");
   if (gate) {
-    gate.hidden = !loading && !loginRequired;
+    gate.hidden = loading || !loginRequired;
   }
 }
 
