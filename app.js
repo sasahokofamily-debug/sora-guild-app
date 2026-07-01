@@ -1702,11 +1702,17 @@ function registerServiceWorker() {
     return;
   }
 
-  window.addEventListener("load", () => {
+  const register = () => {
     navigator.serviceWorker.register("./sw.js").catch((error) => {
       console.warn("Service Workerを登録できませんでした", error);
     });
-  });
+  };
+
+  if (document.readyState === "complete") {
+    register();
+  } else {
+    window.addEventListener("load", register, { once: true });
+  }
 }
 
 function normalizeWeeklyReportHistoryItem(rawItem) {
@@ -8202,7 +8208,7 @@ function startApp() {
       window.setTimeout(() => showAchievementToast(startupAchievements), loginBonusResult.granted ? 2200 : 350);
     }
   }
-  registerServiceWorker();
 }
 
+registerServiceWorker();
 initializeFirebaseAuthGate();
