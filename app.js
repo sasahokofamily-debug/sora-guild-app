@@ -6634,6 +6634,7 @@ function renderTodayQuests() {
     const typeLabel = getQuestTypeLabel(quest.type);
     const frequencyLabel = getQuestFrequencyLabel(quest.frequency, quest.scheduleDays);
     const priorityLabel = getQuestPriorityLabel(quest.priority);
+    const periodLabel = getQuestPeriodLabel(quest);
     const item = document.createElement("article");
     item.className = `today-quest-item today-quest-${quest.type} today-priority-${quest.priority}${completed ? " is-completed" : ""}`;
 
@@ -6645,6 +6646,7 @@ function renderTodayQuests() {
             ${typeLabel ? `<span class="quest-type-badge quest-type-${quest.type}">${typeLabel}</span>` : ""}
             <span class="quest-priority-badge priority-${quest.priority}">${priorityLabel}</span>
             <span class="quest-frequency-badge">${frequencyLabel}</span>
+            ${periodLabel ? `<span class="quest-period-badge">${periodLabel}</span>` : ""}
           </div>
         </div>
         <p>${escapeHtml(quest.description)}</p>
