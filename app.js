@@ -575,7 +575,7 @@ async function loadCloudDataForUser(user) {
 async function initializeFirebaseAuthGate() {
   if (!hasFirebaseConfig()) {
     setAuthUiState({ loginRequired: true });
-    setLoginMessage("Firebase設定を firebase-config.js に入力してください。", true);
+    setLoginMessage("ログインの準備中です。しばらくしてからもう一度お試しください。", true);
     return;
   }
 
@@ -636,13 +636,13 @@ async function initializeFirebaseAuthGate() {
   } catch (error) {
     console.error("Firebase初期化に失敗しました", error);
     setAuthUiState({ loginRequired: true });
-    setLoginMessage(`Firebase初期化に失敗しました：${error?.message || error}`, true);
+    setLoginMessage("ログインを開始できませんでした。時間をおいてもう一度お試しください。", true);
   }
 }
 
 async function signInWithGoogle() {
   if (!firebaseAuth || !firebaseModules) {
-    setLoginMessage("Firebase設定を確認してください。", true);
+    setLoginMessage("ログインの準備中です。しばらくしてからもう一度お試しください。", true);
     return;
   }
   setLoginMessage("Googleログインを開いています...");
