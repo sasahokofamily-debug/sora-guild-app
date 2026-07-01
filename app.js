@@ -555,15 +555,68 @@ function installCloudSaveLocalStorageHooks() {
   Storage.prototype.__soraGuildCloudHooked = true;
 }
 
+function parseSnapshotProgress(snapshot) {
+  const rawProgress = snapshot?.[STORAGE_KEY];
+  if (typeof rawProgress !== "string") {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(rawProgress);
+    if (!parsed || typeof parsed !== "object") {
+      return null;
+    }
+    return parsed;
+  } catch (error) {
+    console.warn("移行用の進行データを解析できませんでした", error);
+    return null;
+  }
+}
+
+function getProgressMigrationScore(snapshot) {
+  const storedProgress = parseSnapshotProgress(snapshot);
+  if (!storedProgress) {
+    return 0;
+  }
+
+  const activityCount = Array.isArray(storedProgress.activityLog) ? storedProgress.activityLog.length : 0;
+  const completedCount = Array.isArray(storedProgress.completedQuestIds) ? storedProgress.completedQuestIds.length : 0;
+  const titleCount = Array.isArray(storedProgress.unlockedCollectibleTitleIds) ? storedProgress.unlockedCollectibleTitleIds.length : 0;
+  const questCount = Math.max(
+    Number.isFinite(storedProgress.totalQuestCompletions) ? Math.max(0, Math.round(storedProgress.totalQuestCompletions)) : 0,
+    activityCount,
+    completedCount,
+  );
+  const xp = Number.isFinite(storedProgress.xp) ? Math.max(0, Math.round(storedProgress.xp)) : 0;
+  const gold = Number.isFinite(storedProgress.gold) ? Math.max(0, Math.round(storedProgress.gold)) : 0;
+  const loginDays = Number.isFinite(storedProgress.totalLoginDays) ? Math.max(0, Math.round(storedProgress.totalLoginDays)) : 0;
+
+  return questCount * 1000000 + xp * 1000 + gold * 100 + loginDays * 10 + titleCount;
+}
+
+function shouldMigrateLocalSnapshot(localSnapshot, cloudSnapshot) {
+  const localScore = getProgressMigrationScore(localSnapshot);
+  const cloudScore = getProgressMigrationScore(cloudSnapshot);
+  return localScore > 0 && localScore > cloudScore;
+}
+
 async function loadCloudDataForUser(user) {
   const ref = getUserDataRef(user);
   if (!ref) {
     throw new Error("Firestoreの参照を作成できませんでした");
   }
+  const localSnapshot = captureAppStorage();
   const snapshot = await firebaseModules.getDoc(ref);
   if (snapshot.exists()) {
     const data = snapshot.data() || {};
-    restoreAppStorage(data.storage || {});
+    const cloudSnapshot = data.storage || {};
+    if (shouldMigrateLocalSnapshot(localSnapshot, cloudSnapshot)) {
+      console.info("既存のローカル冒険データをクラウドへ引き継ぎます");
+      await saveCloudDataNow();
+      reloadAppStateFromStorage();
+      return "migrated";
+    }
+    restoreAppStorage(cloudSnapshot);
     reloadAppStateFromStorage();
     return "loaded";
   }
