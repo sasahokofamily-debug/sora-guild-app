@@ -7912,6 +7912,10 @@ document.addEventListener("click", (event) => {
 
   const googleLogoutButton = event.target.closest("[data-google-logout]");
   if (googleLogoutButton) {
+    const confirmed = window.confirm("現在の冒険データを保存してログアウトしますか？");
+    if (!confirmed) {
+      return;
+    }
     signOutFromGoogle();
     return;
   }
