@@ -4938,6 +4938,33 @@ h3 {
   border: 1px solid rgba(201, 154, 53, 0.28);
 }
 
+.quest-period-status-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  border: 1px solid rgba(201, 154, 53, 0.24);
+}
+
+.quest-period-status-badge.is-active {
+  color: #fff8e6;
+  background: linear-gradient(180deg, #658c4f, #3d6436);
+}
+
+.quest-period-status-badge.is-upcoming {
+  color: var(--wood-dark);
+  background: linear-gradient(180deg, rgba(229, 217, 181, 0.9), rgba(178, 161, 118, 0.48));
+}
+
+.quest-period-status-badge.is-ended {
+  color: rgba(255, 248, 230, 0.92);
+  background: linear-gradient(180deg, #7a685d, #57443d);
+}
+
 .quest-priority-badge {
   flex: 0 0 auto;
   color: rgba(84, 57, 42, 0.9);

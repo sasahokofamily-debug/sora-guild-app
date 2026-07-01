@@ -2727,6 +2727,23 @@ function getQuestPeriodLabel(quest) {
   return "";
 }
 
+function getQuestPeriodStatus(quest, date = new Date()) {
+  const from = normalizeDateKeyInput(quest.availableFrom);
+  const until = normalizeDateKeyInput(quest.availableUntil);
+  if (!from && !until) {
+    return null;
+  }
+
+  const today = getDateKey(date);
+  if (from && today < from) {
+    return { key: "upcoming", label: "開始前" };
+  }
+  if (until && today > until) {
+    return { key: "ended", label: "終了済み" };
+  }
+  return { key: "active", label: "開催中" };
+}
+
 function sortQuestsForDisplay(quests) {
   const originalOrder = new Map(quests.map((quest, index) => [quest.id, index]));
   return [...quests].sort((a, b) => {
@@ -5485,6 +5502,7 @@ function renderQuestManager() {
     const typeLabel = getQuestTypeLabel(quest.type);
     const priorityLabel = getQuestPriorityLabel(quest.priority);
     const periodLabel = getQuestPeriodLabel(quest);
+    const periodStatus = getQuestPeriodStatus(quest);
     item.className = `managed-quest-item managed-quest-${quest.type} managed-quest-category-${quest.category}`;
 
     if (quest.id === editingQuestId) {
@@ -5578,6 +5596,7 @@ function renderQuestManager() {
               <span class="quest-priority-badge priority-${quest.priority}">${priorityLabel}</span>
               <span class="quest-frequency-badge">${getQuestFrequencyLabel(quest.frequency, quest.scheduleDays)}</span>
               ${periodLabel ? `<span class="quest-period-badge">${periodLabel}</span>` : ""}
+              ${periodStatus ? `<span class="quest-period-status-badge is-${periodStatus.key}">${periodStatus.label}</span>` : ""}
             </div>
           </div>
           <p>${escapeHtml(quest.description)}</p>
