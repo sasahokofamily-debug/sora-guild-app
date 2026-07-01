@@ -222,16 +222,19 @@
             </div>
           </section>
 
-          <section class="world-map-card" data-world-map-card aria-labelledby="world-map-title">
-            <div class="world-map-head">
+          <section class="world-map-card is-collapsed" data-world-map-card aria-labelledby="world-map-title">
+            <button class="world-map-head" type="button" data-world-map-toggle aria-expanded="false" aria-controls="world-map-list">
               <div>
                 <p class="section-kicker">World Map</p>
                 <h3 id="world-map-title">ワールドマップ</h3>
               </div>
-              <strong data-world-map-progress>1 / 10</strong>
-            </div>
+              <span class="world-map-head-meta">
+                <strong data-world-map-progress>1 / 10</strong>
+                <i data-world-map-toggle-indicator aria-hidden="true">▶</i>
+              </span>
+            </button>
             <p class="world-map-lead">今いるエリアと、これから出会う仲間への道のりです。</p>
-            <div class="world-map-list" data-world-map-list>
+            <div class="world-map-list" id="world-map-list" data-world-map-list>
               <article class="world-map-area is-current">
                 <span class="world-map-marker" aria-hidden="true">★</span>
                 <div>
@@ -303,24 +306,6 @@
               <h3 id="recent-achievements-title">最近の実績</h3>
             </div>
             <div class="recent-achievement-list" data-recent-achievement-list></div>
-          </section>
-
-          <section class="today-quests" aria-labelledby="today-quests-title">
-            <div class="mini-section-heading">
-              <p class="section-kicker">Today</p>
-              <h3 id="today-quests-title">今日のクエスト</h3>
-            </div>
-            <div class="today-progress-card" data-today-progress>
-              <div class="today-progress-head">
-                <span>今日の達成</span>
-                <strong data-today-progress-count>0 / 0</strong>
-              </div>
-              <div class="today-progress-track" aria-hidden="true">
-                <span data-today-progress-bar></span>
-              </div>
-              <p data-today-progress-message>今日のクエストを確認しましょう。</p>
-            </div>
-            <div class="today-quest-list" data-today-quest-list></div>
           </section>
 
         </section>
@@ -1226,7 +1211,7 @@
       </nav>
     </div>
 
-    <script src="firebase-config-auth.js?v=20260701-dailyfix1"></script>
-    <script src="app.js?v=20260701-dailyfix1" defer></script>
+    <script src="firebase-config-auth.js?v=20260701-homeclean1"></script>
+    <script src="app.js?v=20260701-homeclean1" defer></script>
   </body>
 </html>

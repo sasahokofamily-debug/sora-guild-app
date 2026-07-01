@@ -2926,8 +2926,16 @@ h3 {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+  width: 100%;
   min-width: 0;
   gap: 12px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .world-map-head > div {
@@ -2953,6 +2961,27 @@ h3 {
   white-space: nowrap;
 }
 
+.world-map-head-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.world-map-head-meta i {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(201, 154, 53, 0.34);
+  border-radius: 999px;
+  color: var(--wood-dark);
+  background: rgba(255, 247, 223, 0.5);
+  font-style: normal;
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
 .world-map-lead {
   margin: 0;
   color: rgba(111, 77, 59, 0.84);
@@ -2967,6 +2996,15 @@ h3 {
   max-width: 100%;
   gap: 8px;
   overflow: visible;
+}
+
+.world-map-card.is-collapsed {
+  gap: 0;
+}
+
+.world-map-card.is-collapsed .world-map-lead,
+.world-map-card.is-collapsed .world-map-list {
+  display: none;
 }
 
 .world-map-area {

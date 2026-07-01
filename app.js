@@ -1104,6 +1104,7 @@ let isParentMode = false;
 let editingQuestId = null;
 let editingRewardId = null;
 let isQuestCreateOpen = false;
+let isWorldMapOpen = false;
 let activeQuestCategory = "daily_required";
 let questSwipeStartX = 0;
 let questSwipeStartY = 0;
@@ -6333,6 +6334,8 @@ function renderWorldMap() {
   const card = document.querySelector("[data-world-map-card]");
   const list = document.querySelector("[data-world-map-list]");
   const progress = document.querySelector("[data-world-map-progress]");
+  const toggle = document.querySelector("[data-world-map-toggle]");
+  const indicator = document.querySelector("[data-world-map-toggle-indicator]");
   applyWorldTheme();
   if (!card || !list) {
     return;
@@ -6340,8 +6343,15 @@ function renderWorldMap() {
 
   const currentIndex = getCurrentWorldAreaIndex();
   const clearedCount = Math.max(0, Math.min(WORLD_AREAS.length, bossState.defeatedCount || 0));
+  card.classList.toggle("is-collapsed", !isWorldMapOpen);
   if (progress) {
     progress.textContent = `${currentIndex + 1} / ${WORLD_AREAS.length}`;
+  }
+  if (toggle) {
+    toggle.setAttribute("aria-expanded", String(isWorldMapOpen));
+  }
+  if (indicator) {
+    indicator.textContent = isWorldMapOpen ? "▼" : "▶";
   }
 
   const fragment = document.createDocumentFragment();
@@ -7855,7 +7865,6 @@ function render() {
   renderWorldMap();
   renderAppReminder();
   renderParentNote();
-  renderTodayQuests();
   renderRewardShop();
   renderModeControls();
   renderParentModeControls();
@@ -7984,6 +7993,13 @@ document.addEventListener("click", (event) => {
   const worldAreaUnlockClose = event.target.closest("[data-world-area-unlock-close]");
   if (worldAreaUnlockClose) {
     closeWorldAreaUnlockModal();
+    return;
+  }
+
+  const worldMapToggle = event.target.closest("[data-world-map-toggle]");
+  if (worldMapToggle) {
+    isWorldMapOpen = !isWorldMapOpen;
+    renderWorldMap();
     return;
   }
 
