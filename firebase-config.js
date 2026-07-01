@@ -2,7 +2,7 @@
 // Firebase Console > プロジェクト設定 > マイアプリ（Web）から取得した値に差し替えてください。
 // 未設定のままではGoogleログインは開始されません。
 window.SORA_FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCDw0NL101DPLXiVeSPuYlp37TpJaURcuM",
+  apiKey: "AIzaSyCDw0NL1O1DPLXiVeSPuYlp37TpJaURcuM",
   authDomain: "sora-quest.firebaseapp.com",
   projectId: "sora-quest",
   storageBucket: "sora-quest.firebasestorage.app",
