@@ -6336,6 +6336,7 @@ function renderWorldMap() {
   const progress = document.querySelector("[data-world-map-progress]");
   const toggle = document.querySelector("[data-world-map-toggle]");
   const indicator = document.querySelector("[data-world-map-toggle-indicator]");
+  const lead = document.querySelector("[data-world-map-lead]");
   applyWorldTheme();
   if (!card || !list) {
     return;
@@ -6344,6 +6345,10 @@ function renderWorldMap() {
   const currentIndex = getCurrentWorldAreaIndex();
   const clearedCount = Math.max(0, Math.min(WORLD_AREAS.length, bossState.defeatedCount || 0));
   card.classList.toggle("is-collapsed", !isWorldMapOpen);
+  list.hidden = !isWorldMapOpen;
+  if (lead) {
+    lead.hidden = !isWorldMapOpen;
+  }
   if (progress) {
     progress.textContent = `${currentIndex + 1} / ${WORLD_AREAS.length}`;
   }

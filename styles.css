@@ -2922,7 +2922,9 @@ h3 {
   z-index: 1;
 }
 
-.world-map-head {
+.world-map-card .world-map-head {
+  appearance: none;
+  -webkit-appearance: none;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -2932,24 +2934,26 @@ h3 {
   padding: 0;
   border: 0;
   color: inherit;
-  background: transparent;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none;
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
 
-.world-map-head > div {
+.world-map-card .world-map-head > div {
   min-width: 0;
 }
 
-.world-map-head h3 {
+.world-map-card .world-map-head h3 {
   margin: 0;
   color: var(--ink);
   font-size: 1rem;
   overflow-wrap: anywhere;
 }
 
-.world-map-head strong {
+.world-map-card .world-map-head strong {
   flex: 0 0 auto;
   border: 1px solid rgba(201, 154, 53, 0.34);
   border-radius: 999px;
@@ -2996,6 +3000,11 @@ h3 {
   max-width: 100%;
   gap: 8px;
   overflow: visible;
+}
+
+.world-map-lead[hidden],
+.world-map-list[hidden] {
+  display: none !important;
 }
 
 .world-map-card.is-collapsed {
