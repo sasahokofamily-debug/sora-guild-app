@@ -411,6 +411,13 @@ function hasFirebaseConfig() {
   return Boolean(config.apiKey && config.authDomain && config.projectId && config.appId);
 }
 
+function shouldUseRedirectSignIn() {
+  const userAgent = navigator.userAgent || "";
+  const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
+  const isStandalone = window.matchMedia?.("(display-mode: standalone)")?.matches || navigator.standalone === true;
+  return isIOS || isStandalone || window.innerWidth <= 720;
+}
+
 function captureAppStorage() {
   return BACKUP_STORAGE_KEYS.reduce((snapshot, key) => {
     const value = localStorage.getItem(key);
@@ -597,6 +604,8 @@ async function initializeFirebaseAuthGate() {
       browserLocalPersistence: authModule.browserLocalPersistence,
       setPersistence: authModule.setPersistence,
       signInWithPopup: authModule.signInWithPopup,
+      signInWithRedirect: authModule.signInWithRedirect,
+      getRedirectResult: authModule.getRedirectResult,
       signOut: authModule.signOut,
       onAuthStateChanged: authModule.onAuthStateChanged,
       doc: firestoreModule.doc,
@@ -607,6 +616,10 @@ async function initializeFirebaseAuthGate() {
 
     await firebaseModules.setPersistence(firebaseAuth, firebaseModules.browserLocalPersistence);
     installCloudSaveLocalStorageHooks();
+    firebaseModules.getRedirectResult(firebaseAuth).catch((error) => {
+      console.error("Googleリダイレクトログインに失敗しました", error);
+      setLoginMessage(`Googleログインに失敗しました：${error?.message || error}`, true);
+    });
 
     firebaseModules.onAuthStateChanged(firebaseAuth, async (user) => {
       if (!user) {
@@ -648,6 +661,11 @@ async function signInWithGoogle() {
   setLoginMessage("Googleログインを開いています...");
   try {
     const provider = new firebaseModules.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    if (shouldUseRedirectSignIn()) {
+      await firebaseModules.signInWithRedirect(firebaseAuth, provider);
+      return;
+    }
     await firebaseModules.signInWithPopup(firebaseAuth, provider);
   } catch (error) {
     console.error("Googleログインに失敗しました", error);
