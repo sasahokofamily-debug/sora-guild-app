@@ -6124,7 +6124,7 @@ function renderQuests() {
         ${renderQuestRewardBadges(quest)}
       </div>
       <button class="complete-button" type="button" data-complete="${quest.id}" ${completed ? "disabled" : ""}>
-        ${completed ? "達成済み" : "挑戦する"}
+        ${completed ? "達成済み" : "完了"}
       </button>
       ${
         completed && isParentMode
