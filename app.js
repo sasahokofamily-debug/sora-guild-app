@@ -29,6 +29,9 @@ const NOTIFY_URL = "https://script.google.com/macros/s/AKfycbz0-CEA4p6uLRctEVfWK
 const WEEKLY_REPORT_GAS_URL = NOTIFY_URL;
 const WEEKLY_REPORT_SENT_WEEK_KEY = "sora_guild_app_last_weekly_report_sent_week_dev";
 const BACKUP_RESTORE_MESSAGE_KEY = "sora_guild_app_backup_restore_message";
+const FIREBASE_SDK_VERSION = "10.12.5";
+const FIREBASE_APP_DATA_COLLECTION = "guildApps";
+const FIREBASE_APP_DATA_DOC = "soraQuest";
 const isTestMode = false;
 const PARENT_PIN = "0718";
 const DEFAULT_LOGIN_BONUS_SETTINGS = {
@@ -389,6 +392,281 @@ const BACKUP_STORAGE_KEY_ALIASES = {
   characterStage: CHARACTER_STAGE_KEY,
   parentPin: PARENT_PIN_KEY,
 };
+
+let firebaseApp = null;
+let firebaseAuth = null;
+let firebaseDb = null;
+let firebaseModules = null;
+let currentFirebaseUser = null;
+let appStarted = false;
+let isRestoringCloudData = false;
+let cloudSaveTimer = null;
+
+function isAppStorageKey(key) {
+  return BACKUP_STORAGE_KEYS.includes(key) || key === QUEST_BULK_EDIT_BACKUP_KEY;
+}
+
+function hasFirebaseConfig() {
+  const config = window.SORA_FIREBASE_CONFIG || {};
+  return Boolean(config.apiKey && config.authDomain && config.projectId && config.appId);
+}
+
+function captureAppStorage() {
+  return BACKUP_STORAGE_KEYS.reduce((snapshot, key) => {
+    const value = localStorage.getItem(key);
+    if (value !== null) {
+      snapshot[key] = value;
+    }
+    return snapshot;
+  }, {});
+}
+
+function clearLocalAppData() {
+  isRestoringCloudData = true;
+  try {
+    BACKUP_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+    localStorage.removeItem(QUEST_BULK_EDIT_BACKUP_KEY);
+  } finally {
+    isRestoringCloudData = false;
+  }
+}
+
+function restoreAppStorage(snapshot) {
+  isRestoringCloudData = true;
+  try {
+    BACKUP_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+    Object.entries(snapshot || {}).forEach(([key, value]) => {
+      if (isAppStorageKey(key) && typeof value === "string") {
+        localStorage.setItem(key, value);
+      }
+    });
+  } finally {
+    isRestoringCloudData = false;
+  }
+}
+
+function reloadAppStateFromStorage() {
+  progress = reconcileProgressFromHistory(loadProgress());
+  managedQuests = loadManagedQuests();
+  rewards = loadRewards();
+  rewardHistory = loadRewardHistory();
+  unlockedAchievements = loadAchievements();
+  weeklyReportHistory = loadWeeklyReportHistory();
+  loginBonusSettings = loadLoginBonusSettings();
+  dailyClearBonusSettings = loadDailyClearBonusSettings();
+  bossState = loadBossState();
+  allyJoinedDates = loadAllyJoinedDates();
+  appSettings = loadAppSettings(progress.name);
+  notificationSettings = loadNotificationSettings();
+  audioSettings = loadAudioSettings();
+  syncProgressNameFromAppSettings();
+}
+
+function setLoginMessage(message, isError = false) {
+  const element = document.querySelector("[data-login-message]");
+  if (!element) {
+    return;
+  }
+  element.textContent = message;
+  element.classList.toggle("is-error", isError);
+}
+
+function setAuthUiState({ loading = false, loginRequired = false } = {}) {
+  document.body.classList.toggle("is-auth-loading", loading);
+  document.body.classList.toggle("is-login-required", loginRequired);
+  const gate = document.querySelector("[data-login-gate]");
+  if (gate) {
+    gate.hidden = !loading && !loginRequired;
+  }
+}
+
+function updateAuthUserUi(user) {
+  const chip = document.querySelector("[data-auth-user]");
+  if (!chip) {
+    return;
+  }
+  chip.hidden = !user;
+  setText("[data-auth-user-name]", user?.displayName || user?.email || "ログイン中");
+}
+
+function getUserDataRef(user) {
+  if (!firebaseDb || !firebaseModules || !user) {
+    return null;
+  }
+  return firebaseModules.doc(firebaseDb, "users", user.uid, FIREBASE_APP_DATA_COLLECTION, FIREBASE_APP_DATA_DOC);
+}
+
+async function saveCloudDataNow() {
+  if (!currentFirebaseUser || !firebaseDb || !firebaseModules || isRestoringCloudData) {
+    return false;
+  }
+  const ref = getUserDataRef(currentFirebaseUser);
+  if (!ref) {
+    return false;
+  }
+  const storage = captureAppStorage();
+  await firebaseModules.setDoc(
+    ref,
+    {
+      uid: currentFirebaseUser.uid,
+      email: currentFirebaseUser.email || "",
+      displayName: currentFirebaseUser.displayName || "",
+      storage,
+      updatedAt: firebaseModules.serverTimestamp(),
+    },
+    { merge: true },
+  );
+  return true;
+}
+
+function scheduleCloudSave() {
+  if (!currentFirebaseUser || isRestoringCloudData) {
+    return;
+  }
+  window.clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = window.setTimeout(() => {
+    saveCloudDataNow().catch((error) => {
+      console.warn("Firestoreへの保存に失敗しました", error);
+    });
+  }, 700);
+}
+
+function installCloudSaveLocalStorageHooks() {
+  if (Storage.prototype.__soraGuildCloudHooked) {
+    return;
+  }
+  const originalSetItem = Storage.prototype.setItem;
+  const originalRemoveItem = Storage.prototype.removeItem;
+
+  Storage.prototype.setItem = function patchedSetItem(key, value) {
+    originalSetItem.call(this, key, value);
+    if (this === localStorage && isAppStorageKey(key)) {
+      scheduleCloudSave();
+    }
+  };
+
+  Storage.prototype.removeItem = function patchedRemoveItem(key) {
+    originalRemoveItem.call(this, key);
+    if (this === localStorage && isAppStorageKey(key)) {
+      scheduleCloudSave();
+    }
+  };
+
+  Storage.prototype.__soraGuildCloudHooked = true;
+}
+
+async function loadCloudDataForUser(user) {
+  const ref = getUserDataRef(user);
+  if (!ref) {
+    throw new Error("Firestoreの参照を作成できませんでした");
+  }
+  const snapshot = await firebaseModules.getDoc(ref);
+  if (snapshot.exists()) {
+    const data = snapshot.data() || {};
+    restoreAppStorage(data.storage || {});
+    reloadAppStateFromStorage();
+    return "loaded";
+  }
+  reloadAppStateFromStorage();
+  await saveCloudDataNow();
+  return "created";
+}
+
+async function initializeFirebaseAuthGate() {
+  if (!hasFirebaseConfig()) {
+    setAuthUiState({ loginRequired: true });
+    setLoginMessage("Firebase設定を firebase-config.js に入力してください。", true);
+    return;
+  }
+
+  setAuthUiState({ loading: true });
+  setLoginMessage("ログイン状態を確認しています...");
+
+  try {
+    const [appModule, authModule, firestoreModule] = await Promise.all([
+      import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-app.js`),
+      import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-auth.js`),
+      import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-firestore.js`),
+    ]);
+
+    firebaseApp = appModule.initializeApp(window.SORA_FIREBASE_CONFIG);
+    firebaseAuth = authModule.getAuth(firebaseApp);
+    firebaseDb = firestoreModule.getFirestore(firebaseApp);
+    firebaseModules = {
+      GoogleAuthProvider: authModule.GoogleAuthProvider,
+      browserLocalPersistence: authModule.browserLocalPersistence,
+      setPersistence: authModule.setPersistence,
+      signInWithPopup: authModule.signInWithPopup,
+      signOut: authModule.signOut,
+      onAuthStateChanged: authModule.onAuthStateChanged,
+      doc: firestoreModule.doc,
+      getDoc: firestoreModule.getDoc,
+      setDoc: firestoreModule.setDoc,
+      serverTimestamp: firestoreModule.serverTimestamp,
+    };
+
+    await firebaseModules.setPersistence(firebaseAuth, firebaseModules.browserLocalPersistence);
+    installCloudSaveLocalStorageHooks();
+
+    firebaseModules.onAuthStateChanged(firebaseAuth, async (user) => {
+      if (!user) {
+        currentFirebaseUser = null;
+        updateAuthUserUi(null);
+        setAuthUiState({ loginRequired: true });
+        setLoginMessage("Googleアカウントでログインしてください。");
+        return;
+      }
+
+      currentFirebaseUser = user;
+      updateAuthUserUi(user);
+      setAuthUiState({ loading: true });
+      setLoginMessage("冒険データを読み込んでいます...");
+
+      try {
+        await loadCloudDataForUser(user);
+        setAuthUiState({ loading: false, loginRequired: false });
+        setLoginMessage("");
+        startApp();
+      } catch (error) {
+        console.error("Firestoreからの読み込みに失敗しました", error);
+        setAuthUiState({ loginRequired: true });
+        setLoginMessage(`データ読み込みに失敗しました：${error?.message || error}`, true);
+      }
+    });
+  } catch (error) {
+    console.error("Firebase初期化に失敗しました", error);
+    setAuthUiState({ loginRequired: true });
+    setLoginMessage(`Firebase初期化に失敗しました：${error?.message || error}`, true);
+  }
+}
+
+async function signInWithGoogle() {
+  if (!firebaseAuth || !firebaseModules) {
+    setLoginMessage("Firebase設定を確認してください。", true);
+    return;
+  }
+  setLoginMessage("Googleログインを開いています...");
+  try {
+    const provider = new firebaseModules.GoogleAuthProvider();
+    await firebaseModules.signInWithPopup(firebaseAuth, provider);
+  } catch (error) {
+    console.error("Googleログインに失敗しました", error);
+    setLoginMessage(`Googleログインに失敗しました：${error?.message || error}`, true);
+  }
+}
+
+async function signOutFromGoogle() {
+  try {
+    await saveCloudDataNow();
+    if (firebaseAuth && firebaseModules) {
+      await firebaseModules.signOut(firebaseAuth);
+    }
+    clearLocalAppData();
+    window.location.reload();
+  } catch (error) {
+    console.error("ログアウトに失敗しました", error);
+  }
+}
 
 const defaultProgress = {
   name: "そら",
@@ -7510,6 +7788,18 @@ document.querySelectorAll("[data-nav-icon-image]").forEach((image) => {
 });
 
 document.addEventListener("click", (event) => {
+  const googleLoginButton = event.target.closest("[data-google-login]");
+  if (googleLoginButton) {
+    signInWithGoogle();
+    return;
+  }
+
+  const googleLogoutButton = event.target.closest("[data-google-logout]");
+  if (googleLogoutButton) {
+    signOutFromGoogle();
+    return;
+  }
+
   const navButton = event.target.closest("[data-nav]");
   if (navButton) {
     if (navButton.dataset.nav === "admin" && !isParentUnlocked) {
@@ -7876,32 +8166,42 @@ document.addEventListener("visibilitychange", handleAudioLifecycleChange);
 window.addEventListener("pagehide", pauseBgmForInactiveApp);
 window.addEventListener("beforeunload", pauseBgmForInactiveApp);
 
-if (!progress.visitedScreens.includes("home")) {
-  progress = {
-    ...progress,
-    visitedScreens: [...progress.visitedScreens, "home"],
-  };
-  saveProgress();
-}
-const loginBonusResult = applyLoginBonus();
-render();
-window.setInterval(tickAppDateTime, 30000);
-showBackupRestoreMessageIfNeeded();
-initializeBgm();
-const isSetupVisible = showInitialSetupIfNeeded();
-const isOnboardingVisible = !isSetupVisible && showOnboardingIfNeeded();
-if (!isSetupVisible && !isOnboardingVisible) {
-  window.setTimeout(showAppReminderToast, loginBonusResult.granted ? 2100 : 450);
-}
-if (loginBonusResult.granted && !isSetupVisible && !isOnboardingVisible) {
-  showLoginBonusToast(loginBonusResult);
-}
-syncCharacterStageState(getLevel(progress.xp));
-sendWeeklyReport();
-const startupAchievements = checkAchievements({ showToast: false });
-if (startupAchievements.length > 0) {
-  if (!isSetupVisible) {
-    window.setTimeout(() => showAchievementToast(startupAchievements), loginBonusResult.granted ? 2200 : 350);
+function startApp() {
+  if (appStarted) {
+    render();
+    return;
   }
+  appStarted = true;
+
+  if (!progress.visitedScreens.includes("home")) {
+    progress = {
+      ...progress,
+      visitedScreens: [...progress.visitedScreens, "home"],
+    };
+    saveProgress();
+  }
+  const loginBonusResult = applyLoginBonus();
+  render();
+  window.setInterval(tickAppDateTime, 30000);
+  showBackupRestoreMessageIfNeeded();
+  initializeBgm();
+  const isSetupVisible = showInitialSetupIfNeeded();
+  const isOnboardingVisible = !isSetupVisible && showOnboardingIfNeeded();
+  if (!isSetupVisible && !isOnboardingVisible) {
+    window.setTimeout(showAppReminderToast, loginBonusResult.granted ? 2100 : 450);
+  }
+  if (loginBonusResult.granted && !isSetupVisible && !isOnboardingVisible) {
+    showLoginBonusToast(loginBonusResult);
+  }
+  syncCharacterStageState(getLevel(progress.xp));
+  sendWeeklyReport();
+  const startupAchievements = checkAchievements({ showToast: false });
+  if (startupAchievements.length > 0) {
+    if (!isSetupVisible) {
+      window.setTimeout(() => showAchievementToast(startupAchievements), loginBonusResult.granted ? 2200 : 350);
+    }
+  }
+  registerServiceWorker();
 }
-registerServiceWorker();
+
+initializeFirebaseAuthGate();

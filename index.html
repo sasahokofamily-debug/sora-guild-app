@@ -19,7 +19,16 @@
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="stylesheet" href="styles.css">
   </head>
-  <body>
+  <body class="is-auth-loading">
+    <div class="login-gate" data-login-gate>
+      <div class="login-card" role="dialog" aria-modal="true" aria-labelledby="login-title">
+        <p class="section-kicker">Google Login</p>
+        <h2 id="login-title">そらクエストにログイン</h2>
+        <p>Googleアカウントでログインすると、冒険データをユーザーごとに保存できます。</p>
+        <button class="google-login-button" type="button" data-google-login>Googleでログイン</button>
+        <p class="form-message login-message" data-login-message aria-live="polite">ログイン状態を確認しています...</p>
+      </div>
+    </div>
     <div class="app-shell">
       <header class="app-header">
         <div>
@@ -30,6 +39,10 @@
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
           <button class="parent-mode-exit" type="button" data-parent-mode-exit>解除</button>
+        </div>
+        <div class="auth-user-chip" data-auth-user hidden>
+          <span data-auth-user-name></span>
+          <button type="button" data-google-logout>ログアウト</button>
         </div>
       </header>
 
@@ -1173,6 +1186,7 @@
       </nav>
     </div>
 
+    <script src="firebase-config.js"></script>
     <script src="app.js" defer></script>
   </body>
 </html>

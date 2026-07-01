@@ -387,6 +387,86 @@ button {
   padding: calc(22px + env(safe-area-inset-top)) 14px calc(118px + env(safe-area-inset-bottom));
 }
 
+body.is-auth-loading .app-shell,
+body.is-login-required .app-shell {
+  display: none;
+}
+
+.login-gate[hidden] {
+  display: none;
+}
+
+.login-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 50% 12%, rgba(243, 194, 96, 0.2), transparent 34%),
+    linear-gradient(180deg, rgba(33, 58, 39, 0.96), rgba(37, 21, 16, 0.98));
+}
+
+.login-card {
+  width: min(100%, 430px);
+  border: 1px solid rgba(139, 103, 45, 0.58);
+  border-radius: 18px;
+  padding: 28px 22px;
+  color: var(--ink);
+  text-align: center;
+  background:
+    linear-gradient(rgba(255, 248, 220, 0.72), rgba(245, 230, 200, 0.48)),
+    url("./assets/textures/parchment-card.png") center / cover no-repeat;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.36),
+    inset 0 -2px 4px rgba(80, 50, 20, 0.16),
+    0 18px 42px rgba(16, 9, 7, 0.42);
+}
+
+.login-card h2 {
+  margin: 4px 0 10px;
+  font-size: clamp(1.55rem, 7vw, 2.1rem);
+}
+
+.login-card p {
+  margin: 0 auto 18px;
+  max-width: 32em;
+  color: rgba(45, 27, 20, 0.78);
+  font-weight: 700;
+  line-height: 1.65;
+}
+
+.google-login-button {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(105, 73, 31, 0.42);
+  border-radius: 14px;
+  color: #2d1b14;
+  font-size: 1rem;
+  font-weight: 900;
+  background: linear-gradient(180deg, #fff8e0, #e6c56d);
+  box-shadow: 0 8px 18px rgba(79, 49, 18, 0.2);
+  cursor: pointer;
+}
+
+.google-login-button:active {
+  transform: scale(0.98);
+}
+
+.login-message {
+  min-height: 1.6em;
+  margin-top: 14px !important;
+  margin-bottom: 0 !important;
+  color: rgba(45, 27, 20, 0.72) !important;
+  font-size: 0.9rem;
+}
+
+.login-message.is-error {
+  color: #8c2f24 !important;
+}
+
 .app-header {
   display: flex;
   align-items: center;
@@ -395,6 +475,43 @@ button {
   gap: 12px;
   margin-bottom: 18px;
   color: var(--cream);
+}
+
+.auth-user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid rgba(241, 210, 122, 0.36);
+  border-radius: 999px;
+  padding: 6px 7px 6px 11px;
+  background: rgba(24, 13, 10, 0.36);
+  color: #fff7df;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.auth-user-chip[hidden] {
+  display: none;
+}
+
+.auth-user-chip span {
+  min-width: 0;
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auth-user-chip button {
+  border: 1px solid rgba(241, 210, 122, 0.34);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: #fff5d0;
+  font-size: 0.74rem;
+  font-weight: 900;
+  background: rgba(120, 42, 34, 0.46);
 }
 
 .eyebrow,
