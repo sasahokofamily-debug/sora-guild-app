@@ -1,4 +1,7 @@
 const STORAGE_KEY = "sora_guild_app_dev";
+const APP_VERSION = "1.2";
+const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
+const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
 const QUEST_BULK_EDIT_BACKUP_KEY = "lastQuestBulkEditBackup";
 const LEGACY_CUSTOM_QUESTS_KEY = "sora_guild_app_custom_quests_dev";
@@ -57,6 +60,12 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   rewardEnabled: true,
   weeklyEnabled: true,
 };
+const VERSION_NOTES = [
+  "更新内容を初回起動時だけ表示するようにしました。",
+  "ヘッダーのバージョン表示から、いつでも更新内容を確認できます。",
+  "ホーム画面とクエスト表示の細かな見やすさを整えました。",
+  "Googleログインとクラウド保存まわりの表示を安定させました。",
+];
 const WORLD_AREAS = [
   "はじまりの村",
   "キノコの森",
@@ -1367,9 +1376,52 @@ function syncProgressNameFromAppSettings() {
 function applyAppDisplayName() {
   const appName = getAppDisplayName();
   setText("[data-app-name]", appName);
+  setText("[data-app-version]", APP_VERSION_LABEL);
   document.title = appName;
   document.querySelector("meta[name='apple-mobile-web-app-title']")?.setAttribute("content", appName);
   document.querySelector("meta[name='application-name']")?.setAttribute("content", appName);
+}
+
+function renderVersionNotesModal() {
+  const title = document.querySelector("[data-version-notes-title]");
+  const list = document.querySelector("[data-version-notes-list]");
+  if (title) {
+    title.textContent = `${APP_VERSION_LABEL} 更新内容`;
+  }
+  if (list) {
+    list.innerHTML = VERSION_NOTES.map((note) => `<li>${escapeHtml(note)}</li>`).join("");
+  }
+}
+
+function showVersionNotesModal({ markSeen = true } = {}) {
+  const modal = document.querySelector("[data-version-notes-modal]");
+  if (!modal) {
+    return;
+  }
+  renderVersionNotesModal();
+  modal.hidden = false;
+  requestAnimationFrame(() => modal.classList.add("is-visible"));
+  if (markSeen) {
+    localStorage.setItem(VERSION_NOTES_SEEN_KEY, APP_VERSION);
+  }
+}
+
+function closeVersionNotesModal() {
+  const modal = document.querySelector("[data-version-notes-modal]");
+  if (!modal) {
+    return;
+  }
+  modal.classList.remove("is-visible");
+  window.setTimeout(() => {
+    modal.hidden = true;
+  }, 180);
+}
+
+function showVersionNotesIfNeeded() {
+  if (localStorage.getItem(VERSION_NOTES_SEEN_KEY) === APP_VERSION) {
+    return;
+  }
+  showVersionNotesModal({ markSeen: true });
 }
 
 function isValidEmailAddress(value) {
@@ -6562,7 +6614,9 @@ function handleInitialSetupSubmit(event) {
   renderNotificationSettingsForm();
   localStorage.setItem(INITIAL_SETUP_KEY, "true");
   closeInitialSetup();
-  showOnboardingIfNeeded();
+  if (!showOnboardingIfNeeded()) {
+    window.setTimeout(showVersionNotesIfNeeded, 400);
+  }
 }
 
 function showOnboardingIfNeeded() {
@@ -6590,6 +6644,7 @@ function completeOnboarding() {
   }
   document.body.classList.remove("is-onboarding-open");
   window.setTimeout(showAppReminderToast, 300);
+  window.setTimeout(showVersionNotesIfNeeded, 650);
 }
 
 function nextOnboardingSlide() {
@@ -7999,6 +8054,24 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  const versionNotesOpen = event.target.closest("[data-version-notes-open]");
+  if (versionNotesOpen) {
+    showVersionNotesModal({ markSeen: false });
+    return;
+  }
+
+  const versionNotesClose = event.target.closest("[data-version-notes-close]");
+  if (versionNotesClose) {
+    closeVersionNotesModal();
+    return;
+  }
+
+  const versionNotesBackdrop = event.target.closest("[data-version-notes-modal]");
+  if (versionNotesBackdrop && event.target === versionNotesBackdrop) {
+    closeVersionNotesModal();
+    return;
+  }
+
   const worldAreaUnlockClose = event.target.closest("[data-world-area-unlock-close]");
   if (worldAreaUnlockClose) {
     closeWorldAreaUnlockModal();
@@ -8355,6 +8428,7 @@ function startApp() {
   const isOnboardingVisible = !isSetupVisible && showOnboardingIfNeeded();
   if (!isSetupVisible && !isOnboardingVisible) {
     window.setTimeout(showAppReminderToast, loginBonusResult.granted ? 2100 : 450);
+    window.setTimeout(showVersionNotesIfNeeded, loginBonusResult.granted ? 2600 : 750);
   }
   if (loginBonusResult.granted && !isSetupVisible && !isOnboardingVisible) {
     showLoginBonusToast(loginBonusResult);
