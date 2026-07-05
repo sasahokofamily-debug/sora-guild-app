@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "1.3";
+const APP_VERSION = "1.4";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -61,8 +61,8 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "Googleログイン時に、端末データとクラウドデータを選んで引き継げるようにしました。",
-  "どちらを使うか決めるまで、クラウドへの上書き保存を止めるようにしました。",
+  "データ管理から、端末データをクラウドへ保存できるようにしました。",
+  "データ管理から、クラウドの冒険データを確認付きで読み込めるようにしました。",
   "ヘッダーのバージョン表示から、いつでも更新内容を確認できます。",
 ];
 const WORLD_AREAS = [
@@ -4606,6 +4606,77 @@ function downloadBackup() {
   setBackupMessage("セーブデータをエクスポートしました");
 }
 
+async function saveLocalDataToCloudManual() {
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+  if (!currentFirebaseUser) {
+    setBackupMessage("Googleログイン後にクラウド保存できます", true);
+    return;
+  }
+  const confirmed = window.confirm("この端末の冒険データをクラウドへ保存します。よろしいですか？");
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    cloudSavePausedForMigration = false;
+    await saveCloudDataNow();
+    setBackupMessage("この端末のデータをクラウドへ保存しました");
+  } catch (error) {
+    console.error("手動クラウド保存に失敗しました", error);
+    setBackupMessage(`クラウド保存に失敗しました：${error?.message || error}`, true);
+  }
+}
+
+async function loadCloudDataManual() {
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+  if (!currentFirebaseUser || !firebaseModules) {
+    setBackupMessage("Googleログイン後にクラウドから読み込めます", true);
+    return;
+  }
+  const confirmed = window.confirm("クラウドの冒険データをこの端末へ読み込みます。現在の端末データは上書きされます。よろしいですか？");
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const ref = getUserDataRef(currentFirebaseUser);
+    if (!ref) {
+      throw new Error("Firestoreの参照を作成できませんでした");
+    }
+    updateCloudSyncUi("syncing");
+    const snapshot = await firebaseModules.getDoc(ref);
+    if (!snapshot.exists()) {
+      updateCloudSyncUi("saved", new Date());
+      setBackupMessage("クラウドに保存済みデータがまだありません", true);
+      return;
+    }
+    const data = snapshot.data() || {};
+    const cloudSnapshot = data.storage && typeof data.storage === "object" ? data.storage : {};
+    if (getProgressMigrationScore(cloudSnapshot) <= 0) {
+      updateCloudSyncUi("saved", new Date());
+      setBackupMessage("クラウドに読み込める冒険データがまだありません", true);
+      return;
+    }
+
+    cloudSavePausedForMigration = false;
+    restoreAppStorage(cloudSnapshot);
+    reloadAppStateFromStorage();
+    render();
+    updateCloudSyncUi("saved", new Date());
+    setBackupMessage("クラウドのデータをこの端末へ読み込みました");
+  } catch (error) {
+    console.error("手動クラウド読み込みに失敗しました", error);
+    updateCloudSyncUi("error");
+    setBackupMessage(`クラウド読み込みに失敗しました：${error?.message || error}`, true);
+  }
+}
+
 function normalizeBackupValue(key, value, fromAlias = false) {
   if (fromAlias && key === PARENT_PIN_KEY && typeof value === "string") {
     return JSON.stringify(value);
@@ -8274,6 +8345,18 @@ document.addEventListener("click", (event) => {
   const backupDownloadButton = event.target.closest("[data-backup-download]");
   if (backupDownloadButton) {
     downloadBackup();
+    return;
+  }
+
+  const cloudSaveButton = event.target.closest("[data-cloud-save-now]");
+  if (cloudSaveButton) {
+    saveLocalDataToCloudManual();
+    return;
+  }
+
+  const cloudLoadButton = event.target.closest("[data-cloud-load-now]");
+  if (cloudLoadButton) {
+    loadCloudDataManual();
     return;
   }
 
