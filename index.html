@@ -94,7 +94,7 @@
         <div>
           <p class="eyebrow">Fantasy Guild Log</p>
           <h1 data-app-name>そらクエスト</h1>
-          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 1.2</button>
+          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 1.3</button>
         </div>
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
@@ -644,6 +644,9 @@
           <div class="panel admin-panel app-history-panel">
             <h3>更新履歴</h3>
             <p>
+              Version 1.3：Googleログイン時に、端末データとクラウドデータを選んで引き継げるようにしました。
+            </p>
+            <p>
               Version 1.2：更新内容ポップアップと、バージョンから履歴を確認できる機能を追加しました。
             </p>
             <p>
@@ -1124,11 +1127,35 @@
       <div class="version-notes-modal" data-version-notes-modal hidden>
         <div class="version-notes-card" role="dialog" aria-modal="true" aria-labelledby="version-notes-title">
           <p class="section-kicker">Update</p>
-          <h3 id="version-notes-title" data-version-notes-title>Version 1.2 更新内容</h3>
+          <h3 id="version-notes-title" data-version-notes-title>Version 1.3 更新内容</h3>
           <ul data-version-notes-list>
-            <li>更新内容を初回だけお知らせするようにしました。</li>
+            <li>Googleログイン時に、端末データとクラウドデータを選んで引き継げるようにしました。</li>
+            <li>どちらを使うか決めるまで、クラウドへの上書き保存を止めるようにしました。</li>
+            <li>ヘッダーのバージョン表示から、いつでも更新内容を確認できます。</li>
           </ul>
           <button type="button" data-version-notes-close>閉じる</button>
+        </div>
+      </div>
+      <div class="cloud-migration-modal" data-cloud-migration-modal hidden>
+        <div class="cloud-migration-card" role="dialog" aria-modal="true" aria-labelledby="cloud-migration-title">
+          <p class="section-kicker">Cloud Save</p>
+          <h3 id="cloud-migration-title">冒険データを選んでください</h3>
+          <p>この端末とクラウドに別々の冒険データがあります。使うデータを選ぶまで、クラウドへの上書き保存は止めています。</p>
+          <div class="cloud-migration-options" aria-label="冒険データの比較">
+            <article>
+              <span>この端末</span>
+              <strong data-cloud-migration-local>Lv1 / 0XP / 0G</strong>
+            </article>
+            <article>
+              <span>クラウド</span>
+              <strong data-cloud-migration-cloud>Lv1 / 0XP / 0G</strong>
+            </article>
+          </div>
+          <div class="cloud-migration-actions">
+            <button type="button" data-cloud-migration-choice="local">この端末のデータを使う</button>
+            <button type="button" data-cloud-migration-choice="cloud">クラウドのデータを使う</button>
+            <button class="secondary" type="button" data-cloud-migration-choice="later">あとで決める</button>
+          </div>
         </div>
       </div>
       <div class="level-up-modal" data-level-up-modal hidden>
@@ -1291,7 +1318,7 @@
         );
       })();
     </script>
-    <script src="firebase-config-auth.js?v=20260705-version12-fix1"></script>
-    <script src="app.js?v=20260705-version12-fix1" defer></script>
+    <script src="firebase-config-auth.js?v=20260705-version13-migration"></script>
+    <script src="app.js?v=20260705-version13-migration" defer></script>
   </body>
 </html>

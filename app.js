@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "1.2";
+const APP_VERSION = "1.3";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -61,10 +61,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "更新内容を初回起動時だけ表示するようにしました。",
+  "Googleログイン時に、端末データとクラウドデータを選んで引き継げるようにしました。",
+  "どちらを使うか決めるまで、クラウドへの上書き保存を止めるようにしました。",
   "ヘッダーのバージョン表示から、いつでも更新内容を確認できます。",
-  "ホーム画面とクエスト表示の細かな見やすさを整えました。",
-  "Googleログインとクラウド保存まわりの表示を安定させました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -409,6 +408,8 @@ let firebaseModules = null;
 let currentFirebaseUser = null;
 let appStarted = false;
 let isRestoringCloudData = false;
+let cloudSavePausedForMigration = false;
+let cloudMigrationChoiceResolver = null;
 let cloudSaveTimer = null;
 let cloudLastSavedAt = null;
 
@@ -538,6 +539,10 @@ function updateCloudSyncUi(status = "hidden", savedAt = cloudLastSavedAt) {
     text.textContent = "保存失敗";
     return;
   }
+  if (status === "paused") {
+    text.textContent = "引き継ぎ待ち";
+    return;
+  }
 
   cloudLastSavedAt = savedAt || new Date();
   text.textContent = `保存済み ${formatCloudSyncTime(cloudLastSavedAt)}`;
@@ -552,6 +557,10 @@ function getUserDataRef(user) {
 
 async function saveCloudDataNow() {
   if (!currentFirebaseUser || !firebaseDb || !firebaseModules || isRestoringCloudData) {
+    return false;
+  }
+  if (cloudSavePausedForMigration) {
+    updateCloudSyncUi("paused");
     return false;
   }
   const ref = getUserDataRef(currentFirebaseUser);
@@ -581,7 +590,10 @@ async function saveCloudDataNow() {
 }
 
 function scheduleCloudSave() {
-  if (!currentFirebaseUser || isRestoringCloudData) {
+  if (!currentFirebaseUser || isRestoringCloudData || cloudSavePausedForMigration) {
+    if (cloudSavePausedForMigration) {
+      updateCloudSyncUi("paused");
+    }
     return;
   }
   updateCloudSyncUi("pending");
@@ -662,18 +674,93 @@ function shouldMigrateLocalSnapshot(localSnapshot, cloudSnapshot) {
   return localScore > 0 && localScore > cloudScore;
 }
 
+function getSnapshotSummaryText(snapshot) {
+  const storedProgress = parseSnapshotProgress(snapshot) || {};
+  const xp = Number.isFinite(storedProgress.xp) ? Math.max(0, Math.round(storedProgress.xp)) : 0;
+  const gold = Number.isFinite(storedProgress.gold) ? Math.max(0, Math.round(storedProgress.gold)) : 0;
+  const questCount = Math.max(
+    Number.isFinite(storedProgress.totalQuestCompletions) ? Math.max(0, Math.round(storedProgress.totalQuestCompletions)) : 0,
+    Array.isArray(storedProgress.activityLog) ? storedProgress.activityLog.length : 0,
+    Array.isArray(storedProgress.completedQuestIds) ? storedProgress.completedQuestIds.length : 0,
+  );
+  return `Lv${getLevel(xp)} / ${formatNumber(xp)}XP / ${formatNumber(gold)}G / ${formatNumber(questCount)}件`;
+}
+
+function closeCloudMigrationModal() {
+  const modal = document.querySelector("[data-cloud-migration-modal]");
+  if (!modal) {
+    return;
+  }
+  modal.classList.remove("is-visible");
+  window.setTimeout(() => {
+    modal.hidden = true;
+  }, 180);
+}
+
+function resolveCloudMigrationChoice(choice) {
+  if (!cloudMigrationChoiceResolver) {
+    return;
+  }
+  const resolver = cloudMigrationChoiceResolver;
+  cloudMigrationChoiceResolver = null;
+  closeCloudMigrationModal();
+  resolver(choice);
+}
+
+function showCloudMigrationModal(localSnapshot, cloudSnapshot) {
+  const modal = document.querySelector("[data-cloud-migration-modal]");
+  if (!modal) {
+    return Promise.resolve("later");
+  }
+  setText("[data-cloud-migration-local]", getSnapshotSummaryText(localSnapshot));
+  setText("[data-cloud-migration-cloud]", getSnapshotSummaryText(cloudSnapshot));
+  modal.hidden = false;
+  requestAnimationFrame(() => modal.classList.add("is-visible"));
+  return new Promise((resolve) => {
+    cloudMigrationChoiceResolver = resolve;
+  });
+}
+
 async function loadCloudDataForUser(user) {
   const ref = getUserDataRef(user);
   if (!ref) {
     throw new Error("Firestoreの参照を作成できませんでした");
   }
   const localSnapshot = captureAppStorage();
+  const localScore = getProgressMigrationScore(localSnapshot);
   const snapshot = await firebaseModules.getDoc(ref);
   if (snapshot.exists()) {
     const data = snapshot.data() || {};
-    const cloudSnapshot = data.storage || {};
-    if (shouldMigrateLocalSnapshot(localSnapshot, cloudSnapshot)) {
-      console.info("既存のローカル冒険データをクラウドへ引き継ぎます");
+    const cloudSnapshot = data.storage && typeof data.storage === "object" ? data.storage : {};
+    const cloudScore = getProgressMigrationScore(cloudSnapshot);
+
+    if (localScore > 0 && cloudScore > 0 && localScore !== cloudScore) {
+      cloudSavePausedForMigration = true;
+      updateCloudSyncUi("paused");
+      setAuthUiState({ loading: false, loginRequired: false });
+      const choice = await showCloudMigrationModal(localSnapshot, cloudSnapshot);
+      if (choice === "local") {
+        cloudSavePausedForMigration = false;
+        console.info("端末の冒険データをクラウドへ引き継ぎます");
+        await saveCloudDataNow();
+        reloadAppStateFromStorage();
+        return "migrated";
+      }
+      if (choice === "cloud") {
+        cloudSavePausedForMigration = false;
+        restoreAppStorage(cloudSnapshot);
+        reloadAppStateFromStorage();
+        updateCloudSyncUi("saved", new Date());
+        return "loaded";
+      }
+      reloadAppStateFromStorage();
+      updateCloudSyncUi("paused");
+      return "deferred";
+    }
+
+    cloudSavePausedForMigration = false;
+    if (localScore > 0 && cloudScore === 0) {
+      console.info("端末の冒険データをクラウドへ初回保存します");
       await saveCloudDataNow();
       reloadAppStateFromStorage();
       return "migrated";
@@ -682,6 +769,7 @@ async function loadCloudDataForUser(user) {
     reloadAppStateFromStorage();
     return "loaded";
   }
+  cloudSavePausedForMigration = false;
   reloadAppStateFromStorage();
   await saveCloudDataNow();
   return "created";
@@ -742,7 +830,7 @@ async function initializeFirebaseAuthGate() {
 
       try {
         const loadResult = await loadCloudDataForUser(user);
-        if (loadResult !== "migrated" && loadResult !== "created") {
+        if (loadResult !== "migrated" && loadResult !== "created" && loadResult !== "deferred") {
           updateCloudSyncUi("saved", new Date());
         }
         setAuthUiState({ loading: false, loginRequired: false });
@@ -8073,6 +8161,12 @@ document.addEventListener("click", (event) => {
   const versionNotesBackdrop = event.target.closest("[data-version-notes-modal]");
   if (versionNotesBackdrop && event.target === versionNotesBackdrop) {
     closeVersionNotesModal();
+    return;
+  }
+
+  const cloudMigrationChoice = event.target.closest("[data-cloud-migration-choice]");
+  if (cloudMigrationChoice) {
+    resolveCloudMigrationChoice(cloudMigrationChoice.dataset.cloudMigrationChoice || "later");
     return;
   }
 

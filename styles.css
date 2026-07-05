@@ -641,6 +641,11 @@ body.is-login-required .app-shell {
   box-shadow: 0 0 10px rgba(255, 139, 111, 0.62);
 }
 
+.cloud-sync-chip.is-paused .cloud-sync-dot {
+  background: #f3c260;
+  box-shadow: 0 0 10px rgba(243, 194, 96, 0.62);
+}
+
 .cloud-sync-chip span:last-child {
   min-width: 0;
   overflow: hidden;
@@ -1259,6 +1264,7 @@ h3 {
   animation: guildToast 1700ms ease both;
 }
 
+.cloud-migration-modal,
 .version-notes-modal,
 .level-up-modal {
   position: fixed;
@@ -1274,11 +1280,13 @@ h3 {
   pointer-events: none;
 }
 
+.cloud-migration-modal[hidden],
 .version-notes-modal[hidden],
 .level-up-modal[hidden] {
   display: none;
 }
 
+.cloud-migration-modal.is-visible,
 .version-notes-modal.is-visible,
 .level-up-modal.is-visible {
   opacity: 1;
@@ -1286,6 +1294,7 @@ h3 {
   animation: modalFadeIn 260ms ease both;
 }
 
+.cloud-migration-card,
 .version-notes-card,
 .level-up-modal-card {
   position: relative;
@@ -1308,11 +1317,13 @@ h3 {
   transform: translateY(10px) scale(0.92);
 }
 
+.cloud-migration-modal.is-visible .cloud-migration-card,
 .version-notes-modal.is-visible .version-notes-card,
 .level-up-modal.is-visible .level-up-modal-card {
   animation: levelUpModalCard 520ms cubic-bezier(0.2, 0.9, 0.25, 1.18) both;
 }
 
+.cloud-migration-card h3,
 .version-notes-card h3,
 .level-up-modal-card h3 {
   margin: 2px 0 10px;
@@ -1321,6 +1332,78 @@ h3 {
   font-weight: 950;
   line-height: 1.08;
   text-shadow: 0 2px 0 rgba(255, 247, 223, 0.7), 0 0 18px rgba(241, 210, 122, 0.24);
+}
+
+.cloud-migration-card p:not(.section-kicker) {
+  max-width: 19rem;
+  margin: 0;
+  color: rgba(45, 27, 20, 0.82);
+  font-size: 0.88rem;
+  font-weight: 850;
+  line-height: 1.55;
+}
+
+.cloud-migration-options {
+  display: grid;
+  gap: 9px;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.cloud-migration-options article {
+  display: grid;
+  gap: 3px;
+  border: 1px solid rgba(120, 90, 40, 0.25);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255, 247, 223, 0.42);
+  text-align: left;
+}
+
+.cloud-migration-options span {
+  color: rgba(111, 77, 59, 0.82);
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
+.cloud-migration-options strong {
+  color: var(--navy);
+  font-size: 0.94rem;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.cloud-migration-actions {
+  display: grid;
+  gap: 9px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.cloud-migration-actions button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--cream);
+  background:
+    linear-gradient(180deg, rgba(255, 247, 223, 0.16), transparent 38%),
+    linear-gradient(180deg, #c4493e 0%, #a83730 52%, var(--red) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 247, 223, 0.24),
+    0 5px 0 #5b211e,
+    0 10px 16px rgba(59, 33, 26, 0.2);
+  font-weight: 950;
+}
+
+.cloud-migration-actions .secondary {
+  color: var(--wood-dark);
+  background:
+    linear-gradient(180deg, rgba(255, 247, 223, 0.72), rgba(241, 210, 122, 0.58));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 247, 223, 0.5),
+    0 4px 0 rgba(120, 90, 40, 0.42),
+    0 8px 14px rgba(59, 33, 26, 0.16);
 }
 
 .level-up-modal-card strong {

@@ -1,10 +1,10 @@
-const CACHE_NAME = "sora-quest-pwa-v60";
+const CACHE_NAME = "sora-quest-pwa-v61";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css",
-  "./app.js?v=20260705-version12-fix1",
-  "./firebase-config-auth.js?v=20260705-version12-fix1",
+  "./app.js?v=20260705-version13-migration",
+  "./firebase-config-auth.js?v=20260705-version13-migration",
   "./manifest.json",
   "./assets/bg-guild.png",
   "./assets/worlds/village-bg.png",
