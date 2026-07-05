@@ -1263,7 +1263,7 @@ h3 {
 .level-up-modal {
   position: fixed;
   inset: 0;
-  z-index: 30;
+  z-index: 10030;
   display: grid;
   place-items: center;
   padding: 24px;

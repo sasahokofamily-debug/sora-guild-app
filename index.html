@@ -1248,7 +1248,50 @@
       </nav>
     </div>
 
-    <script src="firebase-config-auth.js?v=20260702-version12"></script>
-    <script src="app.js?v=20260702-version12" defer></script>
+    <script>
+      (() => {
+        const openVersionNotes = () => {
+          const modal = document.querySelector("[data-version-notes-modal]");
+          if (!modal) return;
+          modal.hidden = false;
+          requestAnimationFrame(() => modal.classList.add("is-visible"));
+        };
+        const closeVersionNotes = () => {
+          const modal = document.querySelector("[data-version-notes-modal]");
+          if (!modal) return;
+          modal.classList.remove("is-visible");
+          window.setTimeout(() => {
+            modal.hidden = true;
+          }, 180);
+        };
+        window.openVersionNotes = openVersionNotes;
+        document.addEventListener(
+          "click",
+          (event) => {
+            if (event.target.closest("[data-version-notes-open]")) {
+              event.preventDefault();
+              event.stopPropagation();
+              openVersionNotes();
+              return;
+            }
+            if (event.target.closest("[data-version-notes-close]")) {
+              event.preventDefault();
+              event.stopPropagation();
+              closeVersionNotes();
+              return;
+            }
+            const backdrop = event.target.closest("[data-version-notes-modal]");
+            if (backdrop && event.target === backdrop) {
+              event.preventDefault();
+              event.stopPropagation();
+              closeVersionNotes();
+            }
+          },
+          true,
+        );
+      })();
+    </script>
+    <script src="firebase-config-auth.js?v=20260705-version12-fix1"></script>
+    <script src="app.js?v=20260705-version12-fix1" defer></script>
   </body>
 </html>

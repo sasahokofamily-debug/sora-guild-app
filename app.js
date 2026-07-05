@@ -8056,7 +8056,11 @@ document.addEventListener("click", (event) => {
 
   const versionNotesOpen = event.target.closest("[data-version-notes-open]");
   if (versionNotesOpen) {
-    showVersionNotesModal({ markSeen: false });
+    if (typeof window.openVersionNotes === "function") {
+      window.openVersionNotes();
+    } else {
+      showVersionNotesModal({ markSeen: false });
+    }
     return;
   }
 
