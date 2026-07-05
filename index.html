@@ -94,7 +94,7 @@
         <div>
           <p class="eyebrow">Fantasy Guild Log</p>
           <h1 data-app-name>そらクエスト</h1>
-          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 1.4</button>
+          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 1.5</button>
         </div>
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
@@ -644,6 +644,9 @@
           <div class="panel admin-panel app-history-panel">
             <h3>更新履歴</h3>
             <p>
+              Version 1.5：ギルド画面を開閉式に整理し、スマホで必要な設定を見つけやすくしました。
+            </p>
+            <p>
               Version 1.4：データ管理から、端末データのクラウド保存・クラウドからの読み込みを実行できるようにしました。
             </p>
             <p>
@@ -1134,10 +1137,10 @@
       <div class="version-notes-modal" data-version-notes-modal hidden>
         <div class="version-notes-card" role="dialog" aria-modal="true" aria-labelledby="version-notes-title">
           <p class="section-kicker">Update</p>
-          <h3 id="version-notes-title" data-version-notes-title>Version 1.4 更新内容</h3>
+          <h3 id="version-notes-title" data-version-notes-title>Version 1.5 更新内容</h3>
           <ul data-version-notes-list>
-            <li>データ管理から、端末データをクラウドへ保存できるようにしました。</li>
-            <li>データ管理から、クラウドの冒険データを確認付きで読み込めるようにしました。</li>
+            <li>ギルド画面をスマホで見やすい開閉式に整理しました。</li>
+            <li>初期表示では、基本設定とデータ管理だけを開くようにしました。</li>
             <li>ヘッダーのバージョン表示から、いつでも更新内容を確認できます。</li>
           </ul>
           <button type="button" data-version-notes-close>閉じる</button>
@@ -1325,7 +1328,7 @@
         );
       })();
     </script>
-    <script src="firebase-config-auth.js?v=20260705-version14-cloud-tools"></script>
-    <script src="app.js?v=20260705-version14-cloud-tools" defer></script>
+    <script src="firebase-config-auth.js?v=20260705-version15-admin-accordion"></script>
+    <script src="app.js?v=20260705-version15-admin-accordion" defer></script>
   </body>
 </html>

@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "1.4";
+const APP_VERSION = "1.5";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -61,8 +61,8 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "データ管理から、端末データをクラウドへ保存できるようにしました。",
-  "データ管理から、クラウドの冒険データを確認付きで読み込めるようにしました。",
+  "ギルド画面をスマホで見やすい開閉式に整理しました。",
+  "初期表示では、基本設定とデータ管理だけを開くようにしました。",
   "ヘッダーのバージョン表示から、いつでも更新内容を確認できます。",
 ];
 const WORLD_AREAS = [
@@ -1210,7 +1210,7 @@ let activeQuestCategory = "daily_required";
 let questSwipeStartX = 0;
 let questSwipeStartY = 0;
 let growthChartMode = "xp";
-const openAdminSections = new Set(["basic"]);
+const openAdminSections = new Set(["basic", "data"]);
 const openGrowthCollections = new Set();
 let previousDailyRequiredComplete = false;
 let hasRenderedQuestCategoryProgress = false;
@@ -4957,6 +4957,10 @@ function renderAdminAccordions() {
       return;
     }
 
+    heading.dataset.adminSectionToggle = sectionId;
+    heading.setAttribute("role", "button");
+    heading.setAttribute("tabindex", "0");
+
     let button = heading.querySelector("[data-admin-section-toggle]");
     if (!button) {
       button = document.createElement("button");
@@ -4968,9 +4972,23 @@ function renderAdminAccordions() {
 
     const isOpen = openAdminSections.has(sectionId);
     section.classList.toggle("is-collapsed", !isOpen);
+    heading.setAttribute("aria-expanded", String(isOpen));
     button.setAttribute("aria-expanded", String(isOpen));
-    button.textContent = isOpen ? "閉じる" : "開く";
+    button.setAttribute("aria-label", isOpen ? "閉じる" : "開く");
+    button.textContent = isOpen ? "▼" : "▶";
   });
+}
+
+function toggleAdminSection(sectionId) {
+  if (!sectionId) {
+    return;
+  }
+  if (openAdminSections.has(sectionId)) {
+    openAdminSections.delete(sectionId);
+  } else {
+    openAdminSections.add(sectionId);
+  }
+  renderAdminAccordions();
 }
 
 function getCurrentParentPin() {
@@ -8396,14 +8414,7 @@ document.addEventListener("click", (event) => {
 
   const adminSectionToggle = event.target.closest("[data-admin-section-toggle]");
   if (adminSectionToggle) {
-    const sectionId = adminSectionToggle.dataset.adminSectionToggle;
-    if (openAdminSections.has(sectionId)) {
-      openAdminSections.delete(sectionId);
-    } else {
-      openAdminSections.clear();
-      openAdminSections.add(sectionId);
-    }
-    renderAdminAccordions();
+    toggleAdminSection(adminSectionToggle.dataset.adminSectionToggle);
     return;
   }
 
@@ -8501,6 +8512,15 @@ document.addEventListener("click", (event) => {
   if (deleteRewardButton) {
     deleteReward(deleteRewardButton.dataset.deleteReward);
   }
+});
+
+document.addEventListener("keydown", (event) => {
+  const adminSectionToggle = event.target.closest?.("[data-admin-section-toggle]");
+  if (!adminSectionToggle || (event.key !== "Enter" && event.key !== " ")) {
+    return;
+  }
+  event.preventDefault();
+  toggleAdminSection(adminSectionToggle.dataset.adminSectionToggle);
 });
 
 document.addEventListener("change", (event) => {
