@@ -5802,6 +5802,33 @@ h3 {
   text-align: left;
 }
 
+.setup-card label > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.setup-card label b,
+.setup-card label em {
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.66rem;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.setup-card label b {
+  color: #fff7de;
+  background: rgba(143, 49, 43, 0.9);
+}
+
+.setup-card label em {
+  color: rgba(83, 55, 40, 0.86);
+  background: rgba(255, 247, 223, 0.82);
+  border: 1px solid rgba(111, 63, 38, 0.16);
+}
+
 .setup-card input {
   width: 100%;
   min-height: 46px;
@@ -5886,6 +5913,29 @@ h3 {
   font-size: 0.92rem;
   font-weight: 850;
   line-height: 1.65;
+}
+
+.setup-card .setup-intro {
+  line-height: 1.5;
+}
+
+.setup-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 2px 0 3px;
+}
+
+.setup-steps span {
+  min-width: 0;
+  border: 1px solid rgba(201, 154, 53, 0.26);
+  border-radius: 999px;
+  padding: 6px 4px;
+  color: rgba(91, 62, 47, 0.9);
+  background: rgba(255, 247, 223, 0.68);
+  font-size: 0.72rem;
+  font-weight: 950;
+  line-height: 1;
 }
 
 .onboarding-dots {

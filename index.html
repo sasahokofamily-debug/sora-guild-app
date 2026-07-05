@@ -94,7 +94,7 @@
         <div>
           <p class="eyebrow">Fantasy Guild Log</p>
           <h1 data-app-name>そらクエスト</h1>
-          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 1.5</button>
+          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 1.6</button>
         </div>
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
@@ -644,6 +644,9 @@
           <div class="panel admin-panel app-history-panel">
             <h3>更新履歴</h3>
             <p>
+              Version 1.6：初回セットアップ画面を短く整理し、必須項目とあとから設定できる項目を分かりやすくしました。
+            </p>
+            <p>
               Version 1.5：ギルド画面を開閉式に整理し、スマホで必要な設定を見つけやすくしました。
             </p>
             <p>
@@ -1137,10 +1140,10 @@
       <div class="version-notes-modal" data-version-notes-modal hidden>
         <div class="version-notes-card" role="dialog" aria-modal="true" aria-labelledby="version-notes-title">
           <p class="section-kicker">Update</p>
-          <h3 id="version-notes-title" data-version-notes-title>Version 1.5 更新内容</h3>
+          <h3 id="version-notes-title" data-version-notes-title>Version 1.6 更新内容</h3>
           <ul data-version-notes-list>
-            <li>ギルド画面をスマホで見やすい開閉式に整理しました。</li>
-            <li>初期表示では、基本設定とデータ管理だけを開くようにしました。</li>
+            <li>初回セットアップ画面を短く分かりやすく整理しました。</li>
+            <li>通知先メールと親管理PINが、あとから設定できることを明確にしました。</li>
             <li>ヘッダーのバージョン表示から、いつでも更新内容を確認できます。</li>
           </ul>
           <button type="button" data-version-notes-close>閉じる</button>
@@ -1195,27 +1198,32 @@
       </div>
       <div class="setup-modal" data-setup-modal hidden>
         <form class="setup-card" data-initial-setup-form role="dialog" aria-modal="true" aria-labelledby="setup-title">
-          <p class="section-kicker">First Setup</p>
-          <h3 id="setup-title">ようこそ、そらクエストへ。</h3>
-          <p>毎日の宿題やお手伝いを、冒険に変えるアプリです。まずは家族だけのクエスト名を決めましょう。</p>
+          <p class="section-kicker">Start Guide</p>
+          <h3 id="setup-title">冒険の準備をしましょう</h3>
+          <p class="setup-intro">名前だけ決めれば、すぐに始められます。</p>
+          <div class="setup-steps" aria-label="初回設定の流れ">
+            <span>名前</span>
+            <span>通知</span>
+            <span>PIN</span>
+          </div>
           <label>
-            子どもの名前
+            <span>子どもの名前 <b>必須</b></span>
             <input type="text" name="childName" placeholder="そら" maxlength="20" required>
           </label>
           <label>
-            アプリ名
+            <span>アプリ名 <b>必須</b></span>
             <input type="text" name="appDisplayName" placeholder="そらクエスト" maxlength="30" required>
           </label>
           <label>
-            通知先メール
+            <span>通知先メール <em>任意</em></span>
             <input type="email" name="notificationEmail" placeholder="family@example.com" autocomplete="email">
           </label>
-          <small>通知先メールはあとからギルド画面で設定できます。</small>
+          <small>ごほうび通知や週間レポートの送り先です。あとから変更できます。</small>
           <label>
-            親管理PIN
+            <span>親管理PIN <em>任意</em></span>
             <input type="password" name="parentPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="任意：4桁の数字">
           </label>
-          <small>未入力の場合はあとから設定できます。</small>
+          <small>未入力なら初期PINを使います。あとからギルド画面で変更できます。</small>
           <p class="form-message" data-setup-message aria-live="polite"></p>
           <button class="setup-submit" type="submit">冒険をはじめる</button>
         </form>
@@ -1328,7 +1336,7 @@
         );
       })();
     </script>
-    <script src="firebase-config-auth.js?v=20260705-version15-admin-accordion"></script>
-    <script src="app.js?v=20260705-version15-admin-accordion" defer></script>
+    <script src="firebase-config-auth.js?v=20260705-version16-setup-guide"></script>
+    <script src="app.js?v=20260705-version16-setup-guide" defer></script>
   </body>
 </html>

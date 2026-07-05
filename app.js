@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "1.5";
+const APP_VERSION = "1.6";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -61,8 +61,8 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "ギルド画面をスマホで見やすい開閉式に整理しました。",
-  "初期表示では、基本設定とデータ管理だけを開くようにしました。",
+  "初回セットアップ画面を短く分かりやすく整理しました。",
+  "通知先メールと親管理PINが、あとから設定できることを明確にしました。",
   "ヘッダーのバージョン表示から、いつでも更新内容を確認できます。",
 ];
 const WORLD_AREAS = [
