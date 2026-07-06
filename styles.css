@@ -8416,6 +8416,51 @@ h3 {
 }
 
 @media (max-width: 679px) {
+  .version-notes-modal {
+    padding: 18px;
+  }
+
+  .version-notes-card {
+    width: min(100%, 330px);
+    max-height: min(82vh, 620px);
+    padding: 20px 18px 18px;
+  }
+
+  .version-notes-card h3 {
+    margin-bottom: 12px;
+  }
+
+  .version-notes-title-version {
+    font-size: clamp(1.46rem, 7.4vw, 1.78rem);
+  }
+
+  .version-notes-title-label {
+    font-size: clamp(1.04rem, 5.5vw, 1.28rem);
+  }
+
+  .version-notes-card ul {
+    gap: 10px;
+    margin-top: 2px;
+    font-size: 0.84rem;
+    line-height: 1.52;
+  }
+
+  .version-notes-card li {
+    padding-left: 16px;
+  }
+
+  .version-notes-card li::before {
+    top: 0.18em;
+    font-size: 0.58rem;
+  }
+
+  .version-notes-card button {
+    min-height: 42px;
+    margin-top: 14px;
+    padding: 9px 18px;
+    font-size: 0.92rem;
+  }
+
   .app-shell {
     width: 100%;
     max-width: var(--app-content-width);
