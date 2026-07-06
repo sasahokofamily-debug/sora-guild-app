@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "1.7";
+const APP_VERSION = "1.8";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -61,8 +61,8 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "Googleログイン後のクラウド保存状態を分かりやすく表示するようにしました。",
-  "保存中・保存待ち・保存失敗などの状態がヘッダーで確認しやすくなりました。",
+  "ログイン失敗時に、Firebaseの難しいエラー文をそのまま表示しないようにしました。",
+  "ログインやデータ読み込みで困ったときの案内文を分かりやすくしました。",
   "ヘッダーのバージョン表示から、いつでも更新内容を確認できます。",
 ];
 const WORLD_AREAS = [
@@ -482,6 +482,32 @@ function setLoginMessage(message, isError = false) {
   element.classList.toggle("is-error", isError);
 }
 
+function getFriendlyAuthErrorMessage(error, fallback = "ログインに失敗しました。もう一度お試しください。") {
+  const code = error?.code || "";
+  const message = String(error?.message || error || "");
+  const combined = `${code} ${message}`.toLowerCase();
+
+  if (combined.includes("popup-closed-by-user") || combined.includes("cancelled-popup-request")) {
+    return "ログインがキャンセルされました。もう一度お試しください。";
+  }
+  if (combined.includes("popup-blocked")) {
+    return "ログイン画面が開けませんでした。ポップアップを許可してからもう一度お試しください。";
+  }
+  if (combined.includes("unauthorized-domain")) {
+    return "このURLでGoogleログインを使う準備がまだできていません。管理者に確認してください。";
+  }
+  if (combined.includes("api-key-not-valid") || combined.includes("invalid-api-key")) {
+    return "ログイン設定を確認してください。設定後、ページを再読み込みしてください。";
+  }
+  if (combined.includes("network") || combined.includes("fetch")) {
+    return "通信が不安定です。ネットワークを確認してからもう一度お試しください。";
+  }
+  if (combined.includes("permission-denied")) {
+    return "データ保存の権限設定を確認してください。";
+  }
+  return fallback;
+}
+
 function setAuthUiState({ loading = false, loginRequired = false } = {}) {
   document.body.classList.toggle("is-auth-loading", loading);
   document.body.classList.toggle("is-login-required", loginRequired);
@@ -858,7 +884,7 @@ async function initializeFirebaseAuthGate() {
         console.error("Firestoreからの読み込みに失敗しました", error);
         updateCloudSyncUi("error");
         setAuthUiState({ loginRequired: true });
-        setLoginMessage(`データ読み込みに失敗しました：${error?.message || error}`, true);
+        setLoginMessage(getFriendlyAuthErrorMessage(error, "冒険データを読み込めませんでした。時間をおいてもう一度お試しください。"), true);
       }
     });
   } catch (error) {
@@ -880,7 +906,7 @@ async function signInWithGoogle() {
     await firebaseModules.signInWithPopup(firebaseAuth, provider);
   } catch (error) {
     console.error("Googleログインに失敗しました", error);
-    setLoginMessage(`Googleログインに失敗しました：${error?.message || error}`, true);
+    setLoginMessage(getFriendlyAuthErrorMessage(error), true);
   }
 }
 
