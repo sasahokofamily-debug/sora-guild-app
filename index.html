@@ -1146,7 +1146,10 @@
       <div class="version-notes-modal" data-version-notes-modal hidden>
         <div class="version-notes-card" role="dialog" aria-modal="true" aria-labelledby="version-notes-title">
           <p class="section-kicker">Update</p>
-          <h3 id="version-notes-title" data-version-notes-title>Version 1.8 更新内容</h3>
+          <h3 id="version-notes-title" data-version-notes-title>
+            <span class="version-notes-title-version">Version 1.8</span>
+            <span class="version-notes-title-label">更新内容</span>
+          </h3>
           <ul data-version-notes-list>
             <li>ログイン失敗時に、Firebaseの難しいエラー文をそのまま表示しないようにしました。</li>
             <li>ログインやデータ読み込みで困ったときの案内文を分かりやすくしました。</li>
@@ -1342,7 +1345,7 @@
         );
       })();
     </script>
-    <script src="firebase-config-auth.js?v=20260706-version18-login-errors"></script>
-    <script src="app.js?v=20260706-version18-login-errors" defer></script>
+    <script src="firebase-config-auth.js?v=20260706-version18-notes-title"></script>
+    <script src="app.js?v=20260706-version18-notes-title" defer></script>
   </body>
 </html>

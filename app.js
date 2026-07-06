@@ -1518,7 +1518,10 @@ function renderVersionNotesModal() {
   const title = document.querySelector("[data-version-notes-title]");
   const list = document.querySelector("[data-version-notes-list]");
   if (title) {
-    title.textContent = `${APP_VERSION_LABEL} 更新内容`;
+    title.innerHTML = `
+      <span class="version-notes-title-version">${escapeHtml(APP_VERSION_LABEL)}</span>
+      <span class="version-notes-title-label">更新内容</span>
+    `;
   }
   if (list) {
     list.innerHTML = VERSION_NOTES.map((note) => `<li>${escapeHtml(note)}</li>`).join("");

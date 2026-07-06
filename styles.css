@@ -1339,6 +1339,30 @@ h3 {
   text-shadow: 0 2px 0 rgba(255, 247, 223, 0.7), 0 0 18px rgba(241, 210, 122, 0.24);
 }
 
+.version-notes-card h3 {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  line-height: 1.02;
+}
+
+.version-notes-title-version,
+.version-notes-title-label {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
+.version-notes-title-version {
+  font-size: clamp(1.58rem, 8.2vw, 2rem);
+  white-space: nowrap;
+}
+
+.version-notes-title-label {
+  font-size: clamp(1.18rem, 6.2vw, 1.52rem);
+}
+
 .cloud-migration-card p:not(.section-kicker) {
   max-width: 19rem;
   margin: 0;
