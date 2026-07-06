@@ -1340,9 +1340,7 @@ h3 {
 }
 
 .version-notes-card h3 {
-  display: grid;
-  gap: 4px;
-  justify-items: center;
+  display: block;
   line-height: 1.02;
 }
 
