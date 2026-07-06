@@ -607,7 +607,7 @@ body.is-login-required .app-shell {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  max-width: 100%;
+  max-width: min(100%, 13rem);
   border: 1px solid rgba(241, 210, 122, 0.3);
   border-radius: 999px;
   padding: 6px 11px;
@@ -639,6 +639,11 @@ body.is-login-required .app-shell {
 .cloud-sync-chip.is-error .cloud-sync-dot {
   background: #ff8b6f;
   box-shadow: 0 0 10px rgba(255, 139, 111, 0.62);
+}
+
+.cloud-sync-chip.is-saved {
+  border-color: rgba(143, 224, 139, 0.34);
+  background: rgba(25, 74, 45, 0.24);
 }
 
 .cloud-sync-chip.is-paused .cloud-sync-dot {

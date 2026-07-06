@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "1.6";
+const APP_VERSION = "1.7";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -61,8 +61,8 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "初回セットアップ画面を短く分かりやすく整理しました。",
-  "通知先メールと親管理PINが、あとから設定できることを明確にしました。",
+  "Googleログイン後のクラウド保存状態を分かりやすく表示するようにしました。",
+  "保存中・保存待ち・保存失敗などの状態がヘッダーで確認しやすくなりました。",
   "ヘッダーのバージョン表示から、いつでも更新内容を確認できます。",
 ];
 const WORLD_AREAS = [
@@ -521,31 +521,49 @@ function updateCloudSyncUi(status = "hidden", savedAt = cloudLastSavedAt) {
   if (!currentFirebaseUser || status === "hidden") {
     chip.hidden = true;
     text.textContent = "";
+    chip.removeAttribute("aria-label");
+    chip.removeAttribute("title");
     return;
   }
 
   chip.hidden = false;
   chip.classList.add(`is-${status}`);
 
+  let label = "";
   if (status === "pending") {
-    text.textContent = "保存待ち";
+    label = "Cloud保存待ち";
+    text.textContent = label;
+    chip.setAttribute("aria-label", label);
+    chip.setAttribute("title", label);
     return;
   }
   if (status === "syncing") {
-    text.textContent = "保存中";
+    label = "Cloud保存中";
+    text.textContent = label;
+    chip.setAttribute("aria-label", label);
+    chip.setAttribute("title", label);
     return;
   }
   if (status === "error") {
-    text.textContent = "保存失敗";
+    label = "Cloud保存失敗";
+    text.textContent = label;
+    chip.setAttribute("aria-label", label);
+    chip.setAttribute("title", label);
     return;
   }
   if (status === "paused") {
-    text.textContent = "引き継ぎ待ち";
+    label = "Cloud引き継ぎ待ち";
+    text.textContent = label;
+    chip.setAttribute("aria-label", label);
+    chip.setAttribute("title", label);
     return;
   }
 
   cloudLastSavedAt = savedAt || new Date();
-  text.textContent = `保存済み ${formatCloudSyncTime(cloudLastSavedAt)}`;
+  label = `Cloud保存済み ${formatCloudSyncTime(cloudLastSavedAt)}`;
+  text.textContent = label;
+  chip.setAttribute("aria-label", label);
+  chip.setAttribute("title", label);
 }
 
 function getUserDataRef(user) {
