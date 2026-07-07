@@ -410,15 +410,15 @@ body.is-login-required .app-shell {
   box-sizing: border-box;
   padding: calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));
   background:
-    radial-gradient(circle at 50% 34%, rgba(214, 164, 74, 0.16), transparent 28%),
-    linear-gradient(180deg, rgba(22, 47, 31, 0.99), rgba(32, 20, 17, 1));
+    radial-gradient(circle at 50% 38%, rgba(214, 164, 74, 0.18), transparent 15rem),
+    linear-gradient(180deg, rgba(26, 54, 37, 0.99), rgba(35, 20, 16, 1));
 }
 
 .app-splash-card {
   display: grid;
   justify-items: center;
-  gap: 10px;
-  width: min(100%, 300px);
+  gap: 8px;
+  width: min(100%, 280px);
   color: #fff8e6;
   text-align: center;
 }
@@ -426,30 +426,35 @@ body.is-login-required .app-shell {
 .app-splash-mark {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  border: 1px solid rgba(241, 210, 122, 0.38);
-  border-radius: 999px;
-  color: var(--gold-light);
+  width: 62px;
+  height: 62px;
+  border: 1px solid rgba(241, 210, 122, 0.66);
+  border-radius: 18px;
+  color: #fff3bd;
   background:
-    radial-gradient(circle, rgba(241, 210, 122, 0.22), rgba(64, 39, 24, 0.18));
-  font-size: 1.1rem;
+    radial-gradient(circle at 50% 30%, rgba(255, 248, 210, 0.34), transparent 42%),
+    linear-gradient(145deg, rgba(122, 52, 43, 0.76), rgba(55, 35, 27, 0.78));
+  font-size: 1.42rem;
+  font-weight: 950;
   line-height: 1;
-  box-shadow: 0 0 28px rgba(214, 164, 74, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 210, 0.2),
+    0 0 0 5px rgba(241, 210, 122, 0.08),
+    0 10px 30px rgba(0, 0, 0, 0.26);
 }
 
 .app-splash-card p {
-  margin: 3px 0 0;
+  margin: 6px 0 0;
   color: rgba(241, 210, 122, 0.78);
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   font-weight: 950;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
 }
 
 .app-splash-card h1 {
   margin: 0;
-  font-size: clamp(2.15rem, 10vw, 2.8rem);
+  font-size: clamp(1.9rem, 8.4vw, 2.46rem);
   line-height: 1;
   font-weight: 950;
   letter-spacing: 0;
@@ -458,9 +463,9 @@ body.is-login-required .app-shell {
 
 .app-splash-card i {
   position: relative;
-  width: min(168px, 54vw);
+  width: min(142px, 46vw);
   height: 3px;
-  margin-top: 12px;
+  margin-top: 9px;
   border-radius: 999px;
   background: rgba(255, 248, 230, 0.12);
   overflow: hidden;
