@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260708-splash-minimal">
+    <link rel="stylesheet" href="styles.css?v=20260709-remove-kanji-badges">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -81,7 +81,6 @@
     </div>
     <div class="login-gate" data-login-gate hidden>
       <div class="login-card" role="dialog" aria-modal="true" aria-labelledby="login-title">
-        <div class="login-mark" aria-hidden="true">空</div>
         <p class="section-kicker">Google Login</p>
         <h2 id="login-title">そらクエストにログイン</h2>
         <p>Googleアカウントでログインすると、冒険データをユーザーごとに保存できます。</p>
@@ -1207,7 +1206,6 @@
       </div>
       <div class="setup-modal" data-setup-modal hidden>
         <form class="setup-card" data-initial-setup-form role="dialog" aria-modal="true" aria-labelledby="setup-title">
-          <div class="setup-mark" aria-hidden="true">始</div>
           <p class="section-kicker">Start Guide</p>
           <h3 id="setup-title">冒険の準備をしましょう</h3>
           <p class="setup-intro">名前だけ決めれば、すぐに始められます。</p>
