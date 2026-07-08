@@ -1,8 +1,8 @@
-const CACHE_NAME = "sora-quest-pwa-v75";
+const CACHE_NAME = "sora-quest-pwa-v76";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=20260709-remove-kanji-badges",
+  "./styles.css?v=20260709-guild-emblem-splash",
   "./app.js?v=20260706-version18-title-break",
   "./firebase-config-auth.js?v=20260706-version18-title-break",
   "./manifest.json",
@@ -25,6 +25,7 @@ const APP_SHELL = [
   "./assets/textures/parchment-card.png",
   "./assets/icons/pwa-icon-192.png",
   "./assets/icons/pwa-icon-512.png",
+  "./assets/icons/guild-emblem.png",
   "./assets/icons/nav-home.png",
   "./assets/icons/nav-quest.png",
   "./assets/icons/nav-growth.png",
