@@ -594,28 +594,34 @@ body.is-login-required .app-shell {
 }
 
 .app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px 10px;
+  margin-bottom: 14px;
   color: var(--cream);
+}
+
+.app-header > div:first-child {
+  grid-column: 1 / -1;
+  min-width: 0;
 }
 
 .auth-user-chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-self: start;
+  gap: 6px;
   min-width: 0;
-  max-width: 100%;
-  border: 1px solid rgba(241, 210, 122, 0.36);
+  max-width: min(100%, 18rem);
+  border: 1px solid rgba(241, 210, 122, 0.3);
   border-radius: 999px;
-  padding: 6px 7px 6px 11px;
-  background: rgba(24, 13, 10, 0.36);
-  color: #fff7df;
-  font-size: 0.78rem;
+  padding: 4px 5px 4px 10px;
+  background: linear-gradient(180deg, rgba(42, 29, 24, 0.58), rgba(22, 13, 11, 0.42));
+  color: rgba(255, 247, 223, 0.94);
+  font-size: 0.72rem;
   font-weight: 800;
+  box-shadow: inset 0 1px 0 rgba(255, 247, 223, 0.08);
 }
 
 .auth-user-chip[hidden] {
@@ -631,27 +637,29 @@ body.is-login-required .app-shell {
 }
 
 .auth-user-chip button {
-  border: 1px solid rgba(241, 210, 122, 0.34);
+  border: 1px solid rgba(241, 210, 122, 0.28);
   border-radius: 999px;
-  padding: 5px 9px;
-  color: #fff5d0;
-  font-size: 0.74rem;
+  padding: 4px 8px;
+  color: #f7d985;
+  font-size: 0.68rem;
   font-weight: 900;
-  background: rgba(120, 42, 34, 0.46);
+  background: rgba(88, 36, 30, 0.52);
 }
 
 .cloud-sync-chip {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  max-width: min(100%, 13rem);
+  justify-self: end;
+  gap: 6px;
+  max-width: min(100%, 12rem);
   border: 1px solid rgba(241, 210, 122, 0.3);
   border-radius: 999px;
-  padding: 6px 11px;
-  color: #fff7df;
-  font-size: 0.76rem;
+  padding: 5px 10px;
+  color: rgba(255, 247, 223, 0.94);
+  font-size: 0.72rem;
   font-weight: 900;
-  background: rgba(24, 13, 10, 0.32);
+  background: linear-gradient(180deg, rgba(34, 55, 36, 0.5), rgba(17, 28, 20, 0.42));
+  box-shadow: inset 0 1px 0 rgba(255, 247, 223, 0.08);
 }
 
 .cloud-sync-chip[hidden] {
@@ -679,8 +687,7 @@ body.is-login-required .app-shell {
 }
 
 .cloud-sync-chip.is-saved {
-  border-color: rgba(143, 224, 139, 0.34);
-  background: rgba(25, 74, 45, 0.24);
+  border-color: rgba(143, 224, 139, 0.32);
 }
 
 .cloud-sync-chip.is-paused .cloud-sync-dot {
@@ -8507,31 +8514,31 @@ h3 {
   }
 
   .app-header {
-    align-items: flex-start;
-    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 7px 8px;
   }
 
   .app-header > div:first-child {
-    min-width: 0;
-    flex: 1 1 58%;
+    grid-column: 1 / -1;
   }
 
   .auth-user-chip,
   .cloud-sync-chip {
-    margin-left: auto;
-    max-width: min(100%, 11.5rem);
-    padding-top: 5px;
-    padding-bottom: 5px;
-    font-size: 0.7rem;
+    max-width: 100%;
+    min-height: 30px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    font-size: 0.67rem;
   }
 
   .auth-user-chip span {
-    max-width: 6.8rem;
+    max-width: 9rem;
   }
 
   .auth-user-chip button {
-    padding: 4px 8px;
-    font-size: 0.68rem;
+    padding: 3px 7px;
+    font-size: 0.64rem;
   }
 
   .screen,

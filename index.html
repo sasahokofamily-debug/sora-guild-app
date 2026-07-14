@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260714-furigana-mode">
+    <link rel="stylesheet" href="styles.css?v=20260714-header-status-polish">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -94,7 +94,7 @@
         <div>
           <p class="eyebrow">Fantasy Guild Log</p>
           <h1 data-app-name>そらクエスト</h1>
-          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 1.9</button>
+          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 2.0</button>
         </div>
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
@@ -644,6 +644,9 @@
           <div class="panel admin-panel app-history-panel">
             <h3>更新履歴</h3>
             <p>
+              Version 2.0：ヘッダーのログイン情報とクラウド保存表示をコンパクトに整理しました。
+            </p>
+            <p>
               Version 1.9：親管理画面から、ふりがなモードをON/OFFできるようにしました。
             </p>
             <p>
@@ -1154,13 +1157,13 @@
         <div class="version-notes-card" role="dialog" aria-modal="true" aria-labelledby="version-notes-title">
           <p class="section-kicker">Update</p>
           <h3 id="version-notes-title" data-version-notes-title>
-            <span class="version-notes-title-version">Version 1.9</span><br>
+            <span class="version-notes-title-version">Version 2.0</span><br>
             <span class="version-notes-title-label">更新内容</span>
           </h3>
           <ul data-version-notes-list>
-            <li>親管理画面から、ふりがなモードをON/OFFできるようにしました。</li>
-            <li>ふりがなモード中は、主要な漢字語句に読みがなを表示します。</li>
-            <li>通常表示では、これまで通りすっきりした見た目を維持します。</li>
+            <li>ヘッダーのログイン情報とクラウド保存表示をコンパクトに整理しました。</li>
+            <li>クラウド保存の表示文を短くし、スマホで見やすくしました。</li>
+            <li>ふりがなモードは親管理画面から引き続きON/OFFできます。</li>
           </ul>
           <button type="button" data-version-notes-close>閉じる</button>
         </div>
@@ -1353,6 +1356,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260714-furigana-mode" defer></script>
+    <script src="app.js?v=20260714-header-status-polish" defer></script>
   </body>
 </html>

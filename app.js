@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "1.9";
+const APP_VERSION = "2.0";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -62,9 +62,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "親管理画面から、ふりがなモードをON/OFFできるようにしました。",
-  "ふりがなモード中は、主要な漢字語句に読みがなを表示します。",
-  "通常表示では、これまで通りすっきりした見た目を維持します。",
+  "ヘッダーのログイン情報とクラウド保存表示をコンパクトに整理しました。",
+  "クラウド保存の表示文を短くし、スマホで見やすくしました。",
+  "ふりがなモードは親管理画面から引き続きON/OFFできます。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -558,28 +558,28 @@ function updateCloudSyncUi(status = "hidden", savedAt = cloudLastSavedAt) {
 
   let label = "";
   if (status === "pending") {
-    label = "Cloud保存待ち";
+    label = "保存待ち";
     text.textContent = label;
     chip.setAttribute("aria-label", label);
     chip.setAttribute("title", label);
     return;
   }
   if (status === "syncing") {
-    label = "Cloud保存中";
+    label = "保存中";
     text.textContent = label;
     chip.setAttribute("aria-label", label);
     chip.setAttribute("title", label);
     return;
   }
   if (status === "error") {
-    label = "Cloud保存失敗";
+    label = "保存失敗";
     text.textContent = label;
     chip.setAttribute("aria-label", label);
     chip.setAttribute("title", label);
     return;
   }
   if (status === "paused") {
-    label = "Cloud引き継ぎ待ち";
+    label = "引き継ぎ待ち";
     text.textContent = label;
     chip.setAttribute("aria-label", label);
     chip.setAttribute("title", label);
@@ -587,7 +587,7 @@ function updateCloudSyncUi(status = "hidden", savedAt = cloudLastSavedAt) {
   }
 
   cloudLastSavedAt = savedAt || new Date();
-  label = `Cloud保存済み ${formatCloudSyncTime(cloudLastSavedAt)}`;
+  label = `保存済み ${formatCloudSyncTime(cloudLastSavedAt)}`;
   text.textContent = label;
   chip.setAttribute("aria-label", label);
   chip.setAttribute("title", label);
