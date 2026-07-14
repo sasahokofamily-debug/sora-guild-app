@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260709-guild-emblem-splash">
+    <link rel="stylesheet" href="styles.css?v=20260714-furigana-mode">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -94,7 +94,7 @@
         <div>
           <p class="eyebrow">Fantasy Guild Log</p>
           <h1 data-app-name>そらクエスト</h1>
-          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 1.8</button>
+          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 1.9</button>
         </div>
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
@@ -644,6 +644,9 @@
           <div class="panel admin-panel app-history-panel">
             <h3>更新履歴</h3>
             <p>
+              Version 1.9：親管理画面から、ふりがなモードをON/OFFできるようにしました。
+            </p>
+            <p>
               Version 1.8：ログイン失敗時の難しいエラー文を、分かりやすい案内に変更しました。
             </p>
             <p>
@@ -718,8 +721,8 @@
               </div>
             </div>
             <form class="future-form app-settings-form" data-app-settings-form aria-label="アプリ名設定フォーム">
-              <h3>名前設定</h3>
-              <p>子どもの名前とアプリ名を変更できます。</p>
+              <h3>基本設定</h3>
+              <p>子どもの名前、アプリ名、ふりがな表示を変更できます。</p>
               <label>
                 子どもの名前
                 <input type="text" name="childName" placeholder="そら" maxlength="20" required>
@@ -728,8 +731,12 @@
                 アプリ表示名
                 <input type="text" name="appDisplayName" placeholder="そらクエスト" maxlength="30" required>
               </label>
+              <label class="setting-check">
+                <input type="checkbox" name="furiganaEnabled">
+                <span>ふりがなモード</span>
+              </label>
               <p class="form-message" data-app-settings-message aria-live="polite"></p>
-              <button type="submit">名前設定を保存</button>
+              <button type="submit">基本設定を保存</button>
             </form>
             <form class="future-form audio-settings-form" data-audio-settings-form aria-label="ゲーム音設定フォーム">
               <h3>ゲーム設定</h3>
@@ -1147,13 +1154,13 @@
         <div class="version-notes-card" role="dialog" aria-modal="true" aria-labelledby="version-notes-title">
           <p class="section-kicker">Update</p>
           <h3 id="version-notes-title" data-version-notes-title>
-            <span class="version-notes-title-version">Version 1.8</span><br>
+            <span class="version-notes-title-version">Version 1.9</span><br>
             <span class="version-notes-title-label">更新内容</span>
           </h3>
           <ul data-version-notes-list>
-            <li>ログイン失敗時に、Firebaseの難しいエラー文をそのまま表示しないようにしました。</li>
-            <li>ログインやデータ読み込みで困ったときの案内文を分かりやすくしました。</li>
-            <li>ヘッダーのバージョン表示から、いつでも更新内容を確認できます。</li>
+            <li>親管理画面から、ふりがなモードをON/OFFできるようにしました。</li>
+            <li>ふりがなモード中は、主要な漢字語句に読みがなを表示します。</li>
+            <li>通常表示では、これまで通りすっきりした見た目を維持します。</li>
           </ul>
           <button type="button" data-version-notes-close>閉じる</button>
         </div>
@@ -1346,6 +1353,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260706-version18-title-break" defer></script>
+    <script src="app.js?v=20260714-furigana-mode" defer></script>
   </body>
 </html>

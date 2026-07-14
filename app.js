@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "1.8";
+const APP_VERSION = "1.9";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -54,6 +54,7 @@ const DEFAULT_DAILY_CLEAR_BONUS_SETTINGS = {
 const DEFAULT_APP_SETTINGS = {
   childName: "そら",
   appDisplayName: "そらクエスト",
+  furiganaEnabled: false,
 };
 const DEFAULT_NOTIFICATION_SETTINGS = {
   notificationEmail: "",
@@ -61,9 +62,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "ログイン失敗時に、Firebaseの難しいエラー文をそのまま表示しないようにしました。",
-  "ログインやデータ読み込みで困ったときの案内文を分かりやすくしました。",
-  "ヘッダーのバージョン表示から、いつでも更新内容を確認できます。",
+  "親管理画面から、ふりがなモードをON/OFFできるようにしました。",
+  "ふりがなモード中は、主要な漢字語句に読みがなを表示します。",
+  "通常表示では、これまで通りすっきりした見た目を維持します。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -1468,6 +1469,7 @@ function normalizeAppSettings(rawSettings = {}, fallbackChildName = DEFAULT_APP_
   return {
     childName,
     appDisplayName,
+    furiganaEnabled: typeof rawSettings.furiganaEnabled === "boolean" ? rawSettings.furiganaEnabled : DEFAULT_APP_SETTINGS.furiganaEnabled,
   };
 }
 
@@ -3300,6 +3302,103 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+const FURIGANA_TERMS = [
+  ["今日の冒険", "きょうのぼうけん"],
+  ["今日の任務", "きょうのにんむ"],
+  ["冒険データ", "ぼうけんデータ"],
+  ["冒険者", "ぼうけんしゃ"],
+  ["冒険", "ぼうけん"],
+  ["任務", "にんむ"],
+  ["達成済み", "たっせいずみ"],
+  ["達成", "たっせい"],
+  ["経験値", "けいけんち"],
+  ["ゴールド", "ごーるど"],
+  ["称号", "しょうごう"],
+  ["現在", "げんざい"],
+  ["進化", "しんか"],
+  ["段階", "だんかい"],
+  ["次の", "つぎの"],
+  ["成長", "せいちょう"],
+  ["実績", "じっせき"],
+  ["仲間", "なかま"],
+  ["図鑑", "ずかん"],
+  ["必須", "ひっす"],
+  ["挑戦", "ちょうせん"],
+  ["完了", "かんりょう"],
+  ["交換", "こうかん"],
+  ["申請", "しんせい"],
+  ["報酬", "ほうしゅう"],
+  ["必要", "ひつよう"],
+  ["不足", "ふそく"],
+  ["連続", "れんぞく"],
+  ["最高記録", "さいこうきろく"],
+  ["記録", "きろく"],
+  ["週間", "しゅうかん"],
+  ["管理", "かんり"],
+  ["設定", "せってい"],
+  ["保存", "ほぞん"],
+  ["通知", "つうち"],
+  ["ご褒美", "ごほうび"],
+  ["親", "おや"],
+  ["子ども", "こども"],
+  ["名前", "なまえ"],
+  ["表示", "ひょうじ"],
+  ["ログイン", "ろぐいん"],
+  ["音量", "おんりょう"],
+  ["効果音", "こうかおん"],
+  ["再生", "さいせい"],
+  ["クエスト", "くえすと"],
+].sort((a, b) => b[0].length - a[0].length);
+
+const FURIGANA_TERM_MAP = new Map(FURIGANA_TERMS);
+const FURIGANA_PATTERN = new RegExp(FURIGANA_TERMS.map(([term]) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"), "g");
+
+function isFuriganaEnabled() {
+  return normalizeAppSettings(appSettings, progress.name).furiganaEnabled;
+}
+
+function renderFuriganaHtml(text) {
+  return escapeHtml(text).replace(FURIGANA_PATTERN, (match) => {
+    const reading = FURIGANA_TERM_MAP.get(match);
+    return reading ? `<ruby>${escapeHtml(match)}<rt>${escapeHtml(reading)}</rt></ruby>` : escapeHtml(match);
+  });
+}
+
+function shouldSkipFuriganaNode(node) {
+  const parent = node.parentElement;
+  if (!parent || !node.nodeValue.trim() || !FURIGANA_PATTERN.test(node.nodeValue)) {
+    FURIGANA_PATTERN.lastIndex = 0;
+    return true;
+  }
+  FURIGANA_PATTERN.lastIndex = 0;
+  return Boolean(parent.closest("ruby, rt, script, style, textarea, input, select, option, svg, canvas, [data-no-furigana]"));
+}
+
+function enhanceFurigana(root = document.body) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      return shouldSkipFuriganaNode(node) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+    },
+  });
+  const nodes = [];
+  while (walker.nextNode()) {
+    nodes.push(walker.currentNode);
+  }
+  nodes.forEach((node) => {
+    const template = document.createElement("template");
+    template.innerHTML = renderFuriganaHtml(node.nodeValue);
+    node.replaceWith(template.content);
+  });
+}
+
+function applyFuriganaMode() {
+  const enabled = isFuriganaEnabled();
+  document.body.classList.toggle("is-furigana-mode", enabled);
+  if (enabled) {
+    enhanceFurigana();
+  }
 }
 
 function getLevel(xp) {
@@ -5159,6 +5258,9 @@ function renderAppSettingsForm() {
   const settings = normalizeAppSettings(appSettings, progress.name);
   form.elements.childName.value = settings.childName;
   form.elements.appDisplayName.value = settings.appDisplayName;
+  if (form.elements.furiganaEnabled) {
+    form.elements.furiganaEnabled.checked = settings.furiganaEnabled;
+  }
 }
 
 function handleAppSettingsSubmit(event) {
@@ -5172,18 +5274,20 @@ function handleAppSettingsSubmit(event) {
   const formData = new FormData(form);
   const childName = String(formData.get("childName") || "").trim();
   const appDisplayName = String(formData.get("appDisplayName") || "").trim();
+  const furiganaEnabled = formData.get("furiganaEnabled") === "on";
 
   if (!childName || !appDisplayName) {
     setAppSettingsMessage("子どもの名前とアプリ表示名を入力してください", true);
     return;
   }
 
-  appSettings = normalizeAppSettings({ childName, appDisplayName });
+  appSettings = normalizeAppSettings({ childName, appDisplayName, furiganaEnabled });
   saveAppSettings();
   syncProgressNameFromAppSettings();
   applyAppDisplayName();
+  applyFuriganaMode();
   renderAppSettingsForm();
-  setAppSettingsMessage("名前設定を保存しました");
+  setAppSettingsMessage("基本設定を保存しました");
 }
 
 function setAudioSettingsMessage(message, isError = false) {
@@ -8168,6 +8272,7 @@ function render() {
   renderNotificationSettingsForm();
   renderLoginBonusSettingsForm();
   renderDailyClearBonusSettingsForm();
+  applyFuriganaMode();
 }
 
 document.querySelector("[data-character-image]")?.addEventListener("load", (event) => {

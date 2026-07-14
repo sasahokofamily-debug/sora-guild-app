@@ -84,6 +84,26 @@ body {
   transition: background-color 420ms ease, filter 420ms ease;
 }
 
+ruby {
+  ruby-position: over;
+}
+
+rt {
+  font-size: 0.48em;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: rgba(102, 69, 38, 0.78);
+}
+
+body:not(.is-furigana-mode) rt,
+body.is-furigana-mode .bottom-nav rt,
+body.is-furigana-mode .app-version rt,
+body.is-furigana-mode button rt,
+body.is-furigana-mode .compact-stat-unit rt {
+  display: none;
+}
+
 img,
 video,
 canvas,
