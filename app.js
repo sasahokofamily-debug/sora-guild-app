@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "2.2";
+const APP_VERSION = "2.3";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -62,9 +62,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "クエスト完了ボタンの文言を「完了する」に統一しました。",
-  "クエスト完了時の獲得表示に、XP・Gold・能力値をまとめて表示するようにしました。",
-  "ホームの今日の任務表示を、必須クエストだけで分かりやすく整えました。",
+  "夏休み期間だけ表示される限定クエストを追加しました。",
+  "ホームの夏休みイベントカードを「夏休み冒険祭」として少し特別な見た目にしました。",
+  "限定称号と限定仲間の進捗が分かりやすくなるようにしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -302,6 +302,44 @@ const SUMMER_EVENT_ALLY = {
   quote: "夏の冒険、いっしょに咲かせよう！",
   image: "./assets/bosses/ally-sunflower-fairy.png",
 };
+const SUMMER_EVENT_QUEST_TEMPLATES = [
+  {
+    id: "summer-reading",
+    type: "normal",
+    category: "challenge",
+    priority: "medium",
+    title: "夏の読書10分",
+    description: "好きな本を10分読んで、心に残ったことをひとつ話す。",
+    frequency: "daily",
+    stat: "INT",
+    xpReward: 20,
+    goldReward: 5,
+  },
+  {
+    id: "summer-study",
+    type: "normal",
+    category: "challenge",
+    priority: "medium",
+    title: "夏の学びチャレンジ",
+    description: "ドリルや自由研究を少しだけ前に進める。",
+    frequency: "daily",
+    stat: "END",
+    xpReward: 25,
+    goldReward: 10,
+  },
+  {
+    id: "summer-help",
+    type: "normal",
+    category: "challenge",
+    priority: "low",
+    title: "夏のお手伝い",
+    description: "家の中の小さなお手伝いをひとつ見つけて終わらせる。",
+    frequency: "daily",
+    stat: "DEX",
+    xpReward: 15,
+    goldReward: 10,
+  },
+];
 const STAT_KEYS = ["STR", "INT", "END", "DEX"];
 const RECENT_STAT_HISTORY_LIMIT = 10;
 const RECENT_STAT_BONUS = 5;
@@ -2505,6 +2543,20 @@ function getDefaultManagedQuests() {
   return defaultQuests.map((quest) => normalizeQuest({ ...quest, createdBy: "system" })).filter(Boolean);
 }
 
+function getSummerEventQuests(date = new Date()) {
+  const { start, end } = getSummerEventRange(date);
+  const eventYear = start.slice(0, 4);
+  return SUMMER_EVENT_QUEST_TEMPLATES.map((quest) =>
+    normalizeQuest({
+      ...quest,
+      id: `${quest.id}-${eventYear}`,
+      availableFrom: start,
+      availableUntil: end,
+      createdBy: "system",
+    }),
+  ).filter(Boolean);
+}
+
 function getDefaultRewards() {
   return defaultRewards.map(normalizeReward).filter(Boolean);
 }
@@ -2862,7 +2914,9 @@ function sendWeeklyReport({ manual = false } = {}) {
 }
 
 function getAllQuests() {
-  return managedQuests;
+  const managedIds = new Set(managedQuests.map((quest) => quest.id));
+  const seasonalQuests = getSummerEventQuests().filter((quest) => !managedIds.has(quest.id));
+  return [...managedQuests, ...seasonalQuests];
 }
 
 function getQuestCompletionKey(quest) {
@@ -8147,9 +8201,16 @@ function renderSummerEventCard() {
   const endMonth = Number(eventProgress.end.slice(5, 7));
   const endDay = Number(eventProgress.end.slice(8, 10));
   const progressBar = document.querySelector("[data-summer-event-bar]");
+  const remainingCount = Math.max(0, eventProgress.target - eventProgress.challengeCount);
 
   setText("[data-summer-event-period]", `${startMonth}/${startDay}〜${endMonth}/${endDay}`);
   setText("[data-summer-event-count]", `${eventProgress.challengeCount} / ${eventProgress.target}`);
+  setText(
+    "[data-summer-event-status]",
+    eventProgress.completed
+      ? "限定称号とひまわりフェアリーを迎える条件を達成しました！"
+      : `あと${remainingCount}回で、夏の限定称号と仲間に近づきます。`,
+  );
   if (progressBar) {
     progressBar.style.width = `${eventProgress.progressPercent}%`;
   }

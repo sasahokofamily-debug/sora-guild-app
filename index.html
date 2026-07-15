@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260715-quest-complete-polish">
+    <link rel="stylesheet" href="styles.css?v=20260715-summer-event">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -94,7 +94,7 @@
         <div class="app-brand-block">
           <p class="eyebrow">Fantasy Guild Log</p>
           <h1 data-app-name>そらクエスト</h1>
-          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 2.2</button>
+          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 2.3</button>
         </div>
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
@@ -187,12 +187,15 @@
           <section class="summer-event-card" data-summer-event-card hidden aria-labelledby="summer-event-title">
             <div class="summer-event-head">
               <div>
-                <p class="section-kicker">Summer Event</p>
-                <h3 id="summer-event-title">夏休みイベント</h3>
+                <p class="section-kicker">Limited Event</p>
+                <h3 id="summer-event-title">夏休み冒険祭</h3>
               </div>
-              <strong data-summer-event-period>7/20〜8/31</strong>
+              <div class="summer-event-meta">
+                <span>限定</span>
+                <strong data-summer-event-period>7/20〜8/31</strong>
+              </div>
             </div>
-            <p>青空の季節だけの特別な冒険。毎日のクエストで夏の仲間と称号を集めよう。</p>
+            <p>夏だけの特別な依頼を進めて、限定称号と仲間を集めよう。</p>
             <div class="summer-event-progress-row">
               <span>夏のチャレンジ</span>
               <strong data-summer-event-count>0 / 40</strong>
@@ -200,6 +203,7 @@
             <div class="summer-event-track" aria-hidden="true">
               <span data-summer-event-bar></span>
             </div>
+            <p class="summer-event-status" data-summer-event-status>夏の冒険を進めましょう。</p>
             <div class="summer-event-rewards">
               <span>限定称号：夏の冒険王</span>
               <span>限定仲間：ひまわりフェアリー</span>
@@ -646,6 +650,9 @@
           </div>
           <div class="panel admin-panel app-history-panel">
             <h3>更新履歴</h3>
+            <p>
+              Version 2.3：夏休み冒険祭と、期間限定クエストを追加しました。
+            </p>
             <p>
               Version 2.2：クエスト完了ボタンと、完了時の獲得表示を整えました。
             </p>
@@ -1171,13 +1178,13 @@
         <div class="version-notes-card" role="dialog" aria-modal="true" aria-labelledby="version-notes-title">
           <p class="section-kicker">Update</p>
           <h3 id="version-notes-title" data-version-notes-title>
-            <span class="version-notes-title-version">Version 2.2</span><br>
+            <span class="version-notes-title-version">Version 2.3</span><br>
             <span class="version-notes-title-label">更新内容</span>
           </h3>
           <ul data-version-notes-list>
-            <li>クエスト完了ボタンの文言を「完了する」に統一しました。</li>
-            <li>クエスト完了時の獲得表示に、XP・Gold・能力値をまとめて表示するようにしました。</li>
-            <li>ホームの今日の任務表示を、必須クエストだけで分かりやすく整えました。</li>
+            <li>夏休み期間だけ表示される限定クエストを追加しました。</li>
+            <li>ホームの夏休みイベントカードを「夏休み冒険祭」として少し特別な見た目にしました。</li>
+            <li>限定称号と限定仲間の進捗が分かりやすくなるようにしました。</li>
           </ul>
           <button type="button" data-version-notes-close>閉じる</button>
         </div>
@@ -1370,6 +1377,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260715-quest-complete-polish" defer></script>
+    <script src="app.js?v=20260715-summer-event" defer></script>
   </body>
 </html>

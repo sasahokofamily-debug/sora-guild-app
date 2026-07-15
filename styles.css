@@ -2802,9 +2802,10 @@ h3 {
   padding: 14px;
   color: var(--wood-dark);
   background:
-    radial-gradient(circle at 12% 16%, rgba(255, 219, 81, 0.42), transparent 4.8rem),
-    radial-gradient(circle at 88% 18%, rgba(89, 181, 214, 0.24), transparent 7rem),
-    radial-gradient(circle at 82% 100%, rgba(67, 151, 199, 0.16), transparent 8rem),
+    radial-gradient(circle at 12% 16%, rgba(255, 219, 81, 0.5), transparent 4.8rem),
+    radial-gradient(circle at 90% 16%, rgba(89, 181, 214, 0.32), transparent 7rem),
+    radial-gradient(circle at 82% 100%, rgba(67, 151, 199, 0.2), transparent 8rem),
+    linear-gradient(135deg, rgba(255, 247, 223, 0.72), rgba(225, 246, 250, 0.22) 48%, rgba(255, 227, 132, 0.2)),
     var(--parchment-card-bg);
   box-shadow:
     var(--paper-inner-shadow),
@@ -2825,6 +2826,19 @@ h3 {
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.26), transparent 36%),
     repeating-linear-gradient(135deg, rgba(255, 219, 81, 0.05) 0 1px, transparent 1px 8px);
+  pointer-events: none;
+}
+
+.summer-event-card::before {
+  content: "☀";
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 0;
+  color: rgba(241, 210, 122, 0.24);
+  font-size: 4.6rem;
+  font-weight: 950;
+  line-height: 1;
   pointer-events: none;
 }
 
@@ -2854,6 +2868,14 @@ h3 {
   line-height: 1.2;
 }
 
+.summer-event-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.summer-event-meta span,
 .summer-event-head strong {
   display: inline-flex;
   border: 1px solid rgba(47, 134, 165, 0.24);
@@ -2864,6 +2886,12 @@ h3 {
   font-size: 0.72rem;
   font-weight: 950;
   white-space: nowrap;
+}
+
+.summer-event-meta span {
+  color: #fff8e6;
+  background: linear-gradient(180deg, #f0a84d, #c46b2e);
+  border-color: rgba(241, 210, 122, 0.56);
 }
 
 .summer-event-card p {
@@ -2908,6 +2936,13 @@ h3 {
   background: linear-gradient(90deg, #45a6d4, #f1d25a 56%, #f7a744);
   box-shadow: 0 0 12px rgba(241, 210, 122, 0.42);
   transition: width 420ms ease;
+}
+
+.summer-event-status {
+  border: 1px solid rgba(201, 154, 53, 0.24);
+  border-radius: 8px;
+  padding: 8px 9px;
+  background: rgba(255, 247, 223, 0.48);
 }
 
 .summer-event-rewards {
