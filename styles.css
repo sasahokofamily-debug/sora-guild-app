@@ -2971,6 +2971,19 @@ h3 {
     0 0 22px rgba(241, 210, 122, 0.24);
 }
 
+.summer-event-card.is-upcoming {
+  border-color: rgba(47, 134, 165, 0.42);
+  filter: saturate(0.96);
+}
+
+.summer-event-card.is-upcoming .summer-event-meta span {
+  background: linear-gradient(180deg, #4da6c4, #2f718d);
+}
+
+.summer-event-card.is-upcoming .summer-event-track span {
+  background: linear-gradient(90deg, rgba(69, 166, 212, 0.42), rgba(241, 210, 90, 0.48));
+}
+
 .boss-card {
   display: grid !important;
   position: relative;

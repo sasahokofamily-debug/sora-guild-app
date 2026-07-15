@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "2.3";
+const APP_VERSION = "2.4";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -62,9 +62,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "夏休み期間だけ表示される限定クエストを追加しました。",
-  "ホームの夏休みイベントカードを「夏休み冒険祭」として少し特別な見た目にしました。",
-  "限定称号と限定仲間の進捗が分かりやすくなるようにしました。",
+  "夏休みイベント開始前に、ホームへ予告カードを表示するようにしました。",
+  "イベント期間中は、夏限定クエストの進捗カードへ自動で切り替わります。",
+  "夏休み冒険祭の状態が分かりやすい文言に整いました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -2259,6 +2259,23 @@ function isSummerEventActive(date = new Date()) {
   const today = getDateKey(date);
   const { start, end } = getSummerEventRange(date);
   return isDateKeyInRange(today, start, end);
+}
+
+function getSummerEventPhase(date = new Date()) {
+  const today = getDateKey(date);
+  const { start, end } = getSummerEventRange(date);
+  if (isDateKeyInRange(today, start, end)) {
+    return { phase: "active", start, end, daysUntilStart: 0 };
+  }
+  if (today < start) {
+    return {
+      phase: getDayDifference(today, start) <= 7 ? "upcoming" : "inactive",
+      start,
+      end,
+      daysUntilStart: getDayDifference(today, start),
+    };
+  }
+  return { phase: "ended", start, end, daysUntilStart: 0 };
 }
 
 function getSummerEventProgress(date = new Date()) {
@@ -8189,9 +8206,10 @@ function renderSummerEventCard() {
     return;
   }
 
-  const active = isSummerEventActive();
-  card.hidden = !active;
-  if (!active) {
+  const eventPhase = getSummerEventPhase();
+  const isVisible = eventPhase.phase === "active" || eventPhase.phase === "upcoming";
+  card.hidden = !isVisible;
+  if (!isVisible) {
     return;
   }
 
@@ -8204,16 +8222,22 @@ function renderSummerEventCard() {
   const remainingCount = Math.max(0, eventProgress.target - eventProgress.challengeCount);
 
   setText("[data-summer-event-period]", `${startMonth}/${startDay}〜${endMonth}/${endDay}`);
-  setText("[data-summer-event-count]", `${eventProgress.challengeCount} / ${eventProgress.target}`);
-  setText(
-    "[data-summer-event-status]",
-    eventProgress.completed
-      ? "限定称号とひまわりフェアリーを迎える条件を達成しました！"
-      : `あと${remainingCount}回で、夏の限定称号と仲間に近づきます。`,
-  );
-  if (progressBar) {
-    progressBar.style.width = `${eventProgress.progressPercent}%`;
+  if (eventPhase.phase === "upcoming") {
+    setText("[data-summer-event-count]", `あと${eventPhase.daysUntilStart}日`);
+    setText("[data-summer-event-status]", "もうすぐ夏だけの限定クエストが始まります。");
+  } else {
+    setText("[data-summer-event-count]", `${eventProgress.challengeCount} / ${eventProgress.target}`);
+    setText(
+      "[data-summer-event-status]",
+      eventProgress.completed
+        ? "限定称号とひまわりフェアリーを迎える条件を達成しました！"
+        : `あと${remainingCount}回で、夏の限定称号と仲間に近づきます。`,
+    );
   }
+  if (progressBar) {
+    progressBar.style.width = eventPhase.phase === "upcoming" ? "0%" : `${eventProgress.progressPercent}%`;
+  }
+  card.classList.toggle("is-upcoming", eventPhase.phase === "upcoming");
   card.classList.toggle("is-complete", eventProgress.completed);
 }
 
