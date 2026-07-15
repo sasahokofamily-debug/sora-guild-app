@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "2.0";
+const APP_VERSION = "2.1";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -62,9 +62,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "ヘッダーのログイン情報とクラウド保存表示をコンパクトに整理しました。",
-  "クラウド保存の表示文を短くし、スマホで見やすくしました。",
-  "ふりがなモードは親管理画面から引き続きON/OFFできます。",
+  "ホーム上部にプレイヤーステータスバーを追加しました。",
+  "ログアウト操作をギルド画面のアカウント設定へ移動しました。",
+  "ふりがなモードとギルド設定画面の見た目を調整しました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -8224,6 +8224,8 @@ function render() {
   setText("[data-level]", formatNumber(level));
   setText("[data-xp]", formatNumber(progress.xp));
   setText("[data-gold]", formatNumber(progress.gold));
+  setText("[data-header-level]", formatNumber(level));
+  setText("[data-header-gold]", formatNumber(progress.gold));
   setText("[data-streak-current]", `${formatNumber(progress.streak.current)}日`);
   setText("[data-streak-best]", `${formatNumber(progress.streak.best)}日`);
   setText("[data-login-streak]", `${formatNumber(progress.loginStreak)}日`);

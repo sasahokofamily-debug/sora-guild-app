@@ -89,18 +89,30 @@ ruby {
 }
 
 rt {
-  font-size: 0.48em;
+  font-size: 0.44em;
   line-height: 1;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0;
-  color: rgba(102, 69, 38, 0.78);
+  color: rgba(102, 69, 38, 0.7);
+}
+
+body.is-furigana-mode ruby {
+  line-height: 1.42;
+}
+
+body.is-furigana-mode .quest-card h3 ruby,
+body.is-furigana-mode .panel h2 ruby,
+body.is-furigana-mode .panel h3 ruby,
+body.is-furigana-mode .growth-panel h3 ruby {
+  line-height: 1.25;
 }
 
 body:not(.is-furigana-mode) rt,
 body.is-furigana-mode .bottom-nav rt,
 body.is-furigana-mode .app-version rt,
 body.is-furigana-mode button rt,
-body.is-furigana-mode .compact-stat-unit rt {
+body.is-furigana-mode .compact-stat-unit rt,
+body.is-furigana-mode .player-status-bar rt {
   display: none;
 }
 
@@ -595,28 +607,35 @@ body.is-login-required .app-shell {
 
 .app-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 8px 10px;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
   margin-bottom: 14px;
   color: var(--cream);
 }
 
-.app-header > div:first-child {
-  grid-column: 1 / -1;
+.app-brand-block {
   min-width: 0;
+}
+
+.player-status-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .auth-user-chip {
   display: inline-flex;
   align-items: center;
-  justify-self: start;
   gap: 6px;
   min-width: 0;
-  max-width: min(100%, 18rem);
+  max-width: min(100%, 12rem);
   border: 1px solid rgba(241, 210, 122, 0.3);
   border-radius: 999px;
-  padding: 4px 5px 4px 10px;
+  padding: 5px 10px;
   background: linear-gradient(180deg, rgba(42, 29, 24, 0.58), rgba(22, 13, 11, 0.42));
   color: rgba(255, 247, 223, 0.94);
   font-size: 0.72rem;
@@ -630,28 +649,39 @@ body.is-login-required .app-shell {
 
 .auth-user-chip span {
   min-width: 0;
-  max-width: 12rem;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.auth-user-chip button {
-  border: 1px solid rgba(241, 210, 122, 0.28);
+.player-status-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  min-height: 30px;
+  border: 1px solid rgba(241, 210, 122, 0.25);
   border-radius: 999px;
-  padding: 4px 8px;
-  color: #f7d985;
+  padding: 5px 10px;
+  color: rgba(255, 247, 223, 0.9);
+  background: rgba(24, 13, 10, 0.34);
   font-size: 0.68rem;
   font-weight: 900;
-  background: rgba(88, 36, 30, 0.52);
+  line-height: 1;
+}
+
+.player-status-pill strong {
+  color: var(--gold-light);
+  font-size: 0.92rem;
+  line-height: 1;
 }
 
 .cloud-sync-chip {
   display: inline-flex;
   align-items: center;
-  justify-self: end;
   gap: 6px;
-  max-width: min(100%, 12rem);
+  min-height: 30px;
+  max-width: min(100%, 10.5rem);
   border: 1px solid rgba(241, 210, 122, 0.3);
   border-radius: 999px;
   padding: 5px 10px;
@@ -7659,6 +7689,44 @@ h3 {
   background: transparent;
 }
 
+.admin-section-basic .future-form,
+.admin-section-notifications .future-form {
+  gap: 10px;
+  padding: 13px;
+}
+
+.admin-section-basic .future-form > p,
+.admin-section-notifications .future-form > p {
+  margin: -2px 0 0;
+  color: rgba(75, 51, 38, 0.72);
+  font-size: 0.78rem;
+  font-weight: 760;
+  line-height: 1.48;
+}
+
+.admin-section-basic .future-form label,
+.admin-section-notifications .future-form label {
+  gap: 5px;
+}
+
+.admin-section-basic .future-form .setting-check,
+.admin-section-notifications .future-form .setting-check {
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 8px 11px;
+}
+
+.admin-section-basic .future-form .setting-check input,
+.admin-section-notifications .future-form .setting-check input {
+  order: 2;
+}
+
+.account-settings-panel button {
+  justify-self: start;
+  min-height: 40px;
+  padding: 8px 14px;
+}
+
 .range-value {
   display: inline-flex;
   align-self: flex-start;
@@ -8514,16 +8582,17 @@ h3 {
   }
 
   .app-header {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 7px 8px;
+    gap: 9px;
   }
 
-  .app-header > div:first-child {
-    grid-column: 1 / -1;
+  .player-status-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 6px;
   }
 
   .auth-user-chip,
+  .player-status-pill,
   .cloud-sync-chip {
     max-width: 100%;
     min-height: 30px;
@@ -8533,12 +8602,16 @@ h3 {
   }
 
   .auth-user-chip span {
-    max-width: 9rem;
+    max-width: 100%;
   }
 
-  .auth-user-chip button {
-    padding: 3px 7px;
-    font-size: 0.64rem;
+  .cloud-sync-chip {
+    grid-column: 1 / -1;
+    justify-content: center;
+    width: fit-content;
+    max-width: 100%;
+    padding-right: 12px;
+    padding-left: 12px;
   }
 
   .screen,

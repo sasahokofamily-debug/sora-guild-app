@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260714-header-status-polish">
+    <link rel="stylesheet" href="styles.css?v=20260715-player-status-bar">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -91,22 +91,25 @@
     </div>
     <div class="app-shell">
       <header class="app-header">
-        <div>
+        <div class="app-brand-block">
           <p class="eyebrow">Fantasy Guild Log</p>
           <h1 data-app-name>そらクエスト</h1>
-          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 2.0</button>
+          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 2.1</button>
         </div>
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
           <button class="parent-mode-exit" type="button" data-parent-mode-exit>解除</button>
         </div>
-        <div class="auth-user-chip" data-auth-user hidden>
-          <span data-auth-user-name></span>
-          <button type="button" data-google-logout>ログアウト</button>
-        </div>
-        <div class="cloud-sync-chip" data-cloud-sync hidden>
-          <span class="cloud-sync-dot" aria-hidden="true"></span>
-          <span data-cloud-sync-text>保存済み</span>
+        <div class="player-status-bar" aria-label="プレイヤーステータス">
+          <div class="auth-user-chip" data-auth-user hidden>
+            <span data-auth-user-name></span>
+          </div>
+          <span class="player-status-pill">Lv <strong data-header-level>1</strong></span>
+          <span class="player-status-pill">Gold <strong data-header-gold>0</strong></span>
+          <div class="cloud-sync-chip" data-cloud-sync hidden>
+            <span class="cloud-sync-dot" aria-hidden="true"></span>
+            <span data-cloud-sync-text>保存済み</span>
+          </div>
         </div>
       </header>
 
@@ -644,6 +647,9 @@
           <div class="panel admin-panel app-history-panel">
             <h3>更新履歴</h3>
             <p>
+              Version 2.1：ホーム上部にプレイヤーステータスバーを追加し、ログアウトをギルド画面へ移動しました。
+            </p>
+            <p>
               Version 2.0：ヘッダーのログイン情報とクラウド保存表示をコンパクトに整理しました。
             </p>
             <p>
@@ -741,6 +747,11 @@
               <p class="form-message" data-app-settings-message aria-live="polite"></p>
               <button type="submit">基本設定を保存</button>
             </form>
+            <section class="future-form account-settings-panel" aria-labelledby="account-settings-title">
+              <h3 id="account-settings-title">アカウント</h3>
+              <p>Googleログイン中のアカウント操作です。</p>
+              <button class="quest-manage-button is-secondary" type="button" data-google-logout>ログアウト</button>
+            </section>
             <form class="future-form audio-settings-form" data-audio-settings-form aria-label="ゲーム音設定フォーム">
               <h3>ゲーム設定</h3>
               <label class="setting-check">
@@ -1157,13 +1168,13 @@
         <div class="version-notes-card" role="dialog" aria-modal="true" aria-labelledby="version-notes-title">
           <p class="section-kicker">Update</p>
           <h3 id="version-notes-title" data-version-notes-title>
-            <span class="version-notes-title-version">Version 2.0</span><br>
+            <span class="version-notes-title-version">Version 2.1</span><br>
             <span class="version-notes-title-label">更新内容</span>
           </h3>
           <ul data-version-notes-list>
-            <li>ヘッダーのログイン情報とクラウド保存表示をコンパクトに整理しました。</li>
-            <li>クラウド保存の表示文を短くし、スマホで見やすくしました。</li>
-            <li>ふりがなモードは親管理画面から引き続きON/OFFできます。</li>
+            <li>ホーム上部にプレイヤーステータスバーを追加しました。</li>
+            <li>ログアウト操作をギルド画面のアカウント設定へ移動しました。</li>
+            <li>ふりがなモードとギルド設定画面の見た目を調整しました。</li>
           </ul>
           <button type="button" data-version-notes-close>閉じる</button>
         </div>
@@ -1356,6 +1367,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260714-header-status-polish" defer></script>
+    <script src="app.js?v=20260715-player-status-bar" defer></script>
   </body>
 </html>
