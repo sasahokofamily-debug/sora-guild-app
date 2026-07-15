@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260715-summer-event-preview">
+    <link rel="stylesheet" href="styles.css?v=20260715-summer-quest-link">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -94,7 +94,7 @@
         <div class="app-brand-block">
           <p class="eyebrow">Fantasy Guild Log</p>
           <h1 data-app-name>そらクエスト</h1>
-          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 2.4</button>
+          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 2.5</button>
         </div>
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
@@ -208,6 +208,7 @@
               <span>限定称号：夏の冒険王</span>
               <span>限定仲間：ひまわりフェアリー</span>
             </div>
+            <button class="summer-event-action" type="button" data-open-summer-quests>夏限定クエストを見る</button>
           </section>
 
           <section class="boss-card" data-boss-card aria-labelledby="boss-battle-title">
@@ -650,6 +651,9 @@
           </div>
           <div class="panel admin-panel app-history-panel">
             <h3>更新履歴</h3>
+            <p>
+              Version 2.5：夏休みイベントカードから限定クエストへ移動できるようにしました。
+            </p>
             <p>
               Version 2.4：夏休み冒険祭の開始前予告を追加しました。
             </p>
@@ -1181,13 +1185,13 @@
         <div class="version-notes-card" role="dialog" aria-modal="true" aria-labelledby="version-notes-title">
           <p class="section-kicker">Update</p>
           <h3 id="version-notes-title" data-version-notes-title>
-            <span class="version-notes-title-version">Version 2.4</span><br>
+            <span class="version-notes-title-version">Version 2.5</span><br>
             <span class="version-notes-title-label">更新内容</span>
           </h3>
           <ul data-version-notes-list>
-            <li>夏休みイベント開始前に、ホームへ予告カードを表示するようにしました。</li>
-            <li>イベント期間中は、夏限定クエストの進捗カードへ自動で切り替わります。</li>
-            <li>夏休み冒険祭の状態が分かりやすい文言に整いました。</li>
+            <li>夏休みイベントカードから、夏限定クエストへ移動できるようにしました。</li>
+            <li>夏限定クエストに「夏限定」バッジを表示するようにしました。</li>
+            <li>イベント期間中にチャレンジ一覧を開きやすくしました。</li>
           </ul>
           <button type="button" data-version-notes-close>閉じる</button>
         </div>
@@ -1380,6 +1384,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260715-summer-event-preview" defer></script>
+    <script src="app.js?v=20260715-summer-quest-link" defer></script>
   </body>
 </html>

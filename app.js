@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "2.4";
+const APP_VERSION = "2.5";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -62,9 +62,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "夏休みイベント開始前に、ホームへ予告カードを表示するようにしました。",
-  "イベント期間中は、夏限定クエストの進捗カードへ自動で切り替わります。",
-  "夏休み冒険祭の状態が分かりやすい文言に整いました。",
+  "夏休みイベントカードから、夏限定クエストへ移動できるようにしました。",
+  "夏限定クエストに「夏限定」バッジを表示するようにしました。",
+  "イベント期間中にチャレンジ一覧を開きやすくしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -2296,6 +2296,18 @@ function getSummerEventProgress(date = new Date()) {
     completed: challengeCount >= SUMMER_EVENT_CHALLENGE_TARGET,
     perfectAttendance: attendanceDays >= totalDays,
   };
+}
+
+function isSummerEventQuest(quest) {
+  const { start, end } = getSummerEventRange();
+  return Boolean(quest.availableFrom === start && quest.availableUntil === end && String(quest.id || "").startsWith("summer-"));
+}
+
+function openSummerEventQuests() {
+  activeQuestCategory = "challenge";
+  switchScreen("quests");
+  renderQuests();
+  document.querySelector("[data-screen='quests']")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function getWeekKey(date = new Date()) {
@@ -6564,6 +6576,7 @@ function renderQuests() {
           ${typeLabel ? `<span class="quest-type-badge quest-type-${quest.type}">${typeLabel}</span>` : ""}
           <span class="quest-category-badge quest-category-${quest.category}">${categoryFlavor.kicker}</span>
           ${quest.category === "challenge" ? '<span class="quest-bonus-badge">ボーナス</span>' : ""}
+          ${isSummerEventQuest(quest) ? '<span class="quest-summer-badge">夏限定</span>' : ""}
           <span class="quest-priority-badge priority-${quest.priority}">${priorityLabel}</span>
           <span class="quest-frequency-badge">${frequencyLabel}</span>
           ${periodLabel ? `<span class="quest-period-badge">${periodLabel}</span>` : ""}
@@ -8509,6 +8522,12 @@ document.addEventListener("click", (event) => {
   if (worldMapToggle) {
     isWorldMapOpen = !isWorldMapOpen;
     renderWorldMap();
+    return;
+  }
+
+  const summerQuestButton = event.target.closest("[data-open-summer-quests]");
+  if (summerQuestButton) {
+    openSummerEventQuests();
     return;
   }
 
