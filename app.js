@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "2.1";
+const APP_VERSION = "2.2";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -62,9 +62,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "ホーム上部にプレイヤーステータスバーを追加しました。",
-  "ログアウト操作をギルド画面のアカウント設定へ移動しました。",
-  "ふりがなモードとギルド設定画面の見た目を調整しました。",
+  "クエスト完了ボタンの文言を「完了する」に統一しました。",
+  "クエスト完了時の獲得表示に、XP・Gold・能力値をまとめて表示するようにしました。",
+  "ホームの今日の任務表示を、必須クエストだけで分かりやすく整えました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -6504,7 +6504,7 @@ function renderQuests() {
         ${renderQuestRewardBadges(quest)}
       </div>
       <button class="complete-button" type="button" data-complete="${quest.id}" ${completed ? "disabled" : ""}>
-        ${completed ? "達成済み" : "完了"}
+        ${completed ? "完了済み" : "完了する"}
       </button>
       ${
         completed && isParentMode
@@ -6555,7 +6555,7 @@ function renderHomeDailyMission() {
     if (totalCount === 0) {
       message.textContent = "任務はまだありません。ギルドマスターに今日の任務を作ってもらいましょう。";
     } else if (isComplete) {
-      message.textContent = "今日の分、達成！ よくがんばりました。";
+      message.textContent = "今日の任務完了！ よくできました。";
     } else {
       message.textContent = `あと${remainingCount}件で今日の任務が完了です。`;
     }
@@ -7511,6 +7511,7 @@ function appendGainBadges(layer, quest) {
   [
     { label: `+${formatNumber(quest.xpReward)}XP`, type: "xp" },
     quest.goldReward > 0 ? { label: `+${formatNumber(quest.goldReward)}G`, type: "gold" } : null,
+    { label: `${getStatLabel(quest.stat)}+1`, type: "stat" },
   ].filter(Boolean).forEach((gain, index) => {
     const badge = document.createElement("span");
     badge.className = `gain-float gain-float-${gain.type}`;
