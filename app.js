@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "2.5";
+const APP_VERSION = "2.6";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -62,9 +62,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "夏休みイベントカードから、夏限定クエストへ移動できるようにしました。",
-  "夏限定クエストに「夏限定」バッジを表示するようにしました。",
-  "イベント期間中にチャレンジ一覧を開きやすくしました。",
+  "ヘッダーから名前・Lv・Gold・保存状態の表示を外しました。",
+  "ホーム上部をすっきり見えるように余白を調整しました。",
+  "プレイヤー情報はホーム内の各カードで確認できる形に整理しました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
