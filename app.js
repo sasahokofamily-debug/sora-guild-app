@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "3.6";
+const APP_VERSION = "3.7";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "特別ミッションの毎日クエストが、翌日以降も今日やることに表示されるようになりました。",
-  "計算プリントや漢字プリントの10分クエストを、夏休み中に繰り返し使いやすくしました。",
-  "章の進行状況はそのまま保ちながら、今日の表示だけを日付ごとに判定するようにしました。",
+  "夏休み宿題大作戦に、読書感想文を書く章を追加しました。",
+  "本を決める、読む、メモする、下書き、清書、完成まで細かく進められるようにしました。",
+  "既に作成済みの夏休みミッションにも、読書感想文の章を自動で追加します。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -346,6 +346,38 @@ const SUMMER_EVENT_QUEST_TEMPLATES = [
     goldReward: 10,
   },
 ];
+const SUMMER_READING_REPORT_CHAPTER = {
+  id: "chapter-5-reading-report",
+  title: "第5章 読書感想文の書庫",
+  description: "読書感想文を、本選び・読書・メモ・下書き・清書に分けて進めます。",
+  story: "本の中で見つけた気持ちを言葉にすると、感想文の書庫に明かりが灯ります。",
+  icon: "📚",
+  order: 5,
+  startDate: `${SUMMER_HOMEWORK_YEAR}-08-01`,
+  unlockConditions: [{ type: "chapterCompleted", chapterId: "chapter-4-creation" }],
+  completionConditions: [{ type: "questCompleted", questId: "reading-report-ready" }],
+  boss: {
+    enabled: true,
+    name: "ことばの司書",
+    description: "読んだ気持ちを言葉にする道を案内してくれる司書。",
+    icon: "🦉",
+    image: "",
+    unlockMessage: "感想文の書庫で、ことばの司書が待っている！",
+    clearMessage: "読書感想文が完成し、ことばの司書が仲間になった！",
+    rewards: { xp: 40, gold: 20, stats: { STR: 0, INT: 2, END: 1, DEX: 1 } },
+  },
+  quests: [
+    { title: "読む本を決める", description: "感想文に書く本を一冊決めます。", stat: "INT", xpReward: 10, goldReward: 3 },
+    { title: "本を10分読む", description: "タイマーを使って10分だけ読みます。", questType: "daily", stat: "INT", repeatable: true, dailyLimit: 1, xpReward: 10, goldReward: 2 },
+    { title: "心に残った場面を選ぶ", description: "おもしろかった場面や気になった場面をひとつ選びます。", stat: "INT", xpReward: 15, goldReward: 4 },
+    { title: "感じたことをメモする", description: "なぜ心に残ったのか、短くメモします。", stat: "INT", xpReward: 15, goldReward: 4, memoRequired: true },
+    { title: "書きたい順番を決める", description: "はじめ・なか・おわりの流れを決めます。", stat: "DEX", xpReward: 15, goldReward: 4 },
+    { title: "下書きを書く", description: "まずは間違えてもよいので、最後まで下書きします。", stat: "END", xpReward: 25, goldReward: 6 },
+    { title: "保護者と内容を確認する", description: "伝わりにくいところがないか一緒に確認します。", stat: "END", approvalRequired: true, xpReward: 15, goldReward: 4 },
+    { title: "清書する", description: "提出できるように丁寧に書きます。", stat: "DEX", xpReward: 25, goldReward: 6 },
+    { id: "reading-report-ready", title: "読書感想文を完成させる", description: "名前を書いて、提出できる状態にします。", stat: "END", xpReward: 40, goldReward: 10, titleReward: "ことばの冒険者" },
+  ],
+};
 const SPECIAL_MISSION_TEMPLATES = [
   {
     templateId: "summer-homework-campaign",
@@ -519,13 +551,14 @@ const SPECIAL_MISSION_TEMPLATES = [
           { id: "creation-ready", title: "提出できる状態にする", description: "提出できる形にまとめます。", stat: "END", xpReward: 20, goldReward: 5, titleReward: "自由研究マスター" },
         ],
       },
+      clonePlainObject(SUMMER_READING_REPORT_CHAPTER),
       {
         id: "chapter-5-memory",
-        title: "第5章 記憶の書",
+        title: "第6章 記憶の書",
         description: "8月31日まで続ける日記編。主要宿題とは別に、累計12回を目指します。",
         story: "毎日の記録が、記憶の書に新しいページを増やします。",
         icon: "📖",
-        order: 5,
+        order: 6,
         startDate: SUMMER_HOMEWORK_START_DATE,
         unlockConditions: [],
         completionConditions: [{ type: "questCompletionCount", questId: "diary-entry", target: 12 }],
@@ -564,12 +597,13 @@ const SPECIAL_MISSION_TEMPLATES = [
         description: "8月10日までに目指す最終確認。提出物をまとめて、先延ばし魔王を仲間にします。",
         story: "すべてをまとめると、先延ばし魔王の力が弱まります。",
         icon: "🏰",
-        order: 6,
+        order: 7,
         startDate: SUMMER_HOMEWORK_MAIN_TARGET_DATE,
         unlockConditions: [
           { type: "questCompleted", questId: "calc-100" },
           { type: "questCompleted", questId: "kanji-100" },
           { type: "questCompleted", questId: "creation-ready" },
+          { type: "questCompleted", questId: "reading-report-ready" },
           { type: "chapterCompleted", chapterId: "chapter-1-preparation" },
         ],
         completionConditions: [{ type: "requiredQuestsCompleted" }],
@@ -3076,6 +3110,66 @@ function normalizeSpecialMission(rawMission = {}, fallbackIndex = 0) {
   };
 }
 
+function ensureSummerHomeworkReadingChapter(mission) {
+  const isSummerHomeworkMission = mission.templateId === "summer-homework-campaign" || mission.title.includes("夏休み宿題");
+  if (!isSummerHomeworkMission) {
+    return mission;
+  }
+
+  let changed = false;
+  const hasReadingChapter = mission.chapters.some((chapter) => chapter.id === SUMMER_READING_REPORT_CHAPTER.id);
+  const creationChapter = mission.chapters.find((chapter) => chapter.id === "chapter-4-creation");
+  const insertOrder = Math.max(1, (creationChapter?.order || 4) + 1);
+  let chapters = mission.chapters.map((chapter) => clonePlainObject(chapter));
+
+  if (!hasReadingChapter) {
+    chapters = chapters.map((chapter) => (
+      chapter.order >= insertOrder
+        ? { ...chapter, order: chapter.order + 1 }
+        : chapter
+    ));
+    chapters.push({
+      ...clonePlainObject(SUMMER_READING_REPORT_CHAPTER),
+      order: insertOrder,
+    });
+    changed = true;
+  }
+
+  chapters = chapters.map((chapter) => {
+    if (chapter.id === "chapter-5-memory" && chapter.title === "第5章 記憶の書") {
+      changed = true;
+      return { ...chapter, title: "第6章 記憶の書" };
+    }
+    if (chapter.id !== "final-chapter") {
+      return chapter;
+    }
+    const hasReadingUnlock = chapter.unlockConditions.some((condition) =>
+      condition.type === "questCompleted" && condition.questId === "reading-report-ready",
+    );
+    if (hasReadingUnlock) {
+      return chapter;
+    }
+    changed = true;
+    return {
+      ...chapter,
+      unlockConditions: [
+        ...chapter.unlockConditions,
+        { type: "questCompleted", questId: "reading-report-ready" },
+      ],
+    };
+  });
+
+  if (!changed) {
+    return mission;
+  }
+
+  return normalizeSpecialMission({
+    ...mission,
+    chapters,
+    updatedAt: mission.updatedAt || new Date().toISOString(),
+  });
+}
+
 function createSpecialMissionFromTemplate(templateId = "summer-homework-campaign", overrides = {}) {
   const template = SPECIAL_MISSION_TEMPLATES.find((item) => item.templateId === templateId) || SPECIAL_MISSION_TEMPLATES[0];
   const nowIso = new Date().toISOString();
@@ -3108,7 +3202,11 @@ function loadSpecialMissions() {
     if (!Array.isArray(parsed)) {
       return [];
     }
-    const normalizedMissions = parsed.map(normalizeSpecialMission).filter(Boolean).sort((a, b) => a.order - b.order);
+    const normalizedMissions = parsed
+      .map(normalizeSpecialMission)
+      .filter(Boolean)
+      .map(ensureSummerHomeworkReadingChapter)
+      .sort((a, b) => a.order - b.order);
     localStorage.setItem(SPECIAL_MISSIONS_KEY, JSON.stringify(normalizedMissions));
     return normalizedMissions;
   } catch {
