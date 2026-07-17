@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "3.5";
+const APP_VERSION = "3.6";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "ホーム画面で、特別ミッション全体の章ごとの進み具合が見えるようになりました。",
-  "特別ミッションカードを上の方に移動して、夏休みミッションに気づきやすくしました。",
-  "今日やることだけでなく、全体の攻略状況も確認しやすくしました。",
+  "特別ミッションの毎日クエストが、翌日以降も今日やることに表示されるようになりました。",
+  "計算プリントや漢字プリントの10分クエストを、夏休み中に繰り返し使いやすくしました。",
+  "章の進行状況はそのまま保ちながら、今日の表示だけを日付ごとに判定するようにしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -7494,6 +7494,14 @@ function isSpecialMissionQuestPending(missionId, quest) {
   return questProgress.pendingApproval || questProgress.status === "pending_approval";
 }
 
+function isSpecialMissionQuestDoneForToday(missionId, quest) {
+  if (quest.questType !== "daily") {
+    return isSpecialMissionQuestComplete(missionId, quest);
+  }
+  const questProgress = getSpecialMissionQuestProgress(missionId, quest.id);
+  return questProgress.completedDates.includes(getDateKey());
+}
+
 function isSpecialMissionChapterCompleted(mission, chapterId) {
   const chapter = mission.chapters.find((item) => item.id === chapterId);
   if (!chapter) {
@@ -7631,7 +7639,7 @@ function getSpecialMissionRecommendedQuests(mission) {
       isSpecialMissionChapterUnlocked(mission, quest.chapterId) &&
       isSpecialMissionQuestUnlocked(mission, quest) &&
       isSpecialMissionQuestAvailableToday(quest) &&
-      !isSpecialMissionQuestComplete(mission.id, quest) &&
+      !isSpecialMissionQuestDoneForToday(mission.id, quest) &&
       !isSpecialMissionQuestPending(mission.id, quest),
     )
     .sort((a, b) => scoreSpecialMissionQuestRecommendation(b) - scoreSpecialMissionQuestRecommendation(a) || a.order - b.order)
@@ -7750,7 +7758,7 @@ function completeSpecialMissionQuest(missionId, questId, options = {}) {
   ) {
     return;
   }
-  if (isSpecialMissionQuestComplete(mission.id, quest) || isSpecialMissionQuestPending(mission.id, quest)) {
+  if (isSpecialMissionQuestDoneForToday(mission.id, quest) || isSpecialMissionQuestPending(mission.id, quest)) {
     return;
   }
 
