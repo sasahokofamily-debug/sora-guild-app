@@ -473,14 +473,15 @@ function buildWeeklyReportHtml(report, hasRecord) {
     : "今週の記録はありません。次の冒険の準備をして、また少しずつ進めましょう。";
 
   return `
-    <div style="margin:0;padding:28px 14px;background:#eadcc1;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',Meiryo,sans-serif;color:#3d291d;">
+    <div style="margin:0;padding:28px 14px;background:#eadcc1;color-scheme:light only;supported-color-schemes:light;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',Meiryo,sans-serif;color:#3d291d;-webkit-text-size-adjust:100%;">
       <div style="max-width:600px;margin:0 auto;padding:10px;border:1px solid #8b6530;border-radius:18px;background:#6b4526;box-shadow:0 18px 34px rgba(45,27,15,0.28);">
         <div style="padding:24px 22px;border:2px solid #d2ad5b;border-radius:14px;background:#fff3d7;background-image:linear-gradient(135deg,rgba(111,77,59,0.035) 0 1px,transparent 1px 8px),linear-gradient(180deg,#fff8e6 0%,#f3dfb5 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,0.65),inset 0 -3px 8px rgba(92,54,22,0.13);">
-          <p style="margin:0 0 8px;color:#9a6f24;font-size:12px;font-weight:800;letter-spacing:0.08em;text-align:center;">FANTASY GUILD WEEKLY REPORT</p>
-          <h1 style="margin:0 0 18px;color:#3d291d;font-size:30px;line-height:1.2;text-align:center;">ギルド週報</h1>
-          <div style="height:2px;margin:0 0 22px;background:linear-gradient(90deg,transparent,#d2ad5b,transparent);"></div>
+          <div style="margin:0 0 18px;padding:16px 14px;border:1px solid #d2ad5b;border-radius:12px;background:#f8e8c6;text-align:center;">
+            <p style="margin:0 0 7px;color:#6f4b1f;font-size:12px;font-weight:800;letter-spacing:0.08em;line-height:1.4;">FANTASY GUILD WEEKLY REPORT</p>
+            <h1 style="margin:0;color:#2f2118;font-size:30px;font-weight:900;line-height:1.25;">ギルド週報</h1>
+          </div>
 
-          <p style="margin:0 0 18px;font-size:17px;line-height:1.9;">
+          <p style="margin:0 0 18px;padding:15px 16px;border:1px solid #d8bc82;border-radius:10px;background:#fff0cf;color:#3d291d;font-size:17px;font-weight:700;line-height:1.8;">
             冒険者 <strong style="font-size:20px;color:#2f2118;">${escapeHtml(formatAdventurerName(report.name))}</strong> の<br>
             <strong style="color:#7a241f;">今週の冒険レポート</strong> が届きました。
           </p>
@@ -517,7 +518,7 @@ function buildWeeklyReportHtml(report, hasRecord) {
             </table>
           </div>
 
-          <div style="margin:20px 0 0;padding:16px;border:1px solid rgba(139,101,48,0.32);border-radius:14px;background:linear-gradient(180deg,#f4df99,#d2ad5b);color:#3d291d;text-align:center;">
+          <div style="margin:20px 0 0;padding:16px;border:1px solid #b88b35;border-radius:12px;background:#efd37c;color:#2f2118;text-align:center;">
             <h2 style="margin:0 0 8px;font-size:18px;line-height:1.35;">ギルドからのひとこと</h2>
             <p style="margin:0;font-size:17px;font-weight:900;line-height:1.75;">
               ${escapeHtml(message)}
@@ -535,14 +536,15 @@ function buildWeeklyReportHtml(report, hasRecord) {
 
 function buildRewardExchangeHtml(report) {
   return `
-    <div style="margin:0;padding:28px 14px;background:#eadcc1;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',Meiryo,sans-serif;color:#3d291d;">
+    <div style="margin:0;padding:28px 14px;background:#eadcc1;color-scheme:light only;supported-color-schemes:light;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',Meiryo,sans-serif;color:#3d291d;-webkit-text-size-adjust:100%;">
       <div style="max-width:600px;margin:0 auto;padding:10px;border:1px solid #8b6530;border-radius:18px;background:#6b4526;box-shadow:0 18px 34px rgba(45,27,15,0.28);">
         <div style="padding:24px 22px;border:2px solid #d2ad5b;border-radius:14px;background:#fff3d7;background-image:linear-gradient(135deg,rgba(111,77,59,0.035) 0 1px,transparent 1px 8px),linear-gradient(180deg,#fff8e6 0%,#f3dfb5 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,0.65),inset 0 -3px 8px rgba(92,54,22,0.13);">
-          <p style="margin:0 0 8px;color:#9a6f24;font-size:12px;font-weight:800;letter-spacing:0.08em;text-align:center;">FANTASY GUILD OFFICIAL REPORT</p>
-          <h1 style="margin:0 0 18px;color:#3d291d;font-size:30px;line-height:1.2;text-align:center;">ギルド報告書</h1>
-          <div style="height:2px;margin:0 0 22px;background:linear-gradient(90deg,transparent,#d2ad5b,transparent);"></div>
+          <div style="margin:0 0 18px;padding:16px 14px;border:1px solid #d2ad5b;border-radius:12px;background:#f8e8c6;text-align:center;">
+            <p style="margin:0 0 7px;color:#6f4b1f;font-size:12px;font-weight:800;letter-spacing:0.08em;line-height:1.4;">FANTASY GUILD OFFICIAL REPORT</p>
+            <h1 style="margin:0;color:#2f2118;font-size:30px;font-weight:900;line-height:1.25;">ギルド報告書</h1>
+          </div>
 
-          <p style="margin:0 0 18px;font-size:17px;line-height:1.9;">
+          <p style="margin:0 0 18px;padding:15px 16px;border:1px solid #d8bc82;border-radius:10px;background:#fff0cf;color:#3d291d;font-size:17px;font-weight:700;line-height:1.8;">
             冒険者 <strong style="font-size:20px;color:#2f2118;">${escapeHtml(report.adventurerName)}</strong> は、見事に任務を達成し、<br>
             報酬として <strong style="color:#7a241f;">『${escapeHtml(report.reward)}』</strong> を交換しました。
           </p>
@@ -550,8 +552,8 @@ function buildRewardExchangeHtml(report) {
           <div style="margin:20px 0;padding:16px;border:1px solid rgba(139,101,48,0.42);border-radius:12px;background:#f8e8c6;box-shadow:inset 0 1px 0 rgba(255,255,255,0.55);">
             <table role="presentation" style="width:100%;border-collapse:collapse;">
               <tr>
-                <td style="padding:8px 4px;color:#6b4a2e;font-size:14px;font-weight:800;">交換したご褒美</td>
-                <td style="padding:8px 4px;color:#2f2118;font-size:17px;font-weight:900;text-align:right;">${escapeHtml(report.reward)}</td>
+                <td style="width:44%;padding:9px 4px;color:#6b4a2e;font-size:13px;font-weight:800;line-height:1.45;vertical-align:top;">交換したご褒美</td>
+                <td style="width:56%;padding:9px 4px;color:#2f2118;font-size:17px;font-weight:900;line-height:1.45;text-align:right;vertical-align:top;">${escapeHtml(report.reward)}</td>
               </tr>
               <tr>
                 <td style="padding:8px 4px;color:#6b4a2e;font-size:14px;font-weight:800;">消費Gold</td>
@@ -568,7 +570,7 @@ function buildRewardExchangeHtml(report) {
             </table>
           </div>
 
-          <p style="margin:20px 0 0;padding:14px 16px;border:1px solid rgba(139,101,48,0.32);border-radius:999px;background:linear-gradient(180deg,#f3d77c,#d2ad5b);color:#3d291d;font-size:18px;font-weight:900;text-align:center;">
+          <p style="margin:20px 0 0;padding:15px 16px;border:1px solid #b88b35;border-radius:12px;background:#efd37c;color:#2f2118;font-size:17px;font-weight:900;line-height:1.6;text-align:center;">
             ギルドより称賛を贈ります。よくがんばりました。
           </p>
         </div>
