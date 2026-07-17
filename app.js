@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "3.8";
+const APP_VERSION = "3.9";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "夏休み宿題大作戦の章が、順番どおりに解放されるように修正しました。",
-  "今日やることは、いま攻略中の一番手前の章から表示されるようにしました。",
-  "1回だけのクエストには、不要な進捗率入力を表示しないようにしました。",
+  "特別ミッションカードを、他の羊皮紙カードに近い落ち着いた見た目に整えました。",
+  "ミッション全体の章カードと状態バッジを、赤金の冒険記録らしい表示にしました。",
+  "スマホで文字やカードが浮いて見えないよう、余白とコントラストを調整しました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
