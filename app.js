@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "3.2";
+const APP_VERSION = "3.3";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "特別ミッション編集で、チャプターとクエスト内容を調整できるようにしました。",
-  "クエストごとのXP、Gold、能力値、承認の有無を編集できるようにしました。",
-  "テンプレートを家庭の宿題内容に合わせて使いやすくしました。",
+  "特別ミッションのクエストを追加・削除できるようにしました。",
+  "クエストの表示順を数字で並べ替えられるようにしました。",
+  "章ごとに新しい宿題クエストを増やせるようにしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -6984,7 +6984,7 @@ function renderSpecialMissionChapterEditor(mission) {
       <div>
         <p class="section-kicker">Chapters</p>
         <h4>チャプターとクエスト</h4>
-        <p>家庭の宿題内容に合わせて、名前・説明・報酬を調整できます。</p>
+        <p>家庭の宿題内容に合わせて、追加・削除・表示順・報酬を調整できます。</p>
       </div>
       ${mission.chapters.map((chapter) => `
         <section class="special-mission-chapter-edit-card">
@@ -7010,6 +7010,10 @@ function renderSpecialMissionChapterEditor(mission) {
                     <textarea name="questDescription:${escapeHtml(quest.id)}" rows="2" maxlength="180">${escapeHtml(quest.description)}</textarea>
                   </label>
                   <div class="special-mission-quest-edit-grid">
+                    <label>
+                      順番
+                      <input type="number" name="questOrder:${escapeHtml(quest.id)}" inputmode="numeric" min="1" max="999" value="${quest.order}">
+                    </label>
                     <label>
                       XP
                       <input type="number" name="questXp:${escapeHtml(quest.id)}" inputmode="numeric" min="0" max="9999" value="${rewards.xp}">
@@ -7038,10 +7042,56 @@ function renderSpecialMissionChapterEditor(mission) {
                       <input type="checkbox" name="questApproval:${escapeHtml(quest.id)}"${quest.approvalRequired ? " checked" : ""}>
                       <span>承認あり</span>
                     </label>
+                    <label class="setting-check is-danger">
+                      <input type="checkbox" name="questDelete:${escapeHtml(quest.id)}">
+                      <span>削除する</span>
+                    </label>
                   </div>
                 </article>
               `;
             }).join("")}
+          </div>
+          <div class="special-mission-new-quest-card">
+            <p class="section-kicker">Add Quest</p>
+            <h5>この章にクエストを追加</h5>
+            <label>
+              クエスト名
+              <input type="text" name="newQuestTitle:${escapeHtml(chapter.id)}" maxlength="60" placeholder="例：計算を10分進める">
+            </label>
+            <label>
+              説明
+              <textarea name="newQuestDescription:${escapeHtml(chapter.id)}" rows="2" maxlength="180" placeholder="短い説明を入力"></textarea>
+            </label>
+            <div class="special-mission-quest-edit-grid">
+              <label>
+                XP
+                <input type="number" name="newQuestXp:${escapeHtml(chapter.id)}" inputmode="numeric" min="0" max="9999" value="10">
+              </label>
+              <label>
+                Gold
+                <input type="number" name="newQuestGold:${escapeHtml(chapter.id)}" inputmode="numeric" min="0" max="9999" value="3">
+              </label>
+              <label>
+                能力
+                <select name="newQuestStat:${escapeHtml(chapter.id)}">
+                  ${STAT_KEYS.map((stat) => `<option value="${stat}">${stat}</option>`).join("")}
+                </select>
+              </label>
+              <label>
+                目安分
+                <input type="number" name="newQuestMinutes:${escapeHtml(chapter.id)}" inputmode="numeric" min="0" max="180" value="10">
+              </label>
+            </div>
+            <div class="special-mission-quest-flags">
+              <label class="setting-check">
+                <input type="checkbox" name="newQuestRequired:${escapeHtml(chapter.id)}" checked>
+                <span>必須</span>
+              </label>
+              <label class="setting-check">
+                <input type="checkbox" name="newQuestApproval:${escapeHtml(chapter.id)}">
+                <span>承認あり</span>
+              </label>
+            </div>
           </div>
         </section>
       `).join("")}
@@ -7237,33 +7287,72 @@ function handleSpecialMissionEditSubmit(event) {
     if (item.id !== missionId) {
       return item;
     }
-    const updatedChapters = item.chapters.map((chapter) => ({
-      ...chapter,
-      title: String(formData.get(`chapterTitle:${chapter.id}`) || chapter.title).trim() || chapter.title,
-      description: String(formData.get(`chapterDescription:${chapter.id}`) || chapter.description).trim(),
-      quests: chapter.quests.map((quest) => {
-        const stat = STAT_KEYS.includes(formData.get(`questStat:${quest.id}`))
-          ? String(formData.get(`questStat:${quest.id}`))
-          : quest.stat;
-        const rewards = normalizeRewardBundle(quest.rewards || {});
-        const statReward = normalizeNonNegativeNumber(rewards.stats[stat], 1) || 1;
-        return {
-          ...quest,
-          title: String(formData.get(`questTitle:${quest.id}`) || quest.title).trim() || quest.title,
-          description: String(formData.get(`questDescription:${quest.id}`) || quest.description).trim(),
-          estimatedMinutes: formData.get(`questMinutes:${quest.id}`),
-          required: formData.get(`questRequired:${quest.id}`) === "on",
-          approvalRequired: formData.get(`questApproval:${quest.id}`) === "on",
-          stat,
-          rewards: {
-            ...rewards,
-            xp: formData.get(`questXp:${quest.id}`),
-            gold: formData.get(`questGold:${quest.id}`),
-            stats: { [stat]: statReward },
-          },
-        };
-      }),
-    }));
+    const deletedQuestIds = new Set(item.chapters.flatMap((chapter) =>
+      chapter.quests
+        .filter((quest) => formData.get(`questDelete:${quest.id}`) === "on")
+        .map((quest) => quest.id),
+    ));
+    const updatedChapters = item.chapters.map((chapter, chapterIndex) => {
+      const updatedExistingQuests = chapter.quests
+        .filter((quest) => formData.get(`questDelete:${quest.id}`) !== "on")
+        .map((quest) => {
+          const stat = STAT_KEYS.includes(formData.get(`questStat:${quest.id}`))
+            ? String(formData.get(`questStat:${quest.id}`))
+            : quest.stat;
+          const rewards = normalizeRewardBundle(quest.rewards || {});
+          const statReward = normalizeNonNegativeNumber(rewards.stats[stat], 1) || 1;
+          return {
+            ...quest,
+            title: String(formData.get(`questTitle:${quest.id}`) || quest.title).trim() || quest.title,
+            description: String(formData.get(`questDescription:${quest.id}`) || quest.description).trim(),
+            estimatedMinutes: formData.get(`questMinutes:${quest.id}`),
+            required: formData.get(`questRequired:${quest.id}`) === "on",
+            approvalRequired: formData.get(`questApproval:${quest.id}`) === "on",
+            order: formData.get(`questOrder:${quest.id}`),
+            prerequisiteQuestIds: quest.prerequisiteQuestIds.filter((questId) => !deletedQuestIds.has(questId)),
+            stat,
+            rewards: {
+              ...rewards,
+              xp: formData.get(`questXp:${quest.id}`),
+              gold: formData.get(`questGold:${quest.id}`),
+              stats: { [stat]: statReward },
+            },
+          };
+        });
+      const newQuestTitle = String(formData.get(`newQuestTitle:${chapter.id}`) || "").trim();
+      const newQuestStat = STAT_KEYS.includes(formData.get(`newQuestStat:${chapter.id}`))
+        ? String(formData.get(`newQuestStat:${chapter.id}`))
+        : "END";
+      const newQuest = newQuestTitle
+        ? [{
+            id: `custom-${chapter.id}-${Date.now()}-${chapterIndex + 1}`,
+            title: newQuestTitle,
+            description: String(formData.get(`newQuestDescription:${chapter.id}`) || "").trim(),
+            category: "study",
+            questType: "once",
+            stat: newQuestStat,
+            estimatedMinutes: formData.get(`newQuestMinutes:${chapter.id}`),
+            required: formData.get(`newQuestRequired:${chapter.id}`) === "on",
+            approvalRequired: formData.get(`newQuestApproval:${chapter.id}`) === "on",
+            order: chapter.quests.length + 1,
+            rewards: {
+              xp: formData.get(`newQuestXp:${chapter.id}`),
+              gold: formData.get(`newQuestGold:${chapter.id}`),
+              stats: { [newQuestStat]: 1 },
+            },
+          }]
+        : [];
+      const sortedQuests = [...updatedExistingQuests, ...newQuest]
+        .sort((a, b) => normalizeNonNegativeNumber(a.order, 0) - normalizeNonNegativeNumber(b.order, 0))
+        .map((quest, questIndex) => ({ ...quest, order: questIndex + 1 }));
+
+      return {
+        ...chapter,
+        title: String(formData.get(`chapterTitle:${chapter.id}`) || chapter.title).trim() || chapter.title,
+        description: String(formData.get(`chapterDescription:${chapter.id}`) || chapter.description).trim(),
+        quests: sortedQuests,
+      };
+    });
     return normalizeSpecialMission({
       ...item,
       title,

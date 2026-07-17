@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260717-special-mission-edit32">
+    <link rel="stylesheet" href="styles.css?v=20260717-special-mission-edit33">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -94,7 +94,7 @@
         <div class="app-brand-block">
           <p class="eyebrow">Fantasy Guild Log</p>
           <h1 data-app-name>そらクエスト</h1>
-          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 3.2</button>
+          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 3.3</button>
         </div>
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
@@ -649,6 +649,9 @@
           </div>
           <div class="panel admin-panel app-history-panel">
             <h3>更新履歴</h3>
+            <p>
+              Version 3.3：特別ミッションのクエスト追加・削除・並べ替えに対応しました。
+            </p>
             <p>
               Version 3.2：特別ミッションのチャプターとクエスト内容を編集できるようにしました。
             </p>
@@ -1225,13 +1228,13 @@
         <div class="version-notes-card" role="dialog" aria-modal="true" aria-labelledby="version-notes-title">
           <p class="section-kicker">Update</p>
           <h3 id="version-notes-title" data-version-notes-title>
-            <span class="version-notes-title-version">Version 3.2</span><br>
+            <span class="version-notes-title-version">Version 3.3</span><br>
             <span class="version-notes-title-label">更新内容</span>
           </h3>
           <ul data-version-notes-list>
-            <li>特別ミッション編集で、チャプターとクエスト内容を調整できるようにしました。</li>
-            <li>クエストごとのXP、Gold、能力値、承認の有無を編集できるようにしました。</li>
-            <li>テンプレートを家庭の宿題内容に合わせて使いやすくしました。</li>
+            <li>特別ミッションのクエストを追加・削除できるようにしました。</li>
+            <li>クエストの表示順を数字で並べ替えられるようにしました。</li>
+            <li>章ごとに新しい宿題クエストを増やせるようにしました。</li>
           </ul>
           <button type="button" data-version-notes-close>閉じる</button>
         </div>
@@ -1424,6 +1427,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260717-special-mission-edit32" defer></script>
+    <script src="app.js?v=20260717-special-mission-edit33" defer></script>
   </body>
 </html>
