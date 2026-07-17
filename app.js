@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "3.3";
+const APP_VERSION = "3.4";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "特別ミッションのクエストを追加・削除できるようにしました。",
-  "クエストの表示順を数字で並べ替えられるようにしました。",
-  "章ごとに新しい宿題クエストを増やせるようにしました。",
+  "特別ミッションで、進捗率や回数を入力して報告できるようにしました。",
+  "25％などの節目クエストは、設定した到達率で完了扱いになるようにしました。",
+  "日記などの回数型クエストは、現在の回数を見ながら進められるようにしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -7390,6 +7390,19 @@ function handleSpecialMissionEditSubmit(event) {
   setSpecialMissionMessage("特別ミッションを保存しました");
 }
 
+function handleSpecialMissionQuestReportSubmit(event) {
+  const form = event.target.closest("[data-special-mission-quest-report]");
+  if (!form) {
+    return;
+  }
+  event.preventDefault();
+  completeSpecialMissionQuest(
+    form.dataset.specialMissionQuestReport,
+    form.dataset.specialQuestId,
+    { reportValue: new FormData(form).get("reportValue") },
+  );
+}
+
 function isSpecialMissionActive(mission, dateKey = getDateKey()) {
   if (!mission || !mission.enabled || mission.status !== "published" || !mission.isPublished) {
     return false;
@@ -7449,6 +7462,19 @@ function getSpecialMissionAllQuests(mission) {
   ).sort((a, b) => (a.chapterOrder - b.chapterOrder) || (a.order - b.order));
 }
 
+function isSpecialMissionQuestProgressComplete(quest, questProgress) {
+  if (quest.questType === "daily") {
+    return questProgress.completedDates.includes(getDateKey());
+  }
+  if (quest.progressSettings.mode === "percent") {
+    return questProgress.percent >= Math.max(1, quest.progressSettings.targetPercent || 100);
+  }
+  if (quest.progressSettings.mode === "count" || quest.questType === "period_count") {
+    return questProgress.completionCount >= Math.max(1, quest.progressSettings.targetValue || quest.totalTargetCount || 1);
+  }
+  return questProgress.completionCount >= quest.totalTargetCount || questProgress.percent >= 100;
+}
+
 function isSpecialMissionQuestComplete(missionId, quest) {
   const questProgress = getSpecialMissionQuestProgress(missionId, quest.id);
   if (questProgress.status === "completed") {
@@ -7460,7 +7486,7 @@ function isSpecialMissionQuestComplete(missionId, quest) {
   if (questProgress.status === "approved" && quest.totalTargetCount <= 1) {
     return true;
   }
-  return questProgress.completionCount >= quest.totalTargetCount || questProgress.percent >= 100;
+  return isSpecialMissionQuestProgressComplete(quest, questProgress);
 }
 
 function isSpecialMissionQuestPending(missionId, quest) {
@@ -7601,6 +7627,31 @@ function getSpecialMissionRewardPreview(mission) {
   return parts.length ? `最終報酬 ${parts.join(" / ")}` : "最終報酬あり";
 }
 
+function getSpecialMissionProgressInputHtml(mission, quest) {
+  const questProgress = getSpecialMissionQuestProgress(mission.id, quest.id);
+  if (quest.progressSettings.mode === "percent") {
+    const targetPercent = Math.max(1, quest.progressSettings.targetPercent || 100);
+    return `
+      <label class="special-mission-progress-input">
+        <span>いまの進捗</span>
+        <input type="number" name="reportValue" inputmode="numeric" min="0" max="100" step="1" value="${Math.max(questProgress.percent, targetPercent)}">
+        <small>% / 目標 ${targetPercent}%</small>
+      </label>
+    `;
+  }
+  if (quest.progressSettings.mode === "count" || quest.questType === "period_count") {
+    const targetValue = Math.max(1, quest.progressSettings.targetValue || quest.totalTargetCount || 1);
+    return `
+      <label class="special-mission-progress-input">
+        <span>できた回数</span>
+        <input type="number" name="reportValue" inputmode="numeric" min="0" max="${targetValue}" step="1" value="${Math.min(targetValue, questProgress.completionCount + 1)}">
+        <small>回 / 目標 ${targetValue}回</small>
+      </label>
+    `;
+  }
+  return "";
+}
+
 function applySpecialMissionQuestReward(quest, completedAt) {
   const previousLevel = getLevel(progress.xp);
   const rewards = normalizeRewardBundle(quest.rewards || {});
@@ -7628,7 +7679,41 @@ function applySpecialMissionQuestReward(quest, completedAt) {
   return { previousLevel, nextLevel, xp: rewards.xp, gold: rewards.gold };
 }
 
-function completeSpecialMissionQuest(missionId, questId) {
+function getSpecialMissionQuestReportUpdate(quest, questProgress, reportValue) {
+  const hasReportValue = reportValue !== undefined && reportValue !== null && String(reportValue) !== "";
+  if (quest.progressSettings.mode === "percent") {
+    const targetPercent = Math.max(1, quest.progressSettings.targetPercent || 100);
+    const nextPercent = Math.max(0, Math.min(100, normalizeNonNegativeNumber(hasReportValue ? reportValue : targetPercent, targetPercent)));
+    const nextCompletionCount = nextPercent >= targetPercent ? Math.max(1, questProgress.completionCount + 1) : questProgress.completionCount;
+    return {
+      currentValue: nextPercent,
+      completionCount: nextCompletionCount,
+      percent: nextPercent,
+      targetValue: targetPercent,
+    };
+  }
+
+  if (quest.progressSettings.mode === "count" || quest.questType === "period_count") {
+    const targetValue = Math.max(1, quest.progressSettings.targetValue || quest.totalTargetCount || 1);
+    const nextCompletionCount = Math.max(0, Math.min(targetValue, normalizeNonNegativeNumber(hasReportValue ? reportValue : questProgress.completionCount + 1, questProgress.completionCount + 1)));
+    return {
+      currentValue: nextCompletionCount,
+      completionCount: nextCompletionCount,
+      percent: Math.min(100, Math.round((nextCompletionCount / targetValue) * 100)),
+      targetValue,
+    };
+  }
+
+  const nextCompletionCount = Math.min(quest.totalTargetCount, questProgress.completionCount + 1);
+  return {
+    currentValue: nextCompletionCount,
+    completionCount: nextCompletionCount,
+    percent: Math.min(100, Math.round((nextCompletionCount / Math.max(1, quest.totalTargetCount)) * 100)),
+    targetValue: quest.totalTargetCount,
+  };
+}
+
+function completeSpecialMissionQuest(missionId, questId, options = {}) {
   const mission = specialMissions.find((item) => item.id === missionId);
   if (!mission || !isSpecialMissionActive(mission)) {
     return;
@@ -7651,18 +7736,17 @@ function completeSpecialMissionQuest(missionId, questId) {
   const dateKey = getDateKey(completedAt);
   const missionProgress = getSpecialMissionProgressState(mission.id);
   const questProgress = getSpecialMissionQuestProgress(mission.id, quest.id);
-  const nextCompletionCount = Math.min(quest.totalTargetCount, questProgress.completionCount + 1);
-  const nextPercent = Math.min(100, Math.round((nextCompletionCount / Math.max(1, quest.totalTargetCount)) * 100));
+  const reportUpdate = getSpecialMissionQuestReportUpdate(quest, questProgress, options.reportValue);
 
   if (quest.approvalRequired) {
     missionProgress.questProgress[quest.id] = normalizeSpecialQuestProgress({
       ...questProgress,
       status: "pending_approval",
       pendingApproval: true,
-      currentValue: nextCompletionCount,
-      completionCount: nextCompletionCount,
-      percent: nextPercent,
-      targetValue: quest.totalTargetCount,
+      currentValue: reportUpdate.currentValue,
+      completionCount: reportUpdate.completionCount,
+      percent: reportUpdate.percent,
+      targetValue: reportUpdate.targetValue,
       completedDates: [...new Set([...questProgress.completedDates, dateKey])],
     });
     missionProgress.updatedAt = completedAtIso;
@@ -7677,15 +7761,22 @@ function completeSpecialMissionQuest(missionId, questId) {
   }
 
   const rewardResult = applySpecialMissionQuestReward(quest, completedAt);
-  const isComplete = nextCompletionCount >= quest.totalTargetCount || nextPercent >= 100;
+  const isComplete = isSpecialMissionQuestProgressComplete(quest, normalizeSpecialQuestProgress({
+    ...questProgress,
+    currentValue: reportUpdate.currentValue,
+    completionCount: reportUpdate.completionCount,
+    percent: reportUpdate.percent,
+    targetValue: reportUpdate.targetValue,
+    completedDates: [...new Set([...questProgress.completedDates, dateKey])],
+  }));
   missionProgress.questProgress[quest.id] = normalizeSpecialQuestProgress({
     ...questProgress,
     status: isComplete ? "completed" : "in_progress",
     pendingApproval: false,
-    currentValue: nextCompletionCount,
-    completionCount: nextCompletionCount,
-    percent: nextPercent,
-    targetValue: quest.totalTargetCount,
+    currentValue: reportUpdate.currentValue,
+    completionCount: reportUpdate.completionCount,
+    percent: reportUpdate.percent,
+    targetValue: reportUpdate.targetValue,
     completedDates: [...new Set([...questProgress.completedDates, dateKey])],
     rewardedAt: completedAtIso,
   });
@@ -7736,7 +7827,7 @@ function approveSpecialMissionQuest(missionId, questId) {
   const approvedAt = new Date();
   const approvedAtIso = approvedAt.toISOString();
   const rewardResult = applySpecialMissionQuestReward(quest, approvedAt);
-  const isComplete = questProgress.completionCount >= quest.totalTargetCount || questProgress.percent >= 100;
+  const isComplete = isSpecialMissionQuestProgressComplete(quest, questProgress);
   missionProgress.questProgress[quest.id] = normalizeSpecialQuestProgress({
     ...questProgress,
     status: isComplete ? "completed" : "in_progress",
@@ -7858,18 +7949,21 @@ function renderSpecialMissionHome() {
     item.className = "special-mission-recommend-item";
     const rewards = normalizeRewardBundle(quest.rewards || {});
     item.innerHTML = `
-      <div>
-        <span>${escapeHtml(quest.chapterTitle)}</span>
-        <strong>${escapeHtml(quest.title)}</strong>
-        <small>${escapeHtml(quest.estimatedMinutes ? `目安 ${quest.estimatedMinutes}分` : "今日できるクエスト")}</small>
-      </div>
-      <div class="special-mission-recommend-rewards">
-        ${rewards.xp > 0 ? `<span>+${formatNumber(rewards.xp)} XP</span>` : ""}
-        ${rewards.gold > 0 ? `<span>+${formatNumber(rewards.gold)} G</span>` : ""}
-      </div>
-      <button type="button" data-complete-special-mission-quest="${escapeHtml(mission.id)}" data-special-quest-id="${escapeHtml(quest.id)}">
-        ${quest.approvalRequired ? "報告する" : "完了"}
-      </button>
+      <form data-special-mission-quest-report="${escapeHtml(mission.id)}" data-special-quest-id="${escapeHtml(quest.id)}">
+        <div>
+          <span>${escapeHtml(quest.chapterTitle)}</span>
+          <strong>${escapeHtml(quest.title)}</strong>
+          <small>${escapeHtml(quest.estimatedMinutes ? `目安 ${quest.estimatedMinutes}分` : "今日できるクエスト")}</small>
+        </div>
+        ${getSpecialMissionProgressInputHtml(mission, quest)}
+        <div class="special-mission-recommend-rewards">
+          ${rewards.xp > 0 ? `<span>+${formatNumber(rewards.xp)} XP</span>` : ""}
+          ${rewards.gold > 0 ? `<span>+${formatNumber(rewards.gold)} G</span>` : ""}
+        </div>
+        <button type="submit">
+          ${quest.approvalRequired ? "報告する" : "完了"}
+        </button>
+      </form>
     `;
     list.append(item);
   });
@@ -10637,6 +10731,7 @@ document.querySelector("[data-reward-create-form]")?.addEventListener("submit", 
 document.querySelector("[data-parent-note-form]")?.addEventListener("submit", handleParentNoteSubmit);
 document.addEventListener("submit", handleQuestEditSubmit);
 document.addEventListener("submit", handleSpecialMissionEditSubmit);
+document.addEventListener("submit", handleSpecialMissionQuestReportSubmit);
 document.addEventListener("submit", handleRewardEditSubmit);
 document.addEventListener("visibilitychange", handleAudioLifecycleChange);
 window.addEventListener("pagehide", pauseBgmForInactiveApp);

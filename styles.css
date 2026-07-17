@@ -8455,6 +8455,11 @@ h3 {
   background: rgba(255, 247, 223, 0.58);
 }
 
+.special-mission-recommend-item form {
+  display: grid;
+  gap: 8px;
+}
+
 .special-mission-recommend-item div:first-child {
   display: grid;
   gap: 2px;
@@ -8486,6 +8491,37 @@ h3 {
   gap: 6px;
 }
 
+.special-mission-progress-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px auto;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(201, 154, 53, 0.22);
+  border-radius: 9px;
+  padding: 8px;
+  background: rgba(255, 247, 223, 0.44);
+}
+
+.special-mission-progress-input span,
+.special-mission-progress-input small {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.special-mission-progress-input input {
+  width: 100%;
+  min-height: 36px;
+  box-sizing: border-box;
+  border: 1px solid rgba(111, 63, 38, 0.24);
+  border-radius: 8px;
+  padding: 7px 8px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.52);
+  font-weight: 950;
+  text-align: center;
+}
+
 .special-mission-recommend-item button {
   width: 100%;
   min-height: 44px;
@@ -8502,6 +8538,12 @@ h3 {
 .special-mission-recommend-item button:active {
   transform: translateY(2px) scale(0.99);
   box-shadow: 0 3px 0 rgba(86, 37, 26, 0.76);
+}
+
+@media (max-width: 420px) {
+  .special-mission-progress-input {
+    grid-template-columns: 1fr;
+  }
 }
 
 .special-mission-empty {
