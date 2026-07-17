@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "3.9";
+const APP_VERSION = "4.0";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "特別ミッションカードを、他の羊皮紙カードに近い落ち着いた見た目に整えました。",
-  "ミッション全体の章カードと状態バッジを、赤金の冒険記録らしい表示にしました。",
-  "スマホで文字やカードが浮いて見えないよう、余白とコントラストを調整しました。",
+  "ホーム画面のカード幅と縦の間隔を揃え、画面全体を一つの冒険記録として見やすくしました。",
+  "特別ミッション内の重なったカード表現を整理し、章の進み具合をコンパクトに確認できるようにしました。",
+  "スマホでキャラクター画像と説明文が窮屈にならないよう、ホーム上部のバランスを調整しました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",

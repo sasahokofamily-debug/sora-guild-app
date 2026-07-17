@@ -858,6 +858,22 @@ h3 {
   display: block;
 }
 
+#home.is-active {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+#home > * {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 #quests {
   width: min(100%, 760px);
   margin: 0 auto;
@@ -8332,19 +8348,42 @@ h3 {
 }
 
 .special-mission-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
-  gap: 14px;
-  border: 1px solid rgba(111, 63, 38, 0.28);
-  border-radius: 12px;
-  padding: 16px;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--paper-border);
+  border-radius: 8px;
+  padding: 14px;
+  background-color: #f1dfba;
+  background-image: var(--parchment-card-bg) !important;
+  background-position: center, center, center, center, center, center, center, center, center, center !important;
+  background-size: cover, auto, auto, auto, auto, auto, auto, auto, auto, auto !important;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, no-repeat !important;
+  box-shadow: var(--parchment-card-shadow);
+}
+
+.special-mission-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
   background:
-    linear-gradient(180deg, rgba(255, 247, 223, 0.9), rgba(239, 217, 164, 0.76)),
-    radial-gradient(circle at 16% 12%, rgba(241, 210, 122, 0.36), transparent 8rem),
-    var(--parchment);
-  box-shadow:
-    0 10px 0 rgba(55, 31, 21, 0.2),
-    0 18px 34px rgba(32, 18, 12, 0.28),
-    inset 0 0 0 1px rgba(255, 247, 223, 0.52);
+    radial-gradient(circle at 12% 8%, rgba(241, 210, 122, 0.16), transparent 8rem),
+    var(--paper-overlay);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.special-mission-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .special-mission-card[hidden] {
@@ -8361,7 +8400,7 @@ h3 {
 .special-mission-home-head h3 {
   margin: 0;
   color: var(--ink);
-  font-size: clamp(1.1rem, 5vw, 1.48rem);
+  font-size: clamp(1.08rem, 4.8vw, 1.36rem);
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
@@ -8370,24 +8409,24 @@ h3 {
   flex: 0 0 auto;
   border: 1px solid rgba(111, 63, 38, 0.2);
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 5px 9px;
   color: var(--navy);
   background: linear-gradient(180deg, rgba(255, 247, 223, 0.94), rgba(231, 199, 125, 0.56));
   box-shadow: inset 0 1px 0 rgba(255, 247, 223, 0.8);
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 950;
 }
 
 .special-mission-story {
   margin: 0;
   color: rgba(64, 43, 31, 0.9);
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   font-weight: 850;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .special-mission-home-track {
-  height: 14px;
+  height: 10px;
   overflow: hidden;
   border: 1px solid rgba(111, 63, 38, 0.3);
   border-radius: 999px;
@@ -8408,7 +8447,7 @@ h3 {
 .special-mission-home-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .special-mission-home-meta span,
@@ -8416,22 +8455,24 @@ h3 {
 .special-mission-recommend-rewards span {
   border: 1px solid rgba(111, 63, 38, 0.18);
   border-radius: 999px;
-  padding: 5px 9px;
+  padding: 4px 8px;
   color: var(--wood-dark);
   background: linear-gradient(180deg, rgba(255, 247, 223, 0.9), rgba(231, 199, 125, 0.5));
   box-shadow: inset 0 1px 0 rgba(255, 247, 223, 0.74);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 900;
 }
 
 .special-mission-overview {
   display: grid;
   gap: 8px;
-  border: 1px solid rgba(111, 63, 38, 0.22);
-  border-radius: 10px;
-  padding: 11px;
-  background: rgba(255, 244, 210, 0.5);
-  box-shadow: inset 0 0 0 1px rgba(255, 247, 223, 0.4);
+  min-width: 0;
+  border: 0;
+  border-top: 1px solid rgba(111, 63, 38, 0.2);
+  border-radius: 0;
+  padding: 11px 0 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .special-mission-overview-head {
@@ -8469,22 +8510,24 @@ h3 {
   justify-content: space-between;
   gap: 9px;
   min-width: 0;
-  border: 1px solid rgba(111, 63, 38, 0.2);
-  border-radius: 9px;
-  padding: 9px;
-  background: linear-gradient(180deg, rgba(255, 247, 223, 0.76), rgba(239, 217, 164, 0.52));
-  box-shadow:
-    0 4px 10px rgba(32, 18, 12, 0.08),
-    inset 0 1px 0 rgba(255, 247, 223, 0.52);
+  min-height: 48px;
+  border: 0;
+  border-bottom: 1px solid rgba(111, 63, 38, 0.14);
+  border-radius: 0;
+  padding: 7px 2px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.special-mission-chapter-item:last-child {
+  border-bottom: 0;
 }
 
 .special-mission-chapter-item.status-active {
-  border-color: rgba(184, 66, 66, 0.5);
-  background: linear-gradient(180deg, rgba(255, 240, 215, 0.86), rgba(238, 204, 150, 0.62));
-  box-shadow:
-    0 0 0 1px rgba(184, 66, 66, 0.12),
-    0 6px 14px rgba(32, 18, 12, 0.1),
-    inset 0 1px 0 rgba(255, 247, 223, 0.62);
+  border-left: 3px solid rgba(184, 66, 66, 0.72);
+  padding-left: 8px;
+  background: linear-gradient(90deg, rgba(184, 66, 66, 0.09), transparent 76%);
+  box-shadow: none;
 }
 
 .special-mission-chapter-item.status-complete {
@@ -8492,7 +8535,7 @@ h3 {
 }
 
 .special-mission-chapter-item.status-locked {
-  opacity: 0.72;
+  opacity: 0.64;
 }
 
 .special-mission-chapter-main {
@@ -8511,18 +8554,18 @@ h3 {
 .special-mission-chapter-icon {
   display: grid;
   place-items: center;
-  flex: 0 0 32px;
-  width: 32px;
-  height: 32px;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
   border: 1px solid rgba(111, 63, 38, 0.16);
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(255, 247, 223, 0.88), rgba(231, 199, 125, 0.42));
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
 .special-mission-chapter-main strong {
   color: var(--ink);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   font-weight: 950;
   overflow-wrap: anywhere;
 }
@@ -8537,10 +8580,10 @@ h3 {
   flex: 0 0 auto;
   border: 1px solid rgba(111, 63, 38, 0.16);
   border-radius: 999px;
-  padding: 5px 8px;
+  padding: 4px 7px;
   color: var(--wood-dark);
   background: linear-gradient(180deg, rgba(255, 247, 223, 0.88), rgba(231, 199, 125, 0.42));
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 950;
 }
 
@@ -8560,11 +8603,13 @@ h3 {
 .special-mission-today {
   display: grid;
   gap: 9px;
-  border: 1px solid rgba(111, 63, 38, 0.22);
-  border-radius: 10px;
-  padding: 11px;
-  background: rgba(255, 244, 210, 0.5);
-  box-shadow: inset 0 0 0 1px rgba(255, 247, 223, 0.4);
+  min-width: 0;
+  border: 0;
+  border-top: 1px solid rgba(111, 63, 38, 0.2);
+  border-radius: 0;
+  padding: 11px 0 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .special-mission-today-head {
@@ -8589,12 +8634,10 @@ h3 {
   display: grid;
   gap: 8px;
   border: 1px solid rgba(111, 63, 38, 0.2);
-  border-radius: 9px;
-  padding: 10px;
-  background: linear-gradient(180deg, rgba(255, 247, 223, 0.76), rgba(239, 217, 164, 0.52));
-  box-shadow:
-    0 4px 10px rgba(32, 18, 12, 0.08),
-    inset 0 1px 0 rgba(255, 247, 223, 0.52);
+  border-radius: 8px;
+  padding: 9px;
+  background: rgba(255, 247, 223, 0.36);
+  box-shadow: inset 0 1px 0 rgba(255, 247, 223, 0.42);
 }
 
 .special-mission-recommend-item form {
@@ -8683,6 +8726,42 @@ h3 {
 }
 
 @media (max-width: 420px) {
+  .hero-panel {
+    grid-template-columns: 106px minmax(0, 1fr);
+    gap: 12px;
+    padding: 13px;
+  }
+
+  .character-frame {
+    width: 106px;
+  }
+
+  .special-mission-card {
+    gap: 11px;
+    padding: 13px;
+  }
+
+  .special-mission-home-head {
+    gap: 8px;
+  }
+
+  .special-mission-home-head h3 {
+    font-size: 1.08rem;
+  }
+
+  .special-mission-chapter-main {
+    gap: 7px;
+  }
+
+  .special-mission-chapter-main strong {
+    font-size: 0.82rem;
+    line-height: 1.3;
+  }
+
+  .special-mission-chapter-status {
+    font-size: 0.65rem;
+  }
+
   .special-mission-progress-input {
     grid-template-columns: 1fr;
   }
