@@ -8074,6 +8074,108 @@ h3 {
   line-height: 1.55;
 }
 
+.special-mission-create-panel p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.special-mission-template-actions,
+.special-mission-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.special-mission-list {
+  display: grid;
+  gap: 10px;
+}
+
+.special-mission-item {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid rgba(201, 154, 53, 0.28);
+  border-radius: 9px;
+  padding: 12px;
+  background:
+    radial-gradient(circle at 16% 10%, rgba(241, 210, 122, 0.2), transparent 7rem),
+    linear-gradient(180deg, rgba(255, 247, 223, 0.62), rgba(244, 230, 198, 0.4)),
+    rgba(255, 247, 223, 0.32);
+  box-shadow: inset 0 0 0 1px rgba(255, 247, 223, 0.22);
+}
+
+.special-mission-item.status-published {
+  border-color: rgba(72, 143, 88, 0.42);
+}
+
+.special-mission-item.status-paused,
+.special-mission-item.is-disabled {
+  opacity: 0.82;
+}
+
+.special-mission-summary {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.special-mission-title-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.special-mission-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(201, 154, 53, 0.32);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 247, 223, 0.82), rgba(241, 210, 122, 0.34)),
+    rgba(255, 247, 223, 0.58);
+  font-size: 1.3rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34);
+}
+
+.special-mission-summary h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 950;
+  overflow-wrap: anywhere;
+}
+
+.special-mission-summary p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.special-mission-edit-form {
+  display: grid;
+  gap: 10px;
+}
+
+.special-mission-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.special-mission-edit-form input,
+.special-mission-edit-form select,
+.special-mission-edit-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .managed-quest-empty {
   margin: 0;
   color: var(--muted);
@@ -8625,6 +8727,11 @@ h3 {
 }
 
 @media (max-width: 679px) {
+  .special-mission-edit-grid,
+  .special-mission-edit-form .reward-input-grid {
+    grid-template-columns: 1fr;
+  }
+
   .version-notes-modal {
     padding: 18px;
   }

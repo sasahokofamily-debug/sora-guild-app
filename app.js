@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "2.7";
+const APP_VERSION = "2.8";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "期間限定の特別ミッションを保存できる土台を追加しました。",
-  "夏休み宿題大作戦テンプレートを追加しました。",
-  "特別ミッションをバックアップとクラウド保存の対象にしました。",
+  "ギルド管理に特別ミッション管理を追加しました。",
+  "夏休み宿題大作戦テンプレートからミッションを作成できるようにしました。",
+  "特別ミッションの公開、停止、複製、削除ができるようにしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -1539,6 +1539,7 @@ let isParentUnlocked = false;
 let isParentMode = false;
 let editingQuestId = null;
 let editingRewardId = null;
+let editingSpecialMissionId = null;
 let isQuestCreateOpen = false;
 let isWorldMapOpen = false;
 let activeQuestCategory = "daily_required";
@@ -3108,6 +3109,7 @@ function loadSpecialMissions() {
 
 function saveSpecialMissions() {
   localStorage.setItem(SPECIAL_MISSIONS_KEY, JSON.stringify(specialMissions));
+  scheduleCloudSave();
 }
 
 function normalizeSpecialQuestProgress(rawProgress = {}) {
@@ -5669,9 +5671,10 @@ function resetSelectedData() {
   }
 
   applyResetTarget(target);
-  editingQuestId = null;
-  editingRewardId = null;
-  isQuestCreateOpen = false;
+    editingQuestId = null;
+    editingRewardId = null;
+    editingSpecialMissionId = null;
+    isQuestCreateOpen = false;
   render();
   setResetMessage(`${label}をリセットしました`);
 }
@@ -6142,6 +6145,7 @@ function exitParentMode() {
   isParentUnlocked = false;
   editingQuestId = null;
   editingRewardId = null;
+  editingSpecialMissionId = null;
   isQuestCreateOpen = false;
   render();
   switchScreen("home");
@@ -6704,6 +6708,424 @@ function deleteManagedQuest(questId) {
   saveManagedQuests();
   saveProgress();
   render();
+}
+
+function getSpecialMissionMessageElement() {
+  return document.querySelector("[data-special-mission-message]");
+}
+
+function setSpecialMissionMessage(message, isError = false) {
+  const element = getSpecialMissionMessageElement();
+  if (!element) {
+    return;
+  }
+  element.textContent = message;
+  element.classList.toggle("is-error", isError);
+}
+
+function getSpecialMissionStatusLabel(mission) {
+  if (!mission.enabled) {
+    return "停止中";
+  }
+  return {
+    draft: "下書き",
+    published: "公開中",
+    paused: "一時停止",
+    ended: "終了",
+  }[mission.status] || "下書き";
+}
+
+function getSpecialMissionThemeLabel(theme) {
+  return {
+    guild: "ギルド",
+    summer: "夏休み",
+    winter: "冬休み",
+    spring: "春休み",
+    study: "学習",
+    habit: "生活習慣",
+  }[theme] || "ギルド";
+}
+
+function getSpecialMissionQuestCount(mission) {
+  return mission.chapters.reduce((total, chapter) => total + chapter.quests.length, 0);
+}
+
+function getSpecialMissionPeriodLabel(mission) {
+  const start = formatDateKeyShort(mission.startDate);
+  const end = formatDateKeyShort(mission.endDate);
+  if (start && end) {
+    return `${start}〜${end}`;
+  }
+  if (start) {
+    return `${start}から`;
+  }
+  if (end) {
+    return `${end}まで`;
+  }
+  return "期間未設定";
+}
+
+function getSpecialMissionById(missionId) {
+  return specialMissions.find((mission) => mission.id === missionId) || null;
+}
+
+function createBlankSpecialMission() {
+  const nowIso = new Date().toISOString();
+  return normalizeSpecialMission({
+    id: `special-blank-${Date.now()}`,
+    title: "新しい特別ミッション",
+    description: "期間限定のチャレンジです。",
+    story: "",
+    icon: "⭐",
+    theme: "guild",
+    themePreset: "guild",
+    startDate: getDateKey(),
+    endDate: "",
+    targetCompletionDate: "",
+    status: "draft",
+    isPublished: false,
+    enabled: true,
+    order: specialMissions.length + 1,
+    rewards: { xp: 0, gold: 0, stats: {}, badges: [], titles: [], rewardTickets: [] },
+    earlyCompletionRewards: { xp: 0, gold: 0, stats: {}, badges: [], titles: [], rewardTickets: [] },
+    settings: { recommendedQuestCount: 3, easyMode: true },
+    chapters: [],
+    createdAt: nowIso,
+    updatedAt: nowIso,
+  });
+}
+
+function createSpecialMissionFromTemplateAction(templateId) {
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+  const mission = createSpecialMissionFromTemplate(templateId, {
+    ownerId: currentFirebaseUser?.uid || "",
+    childId: progress.name || "",
+    order: specialMissions.length + 1,
+  });
+  if (!mission) {
+    setSpecialMissionMessage("テンプレートを読み込めませんでした", true);
+    return;
+  }
+  specialMissions = [mission, ...specialMissions.map((item, index) => ({ ...item, order: index + 2 }))];
+  editingSpecialMissionId = mission.id;
+  saveSpecialMissions();
+  render();
+  setSpecialMissionMessage("テンプレートから特別ミッションを作成しました");
+}
+
+function createBlankSpecialMissionAction() {
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+  const mission = createBlankSpecialMission();
+  specialMissions = [mission, ...specialMissions.map((item, index) => ({ ...item, order: index + 2 }))];
+  editingSpecialMissionId = mission.id;
+  saveSpecialMissions();
+  render();
+  setSpecialMissionMessage("空の特別ミッションを作成しました");
+}
+
+function updateSpecialMissionStatus(missionId, nextStatus) {
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+  const mission = getSpecialMissionById(missionId);
+  if (!mission) {
+    return;
+  }
+  const status = ["draft", "published", "paused", "ended"].includes(nextStatus) ? nextStatus : "draft";
+  const isPublished = status === "published" || status === "paused" || status === "ended";
+  specialMissions = specialMissions.map((item) => (
+    item.id === missionId
+      ? normalizeSpecialMission({
+          ...item,
+          status,
+          isPublished,
+          enabled: status === "published" ? true : status !== "paused" && item.enabled !== false,
+          updatedAt: new Date().toISOString(),
+        })
+      : item
+  )).filter(Boolean);
+  saveSpecialMissions();
+  render();
+  setSpecialMissionMessage(`「${mission.title}」を${getSpecialMissionStatusLabel(getSpecialMissionById(missionId) || mission)}にしました`);
+}
+
+function duplicateSpecialMission(missionId) {
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+  const mission = getSpecialMissionById(missionId);
+  if (!mission) {
+    return;
+  }
+  const nowIso = new Date().toISOString();
+  const copy = normalizeSpecialMission({
+    ...clonePlainObject(mission),
+    id: `special-copy-${Date.now()}`,
+    title: `${mission.title} コピー`,
+    status: "draft",
+    isPublished: false,
+    enabled: true,
+    order: specialMissions.length + 1,
+    createdAt: nowIso,
+    updatedAt: nowIso,
+  });
+  specialMissions = [copy, ...specialMissions.map((item, index) => ({ ...item, order: index + 2 }))].filter(Boolean);
+  editingSpecialMissionId = copy.id;
+  saveSpecialMissions();
+  render();
+  setSpecialMissionMessage("特別ミッションを複製しました");
+}
+
+function deleteSpecialMission(missionId) {
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+  const mission = getSpecialMissionById(missionId);
+  if (!mission) {
+    return;
+  }
+  const confirmed = window.confirm(`「${mission.title}」を削除しますか？\n進捗データは残ります。`);
+  if (!confirmed) {
+    return;
+  }
+  specialMissions = specialMissions.filter((item) => item.id !== missionId).map((item, index) => ({ ...item, order: index + 1 }));
+  if (editingSpecialMissionId === missionId) {
+    editingSpecialMissionId = null;
+  }
+  saveSpecialMissions();
+  render();
+  setSpecialMissionMessage("特別ミッションを削除しました");
+}
+
+function renderSpecialMissionManager() {
+  const list = document.querySelector("[data-special-mission-list]");
+  if (!list) {
+    return;
+  }
+
+  list.innerHTML = "";
+  if (specialMissions.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "managed-quest-empty";
+    empty.textContent = "特別ミッションはまだありません。テンプレートから作成できます。";
+    list.append(empty);
+    return;
+  }
+
+  specialMissions.forEach((mission) => {
+    const item = document.createElement("article");
+    item.className = `special-mission-item status-${mission.status}${mission.enabled ? "" : " is-disabled"}`;
+    const chapterCount = mission.chapters.length;
+    const questCount = getSpecialMissionQuestCount(mission);
+
+    if (mission.id === editingSpecialMissionId) {
+      item.innerHTML = `
+        <form class="special-mission-edit-form" data-edit-special-mission-form="${escapeHtml(mission.id)}">
+          <label>
+            ミッション名
+            <input type="text" name="title" value="${escapeHtml(mission.title)}" maxlength="40" required>
+          </label>
+          <label>
+            説明
+            <textarea name="description" rows="3" maxlength="160">${escapeHtml(mission.description)}</textarea>
+          </label>
+          <label>
+            ストーリー
+            <textarea name="story" rows="4" maxlength="360">${escapeHtml(mission.story)}</textarea>
+          </label>
+          <div class="special-mission-edit-grid">
+            <label>
+              開始日
+              <input type="date" name="startDate" value="${escapeHtml(mission.startDate)}">
+            </label>
+            <label>
+              終了日
+              <input type="date" name="endDate" value="${escapeHtml(mission.endDate)}">
+            </label>
+            <label>
+              推奨クリア日
+              <input type="date" name="targetCompletionDate" value="${escapeHtml(mission.targetCompletionDate)}">
+            </label>
+            <label>
+              テーマ
+              <select name="theme">
+                <option value="guild"${mission.theme === "guild" ? " selected" : ""}>ギルド</option>
+                <option value="summer"${mission.theme === "summer" ? " selected" : ""}>夏休み</option>
+                <option value="winter"${mission.theme === "winter" ? " selected" : ""}>冬休み</option>
+                <option value="spring"${mission.theme === "spring" ? " selected" : ""}>春休み</option>
+                <option value="study"${mission.theme === "study" ? " selected" : ""}>学習</option>
+                <option value="habit"${mission.theme === "habit" ? " selected" : ""}>生活習慣</option>
+              </select>
+            </label>
+            <label>
+              アイコン
+              <input type="text" name="icon" value="${escapeHtml(mission.icon)}" maxlength="4">
+            </label>
+            <label>
+              おすすめ件数
+              <input type="number" name="recommendedQuestCount" inputmode="numeric" min="1" max="10" value="${mission.settings.recommendedQuestCount}">
+            </label>
+          </div>
+          <div class="reward-input-grid">
+            <label>
+              最終XP
+              <input type="number" name="rewardXp" inputmode="numeric" min="0" max="9999" value="${mission.rewards.xp}">
+            </label>
+            <label>
+              最終Gold
+              <input type="number" name="rewardGold" inputmode="numeric" min="0" max="9999" value="${mission.rewards.gold}">
+            </label>
+            <label>
+              早期XP
+              <input type="number" name="earlyXp" inputmode="numeric" min="0" max="9999" value="${mission.earlyCompletionRewards.xp}">
+            </label>
+            <label>
+              早期Gold
+              <input type="number" name="earlyGold" inputmode="numeric" min="0" max="9999" value="${mission.earlyCompletionRewards.gold}">
+            </label>
+          </div>
+          <label class="setting-check">
+            <input type="checkbox" name="enabled"${mission.enabled ? " checked" : ""}>
+            <span>有効にする</span>
+          </label>
+          <p class="form-message" data-edit-special-mission-message aria-live="polite"></p>
+          <div class="special-mission-actions">
+            <button class="quest-manage-button" type="submit">保存</button>
+            <button class="quest-manage-button is-secondary" type="button" data-cancel-edit-special-mission>キャンセル</button>
+          </div>
+        </form>
+      `;
+    } else {
+      item.innerHTML = `
+        <div class="special-mission-summary">
+          <div class="special-mission-title-row">
+            <span class="special-mission-icon">${escapeHtml(mission.icon || "⭐")}</span>
+            <div>
+              <h4>${escapeHtml(mission.title)}</h4>
+              <p>${escapeHtml(mission.description || "説明はまだありません。")}</p>
+            </div>
+          </div>
+          <div class="quest-title-badges">
+            <span class="quest-category-badge">${getSpecialMissionStatusLabel(mission)}</span>
+            <span class="quest-frequency-badge">${escapeHtml(getSpecialMissionThemeLabel(mission.theme))}</span>
+            <span class="quest-period-badge">${escapeHtml(getSpecialMissionPeriodLabel(mission))}</span>
+          </div>
+          <div class="managed-meta-grid" aria-label="特別ミッション設定">
+            <span><small>章</small><strong>${chapterCount}</strong></span>
+            <span><small>クエスト</small><strong>${questCount}</strong></span>
+            <span><small>おすすめ</small><strong>${mission.settings.recommendedQuestCount}</strong></span>
+          </div>
+        </div>
+        <div class="special-mission-actions">
+          <button class="quest-manage-button" type="button" data-edit-special-mission="${escapeHtml(mission.id)}">編集</button>
+          ${
+            mission.status === "published"
+              ? `<button class="quest-manage-button is-secondary" type="button" data-special-mission-status="${escapeHtml(mission.id)}" data-status="paused">一時停止</button>`
+              : `<button class="quest-manage-button" type="button" data-special-mission-status="${escapeHtml(mission.id)}" data-status="published">公開</button>`
+          }
+          <button class="quest-manage-button is-secondary" type="button" data-duplicate-special-mission="${escapeHtml(mission.id)}">複製</button>
+          <button class="quest-manage-button is-danger" type="button" data-delete-special-mission="${escapeHtml(mission.id)}">削除</button>
+        </div>
+      `;
+    }
+
+    list.append(item);
+  });
+}
+
+function handleSpecialMissionEditSubmit(event) {
+  const form = event.target.closest("[data-edit-special-mission-form]");
+  if (!form) {
+    return;
+  }
+  event.preventDefault();
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+
+  const missionId = form.dataset.editSpecialMissionForm;
+  const mission = getSpecialMissionById(missionId);
+  const message = form.querySelector("[data-edit-special-mission-message]");
+  if (!mission) {
+    return;
+  }
+
+  const formData = new FormData(form);
+  const title = String(formData.get("title") || "").trim();
+  const startDate = normalizeDateKeyInput(formData.get("startDate"));
+  const endDate = normalizeDateKeyInput(formData.get("endDate"));
+  const targetCompletionDate = normalizeDateKeyInput(formData.get("targetCompletionDate"));
+
+  if (!title) {
+    if (message) {
+      message.textContent = "ミッション名を入力してください";
+      message.classList.add("is-error");
+    }
+    return;
+  }
+  if (startDate && endDate && startDate > endDate) {
+    if (message) {
+      message.textContent = "終了日は開始日以降にしてください";
+      message.classList.add("is-error");
+    }
+    return;
+  }
+  if (targetCompletionDate && endDate && targetCompletionDate > endDate) {
+    if (message) {
+      message.textContent = "推奨クリア日は終了日以前にしてください";
+      message.classList.add("is-error");
+    }
+    return;
+  }
+
+  specialMissions = specialMissions.map((item) => {
+    if (item.id !== missionId) {
+      return item;
+    }
+    return normalizeSpecialMission({
+      ...item,
+      title,
+      description: formData.get("description"),
+      story: formData.get("story"),
+      icon: formData.get("icon"),
+      theme: formData.get("theme"),
+      themePreset: formData.get("theme"),
+      startDate,
+      endDate,
+      targetCompletionDate,
+      enabled: formData.get("enabled") === "on",
+      rewards: {
+        ...item.rewards,
+        xp: formData.get("rewardXp"),
+        gold: formData.get("rewardGold"),
+      },
+      earlyCompletionRewards: {
+        ...item.earlyCompletionRewards,
+        xp: formData.get("earlyXp"),
+        gold: formData.get("earlyGold"),
+      },
+      settings: {
+        ...item.settings,
+        recommendedQuestCount: formData.get("recommendedQuestCount"),
+      },
+      updatedAt: new Date().toISOString(),
+    });
+  }).filter(Boolean);
+
+  editingSpecialMissionId = null;
+  saveSpecialMissions();
+  render();
+  setSpecialMissionMessage("特別ミッションを保存しました");
 }
 
 function handleRewardCreateSubmit(event) {
@@ -8896,6 +9318,7 @@ function render() {
   renderQuestCreateForm();
   renderQuestBulkEditControls();
   renderQuestManager();
+  renderSpecialMissionManager();
   renderRewardManager();
   renderRewardHistory();
   renderAppSettingsForm();
@@ -9273,6 +9696,54 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  const createSpecialMissionTemplateButton = event.target.closest("[data-create-special-mission-template]");
+  if (createSpecialMissionTemplateButton) {
+    createSpecialMissionFromTemplateAction(createSpecialMissionTemplateButton.dataset.createSpecialMissionTemplate);
+    return;
+  }
+
+  const createBlankSpecialMissionButton = event.target.closest("[data-create-special-mission-blank]");
+  if (createBlankSpecialMissionButton) {
+    createBlankSpecialMissionAction();
+    return;
+  }
+
+  const editSpecialMissionButton = event.target.closest("[data-edit-special-mission]");
+  if (editSpecialMissionButton) {
+    if (!isParentUnlocked) {
+      showParentAuth();
+      return;
+    }
+    editingSpecialMissionId = editSpecialMissionButton.dataset.editSpecialMission;
+    renderSpecialMissionManager();
+    return;
+  }
+
+  const cancelEditSpecialMissionButton = event.target.closest("[data-cancel-edit-special-mission]");
+  if (cancelEditSpecialMissionButton) {
+    editingSpecialMissionId = null;
+    renderSpecialMissionManager();
+    return;
+  }
+
+  const specialMissionStatusButton = event.target.closest("[data-special-mission-status]");
+  if (specialMissionStatusButton) {
+    updateSpecialMissionStatus(specialMissionStatusButton.dataset.specialMissionStatus, specialMissionStatusButton.dataset.status);
+    return;
+  }
+
+  const duplicateSpecialMissionButton = event.target.closest("[data-duplicate-special-mission]");
+  if (duplicateSpecialMissionButton) {
+    duplicateSpecialMission(duplicateSpecialMissionButton.dataset.duplicateSpecialMission);
+    return;
+  }
+
+  const deleteSpecialMissionButton = event.target.closest("[data-delete-special-mission]");
+  if (deleteSpecialMissionButton) {
+    deleteSpecialMission(deleteSpecialMissionButton.dataset.deleteSpecialMission);
+    return;
+  }
+
   const exchangeRewardButton = event.target.closest("[data-exchange-reward]");
   if (exchangeRewardButton) {
     exchangeReward(exchangeRewardButton.dataset.exchangeReward);
@@ -9390,6 +9861,7 @@ document.querySelector("[data-quest-bulk-edit-form]")?.addEventListener("submit"
 document.querySelector("[data-reward-create-form]")?.addEventListener("submit", handleRewardCreateSubmit);
 document.querySelector("[data-parent-note-form]")?.addEventListener("submit", handleParentNoteSubmit);
 document.addEventListener("submit", handleQuestEditSubmit);
+document.addEventListener("submit", handleSpecialMissionEditSubmit);
 document.addEventListener("submit", handleRewardEditSubmit);
 document.addEventListener("visibilitychange", handleAudioLifecycleChange);
 window.addEventListener("pagehide", pauseBgmForInactiveApp);
