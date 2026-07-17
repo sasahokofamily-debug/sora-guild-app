@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "3.4";
+const APP_VERSION = "3.5";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "特別ミッションで、進捗率や回数を入力して報告できるようにしました。",
-  "25％などの節目クエストは、設定した到達率で完了扱いになるようにしました。",
-  "日記などの回数型クエストは、現在の回数を見ながら進められるようにしました。",
+  "ホーム画面で、特別ミッション全体の章ごとの進み具合が見えるようになりました。",
+  "特別ミッションカードを上の方に移動して、夏休みミッションに気づきやすくしました。",
+  "今日やることだけでなく、全体の攻略状況も確認しやすくしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -7566,6 +7566,29 @@ function getSpecialMissionProgressSummary(mission) {
   };
 }
 
+function getSpecialMissionChapterSummary(mission, chapter) {
+  const quests = chapter.quests.filter((quest) => quest.required);
+  if (quests.length === 0) {
+    return { completed: 0, total: 0, percent: 0 };
+  }
+  const completed = quests.filter((quest) => isSpecialMissionQuestComplete(mission.id, quest)).length;
+  return {
+    completed,
+    total: quests.length,
+    percent: Math.round((completed / quests.length) * 100),
+  };
+}
+
+function getSpecialMissionChapterStatusLabel(mission, chapter) {
+  if (!isSpecialMissionChapterUnlocked(mission, chapter.id)) {
+    return "未解放";
+  }
+  if (isSpecialMissionChapterCompleted(mission, chapter.id)) {
+    return "完了";
+  }
+  return "攻略中";
+}
+
 function getSpecialMissionDayLabel(dateKey, prefix) {
   if (!dateKey) {
     return `${prefix} 未設定`;
@@ -7911,13 +7934,15 @@ function rejectSpecialMissionQuest(missionId, questId) {
 function renderSpecialMissionHome() {
   const card = document.querySelector("[data-special-mission-card]");
   const list = document.querySelector("[data-special-mission-recommend-list]");
-  if (!card || !list) {
+  const chapterList = document.querySelector("[data-special-mission-chapter-list]");
+  if (!card || !list || !chapterList) {
     return;
   }
 
   const mission = getPrimarySpecialMission();
   card.hidden = !mission;
   list.innerHTML = "";
+  chapterList.innerHTML = "";
   if (!mission) {
     return;
   }
@@ -7934,6 +7959,25 @@ function renderSpecialMissionHome() {
   if (bar) {
     bar.style.width = `${summary.percent}%`;
   }
+  const completedChapters = mission.chapters.filter((chapter) => isSpecialMissionChapterCompleted(mission, chapter.id)).length;
+  setText("[data-special-mission-chapter-count]", `${completedChapters} / ${mission.chapters.length}`);
+  mission.chapters.forEach((chapter) => {
+    const chapterSummary = getSpecialMissionChapterSummary(mission, chapter);
+    const statusLabel = getSpecialMissionChapterStatusLabel(mission, chapter);
+    const item = document.createElement("article");
+    item.className = `special-mission-chapter-item status-${statusLabel === "完了" ? "complete" : statusLabel === "未解放" ? "locked" : "active"}`;
+    item.innerHTML = `
+      <div class="special-mission-chapter-main">
+        <span class="special-mission-chapter-icon">${escapeHtml(chapter.icon || "📜")}</span>
+        <div>
+          <strong>${escapeHtml(chapter.title)}</strong>
+          <small>${chapterSummary.total > 0 ? `${chapterSummary.completed} / ${chapterSummary.total} クエスト` : "クエスト未設定"}</small>
+        </div>
+      </div>
+      <span class="special-mission-chapter-status">${escapeHtml(statusLabel)}</span>
+    `;
+    chapterList.append(item);
+  });
 
   if (summary.total === 0) {
     list.innerHTML = `<p class="special-mission-empty">クエストはまだありません。</p>`;

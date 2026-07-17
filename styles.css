@@ -8419,6 +8419,127 @@ h3 {
   font-weight: 900;
 }
 
+.special-mission-overview {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(201, 154, 53, 0.22);
+  border-radius: 10px;
+  padding: 11px;
+  background: rgba(255, 247, 223, 0.38);
+}
+
+.special-mission-overview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.special-mission-overview-head strong {
+  color: var(--ink);
+  font-size: 0.94rem;
+  font-weight: 950;
+}
+
+.special-mission-overview-head span {
+  flex: 0 0 auto;
+  border: 1px solid rgba(201, 154, 53, 0.24);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: var(--navy);
+  background: rgba(255, 247, 223, 0.68);
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
+.special-mission-chapter-list {
+  display: grid;
+  gap: 7px;
+}
+
+.special-mission-chapter-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  min-width: 0;
+  border: 1px solid rgba(111, 63, 38, 0.14);
+  border-radius: 9px;
+  padding: 9px;
+  background: rgba(255, 247, 223, 0.55);
+}
+
+.special-mission-chapter-item.status-active {
+  border-color: rgba(184, 66, 66, 0.35);
+  background: rgba(255, 241, 214, 0.72);
+}
+
+.special-mission-chapter-item.status-complete {
+  border-color: rgba(79, 143, 88, 0.35);
+}
+
+.special-mission-chapter-item.status-locked {
+  opacity: 0.72;
+}
+
+.special-mission-chapter-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.special-mission-chapter-main div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.special-mission-chapter-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(201, 154, 53, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 247, 223, 0.68);
+  font-size: 1rem;
+}
+
+.special-mission-chapter-main strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 950;
+  overflow-wrap: anywhere;
+}
+
+.special-mission-chapter-main small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.special-mission-chapter-status {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: var(--wood-dark);
+  background: rgba(201, 154, 53, 0.18);
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
+.special-mission-chapter-item.status-active .special-mission-chapter-status {
+  color: var(--cream);
+  background: #b84242;
+}
+
+.special-mission-chapter-item.status-complete .special-mission-chapter-status {
+  color: var(--cream);
+  background: #4f8f58;
+}
+
 .special-mission-today {
   display: grid;
   gap: 9px;
