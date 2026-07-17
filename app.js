@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "4.0";
+const APP_VERSION = "4.1";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "ホーム画面のカード幅と縦の間隔を揃え、画面全体を一つの冒険記録として見やすくしました。",
-  "特別ミッション内の重なったカード表現を整理し、章の進み具合をコンパクトに確認できるようにしました。",
-  "スマホでキャラクター画像と説明文が窮屈にならないよう、ホーム上部のバランスを調整しました。",
+  "夏休み宿題大作戦に、青空とひまわりをイメージした季節の色を加えました。",
+  "進捗バーや章の攻略表示を夏色に揃え、特別な冒険だと分かりやすくしました。",
+  "羊皮紙の世界観とスマホでの読みやすさはそのまま維持しています。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -8103,6 +8103,7 @@ function renderSpecialMissionHome() {
 
   const mission = getPrimarySpecialMission();
   card.hidden = !mission;
+  card.dataset.missionTheme = mission ? String(mission.theme || "guild") : "guild";
   list.innerHTML = "";
   chapterList.innerHTML = "";
   if (!mission) {

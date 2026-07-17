@@ -8381,6 +8381,105 @@ h3 {
   pointer-events: none;
 }
 
+.special-mission-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.special-mission-card[data-mission-theme="summer"] {
+  border-color: rgba(42, 142, 170, 0.52);
+  box-shadow:
+    var(--parchment-card-shadow),
+    0 0 0 2px rgba(244, 194, 61, 0.14),
+    0 12px 26px rgba(23, 91, 112, 0.12);
+}
+
+.special-mission-card[data-mission-theme="summer"]::before {
+  background:
+    radial-gradient(circle at 91% 6%, rgba(255, 206, 60, 0.44) 0 1.7rem, rgba(255, 231, 139, 0.2) 1.75rem 3.3rem, transparent 3.35rem),
+    radial-gradient(circle at 9% 13%, rgba(76, 180, 203, 0.2), transparent 7.5rem),
+    linear-gradient(145deg, rgba(220, 248, 250, 0.22), transparent 34%, rgba(255, 226, 126, 0.12) 68%, transparent),
+    var(--paper-overlay);
+  opacity: 0.82;
+}
+
+.special-mission-card[data-mission-theme="summer"]::after {
+  border-top: 4px solid transparent;
+  border-image: linear-gradient(90deg, #32a2bf 0 43%, #f0c64e 43% 72%, #e98645 72%) 1;
+  background:
+    linear-gradient(180deg, transparent 72%, rgba(74, 171, 193, 0.06)),
+    repeating-radial-gradient(ellipse at 50% 104%, transparent 0 16px, rgba(60, 154, 184, 0.055) 17px 18px, transparent 19px 32px);
+}
+
+.special-mission-card[data-mission-theme="summer"] .section-kicker {
+  color: #1f7894;
+  text-shadow: none;
+}
+
+.special-mission-card[data-mission-theme="summer"] .special-mission-home-head h3 {
+  color: #173e55;
+}
+
+.special-mission-card[data-mission-theme="summer"] .special-mission-home-head > strong,
+.special-mission-card[data-mission-theme="summer"] .special-mission-overview-head span {
+  border-color: rgba(42, 142, 170, 0.34);
+  color: #174f68;
+  background: linear-gradient(180deg, rgba(234, 252, 255, 0.94), rgba(154, 218, 229, 0.62));
+}
+
+.special-mission-card[data-mission-theme="summer"] .special-mission-home-track {
+  border-color: rgba(27, 105, 130, 0.42);
+  background: rgba(33, 104, 126, 0.22);
+}
+
+.special-mission-card[data-mission-theme="summer"] .special-mission-home-track span {
+  background: linear-gradient(90deg, #2699b8, #62c5cb 48%, #f0c64e 78%, #ed8b45);
+  box-shadow: 0 0 14px rgba(74, 180, 203, 0.36);
+}
+
+.special-mission-card[data-mission-theme="summer"] .special-mission-home-meta span,
+.special-mission-card[data-mission-theme="summer"] .special-mission-today-head span,
+.special-mission-card[data-mission-theme="summer"] .special-mission-recommend-rewards span {
+  border-color: rgba(42, 142, 170, 0.22);
+  color: #285e70;
+  background: linear-gradient(180deg, rgba(244, 253, 252, 0.92), rgba(190, 229, 226, 0.54));
+}
+
+.special-mission-card[data-mission-theme="summer"] .special-mission-overview,
+.special-mission-card[data-mission-theme="summer"] .special-mission-today {
+  border-top-color: rgba(42, 142, 170, 0.24);
+}
+
+.special-mission-card[data-mission-theme="summer"] .special-mission-chapter-item {
+  border-bottom-color: rgba(42, 142, 170, 0.15);
+}
+
+.special-mission-card[data-mission-theme="summer"] .special-mission-chapter-item.status-active {
+  border-left-color: #e99a3f;
+  background: linear-gradient(90deg, rgba(250, 192, 73, 0.16), rgba(92, 184, 197, 0.045) 72%, transparent);
+}
+
+.special-mission-card[data-mission-theme="summer"] .special-mission-chapter-icon {
+  border-color: rgba(42, 142, 170, 0.2);
+  background: linear-gradient(180deg, rgba(246, 254, 250, 0.92), rgba(181, 226, 220, 0.5));
+}
+
+.special-mission-card[data-mission-theme="summer"] .special-mission-chapter-item.status-active .special-mission-chapter-status {
+  border-color: rgba(126, 77, 20, 0.22);
+  color: #fffaf0;
+  background: linear-gradient(180deg, #f1aa4e, #d77536);
+  box-shadow: 0 3px 0 rgba(117, 65, 26, 0.42);
+}
+
+.special-mission-card[data-mission-theme="summer"] .special-mission-recommend-item {
+  border-color: rgba(42, 142, 170, 0.22);
+  background: linear-gradient(145deg, rgba(255, 250, 225, 0.5), rgba(218, 246, 245, 0.24));
+}
+
 .special-mission-card > * {
   position: relative;
   z-index: 1;
