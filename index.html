@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260715-header-cleanup">
+    <link rel="stylesheet" href="styles.css?v=20260717-special-mission-phase1">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -94,7 +94,7 @@
         <div class="app-brand-block">
           <p class="eyebrow">Fantasy Guild Log</p>
           <h1 data-app-name>そらクエスト</h1>
-          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 2.6</button>
+          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 2.7</button>
         </div>
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
@@ -652,6 +652,9 @@
           <div class="panel admin-panel app-history-panel">
             <h3>更新履歴</h3>
             <p>
+              Version 2.7：期間限定の特別ミッションを保存する土台と、夏休み宿題大作戦テンプレートを追加しました。
+            </p>
+            <p>
               Version 2.6：ヘッダーのプレイヤー情報を整理し、ホーム上部をすっきり見えるようにしました。
             </p>
             <p>
@@ -1188,13 +1191,13 @@
         <div class="version-notes-card" role="dialog" aria-modal="true" aria-labelledby="version-notes-title">
           <p class="section-kicker">Update</p>
           <h3 id="version-notes-title" data-version-notes-title>
-            <span class="version-notes-title-version">Version 2.6</span><br>
+            <span class="version-notes-title-version">Version 2.7</span><br>
             <span class="version-notes-title-label">更新内容</span>
           </h3>
           <ul data-version-notes-list>
-            <li>ヘッダーから名前・Lv・Gold・保存状態の表示を外しました。</li>
-            <li>ホーム上部をすっきり見えるように余白を調整しました。</li>
-            <li>プレイヤー情報はホーム内の各カードで確認できる形に整理しました。</li>
+            <li>期間限定の特別ミッションを保存できる土台を追加しました。</li>
+            <li>夏休み宿題大作戦テンプレートを追加しました。</li>
+            <li>特別ミッションをバックアップとクラウド保存の対象にしました。</li>
           </ul>
           <button type="button" data-version-notes-close>閉じる</button>
         </div>
@@ -1387,6 +1390,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260715-header-cleanup" defer></script>
+    <script src="app.js?v=20260717-special-mission-phase1" defer></script>
   </body>
 </html>
