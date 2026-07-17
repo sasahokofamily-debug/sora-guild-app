@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "2.9";
+const APP_VERSION = "3.0";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "公開中の特別ミッションをホーム画面に表示できるようにしました。",
-  "今日のおすすめクエストを自動表示するようにしました。",
-  "承認不要の特別ミッションは子ども側で完了できるようにしました。",
+  "夏休み宿題大作戦テンプレートを、8月10日攻略型に調整しました。",
+  "計算・漢字プリントを10分クエストと25％ごとの節目に整理しました。",
+  "日記は最後まで続ける定期イベントとして分けました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -295,6 +295,10 @@ const EVERYDAY_SCHEDULE_DAYS = [0, 1, 2, 3, 4, 5, 6];
 const SUMMER_EVENT_START = { month: 7, day: 20 };
 const SUMMER_EVENT_END = { month: 8, day: 31 };
 const SUMMER_EVENT_CHALLENGE_TARGET = 40;
+const SUMMER_HOMEWORK_YEAR = new Date().getFullYear();
+const SUMMER_HOMEWORK_START_DATE = `${SUMMER_HOMEWORK_YEAR}-07-17`;
+const SUMMER_HOMEWORK_MAIN_TARGET_DATE = `${SUMMER_HOMEWORK_YEAR}-08-10`;
+const SUMMER_HOMEWORK_END_DATE = `${SUMMER_HOMEWORK_YEAR}-08-31`;
 const SUMMER_EVENT_ALLY = {
   id: "sunflower-fairy",
   name: "ひまわりフェアリー",
@@ -346,26 +350,26 @@ const SPECIAL_MISSION_TEMPLATES = [
   {
     templateId: "summer-homework-campaign",
     title: "夏休み宿題大作戦",
-    description: "夏休みの宿題を章ごとに攻略する特別ミッションです。",
+    description: "8月10日までに主要宿題を攻略し、8月後半は日記と見直しに集中する特別ミッションです。",
     story:
-      "夏休みの宿題に「先延ばしの魔王」の力が宿ってしまった。少しずつクエストを攻略し、宿題の塔に潜む魔王を倒そう。",
+      "夏休みの宿題に「先延ばし魔王」と「忘却の魔王」の力が宿ってしまった。8月10日までに四つの封印を解き、宿題の塔を攻略しよう。",
     icon: "🌻",
     theme: "summer",
     themePreset: "sunflower",
     backgroundTheme: "village",
-    startDate: "",
-    endDate: "",
-    targetCompletionDate: "",
+    startDate: SUMMER_HOMEWORK_START_DATE,
+    endDate: SUMMER_HOMEWORK_END_DATE,
+    targetCompletionDate: SUMMER_HOMEWORK_MAIN_TARGET_DATE,
     status: "draft",
     isPublished: false,
     enabled: true,
     order: 1,
     rewards: {
-      xp: 120,
-      gold: 80,
+      xp: 100,
+      gold: 30,
       stats: { STR: 0, INT: 2, END: 3, DEX: 2 },
-      badges: [],
-      titles: ["夏の冒険王"],
+      badges: ["宿題の塔攻略"],
+      titles: ["夏休み先取り勇者"],
       rewardTickets: [
         { id: "summer-ticket-game-15", name: "ゲーム・動画15分追加券", description: "がんばった日の小さな追加時間です。", cost: 0, expiresInDays: 30 },
         { id: "summer-ticket-game-30", name: "ゲーム・動画30分追加券", description: "大きく進めた日の特別な追加時間です。", cost: 0, expiresInDays: 30 },
@@ -374,12 +378,12 @@ const SPECIAL_MISSION_TEMPLATES = [
       ],
     },
     earlyCompletionRewards: {
-      xp: 80,
-      gold: 50,
+      xp: 100,
+      gold: 30,
       stats: { STR: 0, INT: 1, END: 2, DEX: 1 },
       badges: ["早期攻略"],
-      titles: [],
-      rewardTickets: [{ id: "early-clear-ticket", name: "早期クリアごほうび券", description: "推奨クリア日までに主要宿題を終えた証です。", cost: 0, expiresInDays: 30 }],
+      titles: ["夏休み先取り勇者"],
+      rewardTickets: [{ id: "early-clear-ticket", name: "ゲーム・動画30分追加券", description: "推奨クリア日までに主要宿題を終えた証です。", cost: 0, expiresInDays: 30 }],
     },
     settings: {
       recommendedQuestCount: 3,
@@ -391,11 +395,11 @@ const SPECIAL_MISSION_TEMPLATES = [
       {
         id: "chapter-1-preparation",
         title: "第1章 旅立ちの準備",
-        description: "宿題と道具を確認して、冒険の準備を整えます。",
-        story: "散らかった持ち物を整えると、宿題の塔への入口が見えてきます。",
+        description: "7月17日〜20日の準備編。すぐ終わる宿題と道具を先に片づけます。",
+        story: "最初に小さな達成を集めると、宿題の塔への入口が見えてきます。",
         icon: "🎒",
         order: 1,
-        startDate: "",
+        startDate: SUMMER_HOMEWORK_START_DATE,
         unlockConditions: [],
         completionConditions: [{ type: "requiredQuestsCompleted" }],
         boss: {
@@ -409,54 +413,56 @@ const SPECIAL_MISSION_TEMPLATES = [
           rewards: { xp: 20, gold: 10, stats: { STR: 0, INT: 0, END: 1, DEX: 1 } },
         },
         quests: [
-          { title: "宿題を全部並べる", description: "持って帰った宿題を一度全部出して確認します。", stat: "DEX" },
-          { title: "宿題の種類を確認する", description: "プリント、日記、自由課題などに分けます。", stat: "INT" },
-          { title: "プリントの枚数を数える", description: "何枚あるか数えて、見通しを立てます。", stat: "INT" },
-          { title: "必要なものに名前を書く", description: "提出物や道具に名前を書きます。", stat: "DEX" },
-          { title: "お道具箱を整理する", description: "使う道具を探しやすくします。", stat: "DEX" },
-          { title: "絵具セットを確認する", description: "絵具や筆、パレットがそろっているか見ます。", stat: "DEX" },
-          { title: "足りない道具を保護者に知らせる", description: "足りない物をメモして伝えます。", stat: "END" },
-          { title: "リコーダーを掃除する", description: "使う前にきれいにしておきます。", stat: "DEX" },
-          { title: "自由課題の候補を考える", description: "やってみたいテーマをいくつか出します。", stat: "INT" },
+          { title: "宿題を全部並べる", description: "持って帰った宿題を一度全部出して確認します。", stat: "DEX", xpReward: 10, goldReward: 3 },
+          { title: "宿題の種類を確認する", description: "すぐ終わるもの、少しずつ進めるもの、時間がかかるものに分けます。", stat: "INT", xpReward: 10, goldReward: 3 },
+          { title: "プリントの枚数を数える", description: "何枚あるか数えて、見通しを立てます。", stat: "INT", xpReward: 10, goldReward: 3 },
+          { title: "6年生からの呼びかけを読む", description: "学校からの呼びかけや注意を確認します。", stat: "INT", xpReward: 10, goldReward: 3 },
+          { title: "必要なものに名前を書く", description: "提出物や道具に名前を書きます。", stat: "DEX", xpReward: 10, goldReward: 3 },
+          { title: "お道具箱を整理する", description: "使う道具を探しやすくします。", stat: "DEX", xpReward: 10, goldReward: 3 },
+          { title: "絵具セットを確認する", description: "絵具や筆、パレットがそろっているか見ます。", stat: "DEX", xpReward: 10, goldReward: 3 },
+          { title: "足りない道具を保護者に知らせる", description: "足りない物をメモして伝えます。", stat: "END", xpReward: 10, goldReward: 3 },
+          { title: "リコーダーを掃除する", description: "使う前にきれいにしておきます。", stat: "DEX", xpReward: 10, goldReward: 3 },
+          { title: "自由課題の候補を考える", description: "やってみたいテーマをいくつか出します。", stat: "INT", xpReward: 10, goldReward: 3 },
+          { title: "夏休み予定表に宿題の日を入れる", description: "予定の反対側に、10〜15分の宿題時間を置きます。", stat: "END", xpReward: 10, goldReward: 3, titleReward: "冒険準備完了" },
         ],
       },
       {
         id: "chapter-2-calculation",
         title: "第2章 計算の洞窟",
-        description: "計算プリントを少しずつ進めます。",
-        story: "数字の洞窟を進むほど、計算ゴーレムの力が弱まります。",
+        description: "7月21日〜27日の計算編。枚数ではなく10分タイマーで進めます。",
+        story: "数字の洞窟を進むほど、暗算ゴーレムの力が弱まります。",
         icon: "🧮",
         order: 2,
-        startDate: "",
+        startDate: `${SUMMER_HOMEWORK_YEAR}-07-21`,
         unlockConditions: [{ type: "chapterCompleted", chapterId: "chapter-1-preparation" }],
         completionConditions: [{ type: "questCompleted", questId: "calc-100" }],
         boss: {
           enabled: true,
-          name: "計算ゴーレム",
+          name: "暗算ゴーレム",
           description: "計算の山を守る、石の番人。",
           icon: "🪨",
           image: "",
-          unlockMessage: "計算の洞窟の奥で、計算ゴーレムが待っている！",
-          clearMessage: "計算の力で、計算ゴーレムが仲間になった！",
+          unlockMessage: "計算の洞窟の奥で、暗算ゴーレムが待っている！",
+          clearMessage: "計算の力で、暗算ゴーレムが仲間になった！",
           rewards: { xp: 30, gold: 15, stats: { STR: 0, INT: 1, END: 1, DEX: 1 } },
         },
         quests: [
-          { title: "計算プリントを10分進める", description: "タイマーを使って10分だけ進めます。", questType: "daily", stat: "DEX", repeatable: true, dailyLimit: 1 },
-          { id: "calc-25", title: "計算プリント25％", description: "計算プリントの4分の1まで進めます。", questType: "milestone", stat: "END", progressSettings: { mode: "percent", targetPercent: 25 } },
-          { id: "calc-50", title: "計算プリント50％", description: "半分まで進めます。", questType: "milestone", stat: "END", progressSettings: { mode: "percent", targetPercent: 50 } },
-          { id: "calc-75", title: "計算プリント75％", description: "あと少しのところまで進めます。", questType: "milestone", stat: "END", progressSettings: { mode: "percent", targetPercent: 75 } },
-          { id: "calc-100", title: "計算プリント100％", description: "最後まで終わらせます。", questType: "milestone", stat: "END", progressSettings: { mode: "percent", targetPercent: 100 } },
-          { title: "間違い直し完了", description: "間違えた問題を直します。", stat: "INT" },
+          { title: "計算プリントを10分進める", description: "タイマーを使って10分だけ進めます。続けられそうなら続けてもOKです。", questType: "daily", stat: "DEX", repeatable: true, dailyLimit: 1, xpReward: 8, goldReward: 2 },
+          { id: "calc-25", title: "計算プリント25％", description: "計算プリントの4分の1まで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, progressSettings: { mode: "percent", targetPercent: 25 } },
+          { id: "calc-50", title: "計算プリント50％", description: "半分まで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["calc-25"], progressSettings: { mode: "percent", targetPercent: 50 } },
+          { id: "calc-75", title: "計算プリント75％", description: "あと少しのところまで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["calc-50"], progressSettings: { mode: "percent", targetPercent: 75 } },
+          { id: "calc-100", title: "計算プリント100％", description: "最後まで終わらせます。", questType: "milestone", stat: "END", xpReward: 40, goldReward: 10, prerequisiteQuestIds: ["calc-75"], progressSettings: { mode: "percent", targetPercent: 100 } },
+          { title: "計算の間違い直し", description: "間違えた問題を直します。", stat: "INT", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["calc-100"], titleReward: "数の探索者" },
         ],
       },
       {
         id: "chapter-3-kanji",
         title: "第3章 漢字の森",
-        description: "漢字プリントを少しずつ進めます。",
+        description: "7月24日〜31日の漢字編。苦手でも10分だけ進めます。",
         story: "忘れ文字の魔樹は、毎日の積み重ねで道を開きます。",
         icon: "🌲",
         order: 3,
-        startDate: "",
+        startDate: `${SUMMER_HOMEWORK_YEAR}-07-24`,
         unlockConditions: [{ type: "chapterCompleted", chapterId: "chapter-2-calculation" }],
         completionConditions: [{ type: "questCompleted", questId: "kanji-100" }],
         boss: {
@@ -470,22 +476,23 @@ const SPECIAL_MISSION_TEMPLATES = [
           rewards: { xp: 30, gold: 15, stats: { STR: 0, INT: 2, END: 1, DEX: 0 } },
         },
         quests: [
-          { title: "漢字プリントを10分進める", description: "漢字プリントを10分だけ進めます。", questType: "daily", stat: "INT", repeatable: true, dailyLimit: 1 },
-          { id: "kanji-25", title: "漢字プリント25％", description: "漢字プリントの4分の1まで進めます。", questType: "milestone", stat: "END", progressSettings: { mode: "percent", targetPercent: 25 } },
-          { id: "kanji-50", title: "漢字プリント50％", description: "半分まで進めます。", questType: "milestone", stat: "END", progressSettings: { mode: "percent", targetPercent: 50 } },
-          { id: "kanji-75", title: "漢字プリント75％", description: "あと少しのところまで進めます。", questType: "milestone", stat: "END", progressSettings: { mode: "percent", targetPercent: 75 } },
-          { id: "kanji-100", title: "漢字プリント100％", description: "最後まで終わらせます。", questType: "milestone", stat: "END", progressSettings: { mode: "percent", targetPercent: 100 } },
-          { title: "間違い直し完了", description: "間違えた漢字を書き直します。", stat: "INT" },
+          { title: "漢字プリントを10分進める", description: "漢字プリントを10分だけ進めます。苦手な日はここだけでOKです。", questType: "daily", stat: "INT", repeatable: true, dailyLimit: 1, xpReward: 10, goldReward: 2 },
+          { id: "kanji-25", title: "漢字プリント25％", description: "漢字プリントの4分の1まで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, progressSettings: { mode: "percent", targetPercent: 25 } },
+          { id: "kanji-50", title: "漢字プリント50％", description: "半分まで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["kanji-25"], progressSettings: { mode: "percent", targetPercent: 50 } },
+          { id: "kanji-75", title: "漢字プリント75％", description: "あと少しのところまで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["kanji-50"], progressSettings: { mode: "percent", targetPercent: 75 } },
+          { id: "kanji-100", title: "漢字プリント100％", description: "最後まで終わらせます。", questType: "milestone", stat: "END", xpReward: 40, goldReward: 10, prerequisiteQuestIds: ["kanji-75"], progressSettings: { mode: "percent", targetPercent: 100 } },
+          { title: "間違えた漢字を3個書き直す", description: "間違えた漢字を3個だけ丁寧に書き直します。", stat: "INT", xpReward: 15, goldReward: 4, prerequisiteQuestIds: ["kanji-100"] },
+          { title: "名前や日付の書き忘れを確認する", description: "漢字プリントの名前や日付を見直します。", stat: "DEX", xpReward: 10, goldReward: 3, prerequisiteQuestIds: ["kanji-100"], titleReward: "言葉の守り手" },
         ],
       },
       {
         id: "chapter-4-creation",
         title: "第4章 創造の工房",
-        description: "自由課題や作品づくりを進めます。",
+        description: "8月1日〜10日の自由課題編。決める、集める、作る、仕上げるに分けます。",
         story: "創造の工房では、考えたことを形にする力が試されます。",
         icon: "🎨",
         order: 4,
-        startDate: "",
+        startDate: `${SUMMER_HOMEWORK_YEAR}-08-01`,
         unlockConditions: [],
         completionConditions: [{ type: "questCompleted", questId: "creation-ready" }],
         boss: {
@@ -499,27 +506,27 @@ const SPECIAL_MISSION_TEMPLATES = [
           rewards: { xp: 40, gold: 20, stats: { STR: 0, INT: 1, END: 1, DEX: 2 } },
         },
         quests: [
-          { title: "自由課題のテーマを決める", description: "作りたいものや調べたいことを決めます。", stat: "INT" },
-          { title: "必要な材料を書き出す", description: "必要なものをメモします。", stat: "DEX" },
-          { title: "材料を用意する", description: "使う材料をそろえます。", stat: "DEX" },
-          { title: "計画を立てる", description: "いつ何をするか決めます。", stat: "INT" },
-          { title: "作業を10分進める", description: "10分だけ手を動かします。", questType: "daily", stat: "DEX", repeatable: true, dailyLimit: 1 },
-          { title: "作業をさらに10分進める", description: "もう10分だけ進めます。", questType: "daily", stat: "END", repeatable: true, dailyLimit: 1 },
-          { title: "写真や絵を用意する", description: "作品に使う写真や絵を用意します。", stat: "DEX" },
-          { title: "説明文を書く", description: "作品の説明を書きます。", stat: "INT" },
-          { title: "作品を完成させる", description: "最後まで作りきります。", stat: "END" },
-          { title: "名前を書く", description: "提出前に名前を書きます。", stat: "DEX" },
-          { id: "creation-ready", title: "提出できる状態にする", description: "提出できる形にまとめます。", stat: "END" },
+          { title: "自由課題のテーマを決める", description: "作りたいものや調べたいことを決めます。", stat: "INT", xpReward: 15, goldReward: 4 },
+          { title: "必要な材料を書き出す", description: "必要なものをメモします。", stat: "DEX", xpReward: 10, goldReward: 3 },
+          { title: "材料を用意する", description: "使う材料をそろえます。", stat: "DEX", xpReward: 15, goldReward: 4 },
+          { title: "計画を立てる", description: "いつ何をするか決めます。", stat: "INT", xpReward: 15, goldReward: 4 },
+          { title: "作業を10分進める", description: "10分だけ手を動かします。", questType: "daily", stat: "DEX", repeatable: true, dailyLimit: 1, xpReward: 20, goldReward: 5 },
+          { title: "作業をさらに10分進める", description: "もう10分だけ進めます。", questType: "daily", stat: "END", repeatable: true, dailyLimit: 1, xpReward: 20, goldReward: 5 },
+          { title: "写真や絵を用意する", description: "作品に使う写真や絵を用意します。", stat: "DEX", xpReward: 15, goldReward: 4 },
+          { title: "説明文を書く", description: "作品の説明を書きます。", stat: "INT", xpReward: 20, goldReward: 5 },
+          { title: "作品を完成させる", description: "最後まで作りきります。", stat: "END", xpReward: 50, goldReward: 15, titleReward: "夏の発明家" },
+          { title: "名前を書く", description: "提出前に名前を書きます。", stat: "DEX", xpReward: 10, goldReward: 3 },
+          { id: "creation-ready", title: "提出できる状態にする", description: "提出できる形にまとめます。", stat: "END", xpReward: 20, goldReward: 5, titleReward: "自由研究マスター" },
         ],
       },
       {
         id: "chapter-5-memory",
         title: "第5章 記憶の書",
-        description: "日記など、期間中に複数回行う宿題を管理します。",
+        description: "8月31日まで続ける日記編。主要宿題とは別に、累計12回を目指します。",
         story: "毎日の記録が、記憶の書に新しいページを増やします。",
         icon: "📖",
         order: 5,
-        startDate: "",
+        startDate: SUMMER_HOMEWORK_START_DATE,
         unlockConditions: [],
         completionConditions: [{ type: "questCompletionCount", questId: "diary-entry", target: 12 }],
         boss: {
@@ -541,22 +548,24 @@ const SPECIAL_MISSION_TEMPLATES = [
             totalTargetCount: 12,
             approvalRequired: true,
             memoRequired: true,
+            xpReward: 15,
+            goldReward: 4,
             progressSettings: { mode: "count", targetValue: 12 },
           },
-          { title: "日記3回達成", description: "日記を3回書きました。", questType: "milestone", stat: "END", prerequisiteQuestIds: ["diary-entry"], progressSettings: { mode: "count", targetValue: 3 } },
-          { title: "日記6回達成", description: "日記を6回書きました。", questType: "milestone", stat: "END", prerequisiteQuestIds: ["diary-entry"], progressSettings: { mode: "count", targetValue: 6 } },
-          { title: "日記9回達成", description: "日記を9回書きました。", questType: "milestone", stat: "END", prerequisiteQuestIds: ["diary-entry"], progressSettings: { mode: "count", targetValue: 9 } },
-          { title: "日記12回達成", description: "日記を12回書きました。", questType: "milestone", stat: "END", prerequisiteQuestIds: ["diary-entry"], progressSettings: { mode: "count", targetValue: 12 }, titleReward: "記憶の守護者" },
+          { title: "日記3回達成", description: "日記を3回書きました。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["diary-entry"], progressSettings: { mode: "count", targetValue: 3 } },
+          { title: "日記6回達成", description: "日記を6回書きました。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["diary-entry"], progressSettings: { mode: "count", targetValue: 6 } },
+          { title: "日記9回達成", description: "日記を9回書きました。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["diary-entry"], progressSettings: { mode: "count", targetValue: 9 } },
+          { title: "日記12回達成", description: "日記を12回書きました。", questType: "milestone", stat: "END", xpReward: 30, goldReward: 8, prerequisiteQuestIds: ["diary-entry"], progressSettings: { mode: "count", targetValue: 12 }, titleReward: "記憶の守護者" },
         ],
       },
       {
         id: "final-chapter",
         title: "最終章",
-        description: "提出前の最終確認をします。",
+        description: "8月10日までに目指す最終確認。提出物をまとめて、先延ばし魔王を仲間にします。",
         story: "すべてをまとめると、先延ばし魔王の力が弱まります。",
         icon: "🏰",
         order: 6,
-        startDate: "",
+        startDate: SUMMER_HOMEWORK_MAIN_TARGET_DATE,
         unlockConditions: [
           { type: "questCompleted", questId: "calc-100" },
           { type: "questCompleted", questId: "kanji-100" },
@@ -575,9 +584,9 @@ const SPECIAL_MISSION_TEMPLATES = [
           rewards: { xp: 80, gold: 40, stats: { STR: 0, INT: 1, END: 3, DEX: 1 } },
         },
         quests: [
-          { title: "名前の書き忘れを確認する", description: "すべての提出物に名前があるか見ます。", stat: "DEX" },
-          { title: "提出物をまとめる", description: "提出するものをひとまとめにします。", stat: "DEX" },
-          { title: "保護者と最終確認する", description: "出すものを一緒に確認します。", stat: "END", approvalRequired: true },
+          { title: "名前の書き忘れを確認する", description: "すべての提出物に名前があるか見ます。", stat: "DEX", xpReward: 15, goldReward: 5 },
+          { title: "提出物をまとめる", description: "提出するものをひとまとめにします。", stat: "DEX", xpReward: 15, goldReward: 5 },
+          { title: "保護者と最終確認する", description: "出すものを一緒に確認します。", stat: "END", approvalRequired: true, xpReward: 20, goldReward: 5 },
         ],
       },
     ],
@@ -7204,6 +7213,39 @@ function isSpecialMissionQuestPending(missionId, quest) {
   return questProgress.pendingApproval || questProgress.status === "pending_approval";
 }
 
+function isSpecialMissionChapterCompleted(mission, chapterId) {
+  const chapter = mission.chapters.find((item) => item.id === chapterId);
+  if (!chapter) {
+    return false;
+  }
+  const requiredQuests = chapter.quests.filter((quest) => quest.required);
+  if (requiredQuests.length === 0) {
+    return true;
+  }
+  return requiredQuests.every((quest) => isSpecialMissionQuestComplete(mission.id, quest));
+}
+
+function isSpecialMissionChapterUnlocked(mission, chapterId) {
+  const chapter = mission.chapters.find((item) => item.id === chapterId);
+  if (!chapter) {
+    return true;
+  }
+  if (chapter.unlockConditions.length === 0) {
+    return true;
+  }
+
+  return chapter.unlockConditions.every((condition) => {
+    if (condition.type === "chapterCompleted") {
+      return isSpecialMissionChapterCompleted(mission, condition.chapterId);
+    }
+    if (condition.type === "questCompleted") {
+      const quest = getSpecialMissionAllQuests(mission).find((item) => item.id === condition.questId);
+      return quest ? isSpecialMissionQuestComplete(mission.id, quest) : false;
+    }
+    return true;
+  });
+}
+
 function isSpecialMissionQuestUnlocked(mission, quest) {
   return quest.prerequisiteQuestIds.every((questId) => {
     const prerequisite = getSpecialMissionAllQuests(mission).find((item) => item.id === questId);
@@ -7282,6 +7324,7 @@ function getSpecialMissionRecommendedQuests(mission) {
   const limit = Math.max(1, mission.settings.recommendedQuestCount || 3);
   return getSpecialMissionAllQuests(mission)
     .filter((quest) =>
+      isSpecialMissionChapterUnlocked(mission, quest.chapterId) &&
       isSpecialMissionQuestUnlocked(mission, quest) &&
       isSpecialMissionQuestAvailableToday(quest) &&
       !isSpecialMissionQuestComplete(mission.id, quest) &&
@@ -7336,7 +7379,12 @@ function completeSpecialMissionQuest(missionId, questId) {
     return;
   }
   const quest = getSpecialMissionAllQuests(mission).find((item) => item.id === questId);
-  if (!quest || !isSpecialMissionQuestUnlocked(mission, quest) || !isSpecialMissionQuestAvailableToday(quest)) {
+  if (
+    !quest ||
+    !isSpecialMissionChapterUnlocked(mission, quest.chapterId) ||
+    !isSpecialMissionQuestUnlocked(mission, quest) ||
+    !isSpecialMissionQuestAvailableToday(quest)
+  ) {
     return;
   }
   if (isSpecialMissionQuestComplete(mission.id, quest) || isSpecialMissionQuestPending(mission.id, quest)) {
