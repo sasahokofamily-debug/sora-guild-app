@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "3.0";
+const APP_VERSION = "3.1";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "夏休み宿題大作戦テンプレートを、8月10日攻略型に調整しました。",
-  "計算・漢字プリントを10分クエストと25％ごとの節目に整理しました。",
-  "日記は最後まで続ける定期イベントとして分けました。",
+  "特別ミッションの承認待ちを、ギルド管理から確認できるようにしました。",
+  "保護者が承認すると報酬が付与され、差し戻しもできるようにしました。",
+  "日記のような回数型クエストが、1回で完了扱いにならないよう調整しました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -6916,6 +6916,64 @@ function deleteSpecialMission(missionId) {
   setSpecialMissionMessage("特別ミッションを削除しました");
 }
 
+function getPendingSpecialMissionApprovals() {
+  return specialMissions.flatMap((mission) =>
+    getSpecialMissionAllQuests(mission)
+      .map((quest) => ({
+        mission,
+        quest,
+        questProgress: getSpecialMissionQuestProgress(mission.id, quest.id),
+      }))
+      .filter(({ questProgress }) => questProgress.pendingApproval || questProgress.status === "pending_approval"),
+  );
+}
+
+function renderSpecialMissionApprovalQueue() {
+  const pendingItems = getPendingSpecialMissionApprovals();
+  if (pendingItems.length === 0) {
+    return "";
+  }
+
+  const itemsHtml = pendingItems.map(({ mission, quest, questProgress }) => {
+    const rewards = normalizeRewardBundle(quest.rewards || {});
+    const countText = quest.totalTargetCount > 1
+      ? `${questProgress.completionCount} / ${quest.totalTargetCount}`
+      : "1回";
+    return `
+      <article class="special-mission-approval-item">
+        <div>
+          <span>${escapeHtml(mission.icon || "⭐")} ${escapeHtml(mission.title)}</span>
+          <strong>${escapeHtml(quest.title)}</strong>
+          <small>${escapeHtml(quest.chapterTitle)} ・ 報告 ${escapeHtml(countText)}</small>
+        </div>
+        <div class="special-mission-recommend-rewards">
+          ${rewards.xp > 0 ? `<span>+${formatNumber(rewards.xp)} XP</span>` : ""}
+          ${rewards.gold > 0 ? `<span>+${formatNumber(rewards.gold)} G</span>` : ""}
+        </div>
+        <div class="special-mission-approval-actions">
+          <button class="quest-manage-button" type="button" data-approve-special-mission-quest="${escapeHtml(mission.id)}" data-special-quest-id="${escapeHtml(quest.id)}">承認</button>
+          <button class="quest-manage-button is-secondary" type="button" data-reject-special-mission-quest="${escapeHtml(mission.id)}" data-special-quest-id="${escapeHtml(quest.id)}">差し戻し</button>
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  return `
+    <section class="special-mission-approval-panel" aria-label="特別ミッションの承認待ち">
+      <div class="special-mission-approval-head">
+        <div>
+          <p class="section-kicker">Approval</p>
+          <h4>承認待ち</h4>
+        </div>
+        <strong>${pendingItems.length}件</strong>
+      </div>
+      <div class="special-mission-approval-list">
+        ${itemsHtml}
+      </div>
+    </section>
+  `;
+}
+
 function renderSpecialMissionManager() {
   const list = document.querySelector("[data-special-mission-list]");
   if (!list) {
@@ -6923,6 +6981,7 @@ function renderSpecialMissionManager() {
   }
 
   list.innerHTML = "";
+  list.insertAdjacentHTML("beforeend", renderSpecialMissionApprovalQueue());
   if (specialMissions.length === 0) {
     const empty = document.createElement("p");
     empty.className = "managed-quest-empty";
@@ -7199,11 +7258,14 @@ function getSpecialMissionAllQuests(mission) {
 
 function isSpecialMissionQuestComplete(missionId, quest) {
   const questProgress = getSpecialMissionQuestProgress(missionId, quest.id);
-  if (questProgress.status === "completed" || questProgress.status === "approved") {
+  if (questProgress.status === "completed") {
     return true;
   }
   if (quest.questType === "daily") {
     return questProgress.completedDates.includes(getDateKey());
+  }
+  if (questProgress.status === "approved" && quest.totalTargetCount <= 1) {
+    return true;
   }
   return questProgress.completionCount >= quest.totalTargetCount || questProgress.percent >= 100;
 }
@@ -7458,6 +7520,108 @@ function completeSpecialMissionQuest(missionId, questId) {
   if (shouldPlayEvolution) {
     playEvolutionAnimation();
   }
+}
+
+function approveSpecialMissionQuest(missionId, questId) {
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+
+  const mission = specialMissions.find((item) => item.id === missionId);
+  const quest = mission ? getSpecialMissionAllQuests(mission).find((item) => item.id === questId) : null;
+  if (!mission || !quest) {
+    return;
+  }
+
+  const missionProgress = getSpecialMissionProgressState(mission.id);
+  const questProgress = getSpecialMissionQuestProgress(mission.id, quest.id);
+  if (!questProgress.pendingApproval && questProgress.status !== "pending_approval") {
+    return;
+  }
+
+  const approvedAt = new Date();
+  const approvedAtIso = approvedAt.toISOString();
+  const rewardResult = applySpecialMissionQuestReward(quest, approvedAt);
+  const isComplete = questProgress.completionCount >= quest.totalTargetCount || questProgress.percent >= 100;
+  missionProgress.questProgress[quest.id] = normalizeSpecialQuestProgress({
+    ...questProgress,
+    status: isComplete ? "completed" : "in_progress",
+    pendingApproval: false,
+    approvedAt: approvedAtIso,
+    rewardedAt: approvedAtIso,
+  });
+  missionProgress.updatedAt = approvedAtIso;
+  specialMissionProgress = {
+    ...specialMissionProgress,
+    [mission.id]: missionProgress,
+  };
+
+  const finalLevel = getLevel(progress.xp);
+  const shouldPlayEvolution = finalLevel > rewardResult.previousLevel && syncCharacterStageState(finalLevel, { allowEvolution: true });
+  if (shouldPlayEvolution) {
+    queueCharacterEvolution();
+  }
+
+  saveProgress();
+  saveSpecialMissionProgress();
+  render();
+  playSound("achievement");
+  showToast(`${quest.title}を承認しました`);
+  checkAchievements();
+  if (finalLevel > rewardResult.previousLevel) {
+    playLevelUpAnimation(rewardResult.previousLevel, finalLevel);
+  }
+  if (shouldPlayEvolution) {
+    playEvolutionAnimation();
+  }
+}
+
+function rejectSpecialMissionQuest(missionId, questId) {
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+
+  const mission = specialMissions.find((item) => item.id === missionId);
+  const quest = mission ? getSpecialMissionAllQuests(mission).find((item) => item.id === questId) : null;
+  if (!mission || !quest) {
+    return;
+  }
+
+  const missionProgress = getSpecialMissionProgressState(mission.id);
+  const questProgress = getSpecialMissionQuestProgress(mission.id, quest.id);
+  if (!questProgress.pendingApproval && questProgress.status !== "pending_approval") {
+    return;
+  }
+
+  const nextCompletionCount = Math.max(0, questProgress.completionCount - 1);
+  const nextPercent = Math.min(100, Math.round((nextCompletionCount / Math.max(1, quest.totalTargetCount)) * 100));
+  const rejectedDate = questProgress.completedDates[questProgress.completedDates.length - 1] || "";
+  const nextCompletedDates = rejectedDate
+    ? questProgress.completedDates.filter((dateKey) => dateKey !== rejectedDate)
+    : questProgress.completedDates;
+  const rejectedAt = new Date().toISOString();
+
+  missionProgress.questProgress[quest.id] = normalizeSpecialQuestProgress({
+    ...questProgress,
+    status: nextCompletionCount > 0 ? "in_progress" : "rejected",
+    pendingApproval: false,
+    currentValue: nextCompletionCount,
+    completionCount: nextCompletionCount,
+    percent: nextPercent,
+    completedDates: nextCompletedDates,
+    rejectedAt,
+  });
+  missionProgress.updatedAt = rejectedAt;
+  specialMissionProgress = {
+    ...specialMissionProgress,
+    [mission.id]: missionProgress,
+  };
+
+  saveSpecialMissionProgress();
+  render();
+  showToast(`${quest.title}を差し戻しました`);
 }
 
 function renderSpecialMissionHome() {
@@ -10132,6 +10296,24 @@ document.addEventListener("click", (event) => {
   const deleteSpecialMissionButton = event.target.closest("[data-delete-special-mission]");
   if (deleteSpecialMissionButton) {
     deleteSpecialMission(deleteSpecialMissionButton.dataset.deleteSpecialMission);
+    return;
+  }
+
+  const approveSpecialMissionQuestButton = event.target.closest("[data-approve-special-mission-quest]");
+  if (approveSpecialMissionQuestButton) {
+    approveSpecialMissionQuest(
+      approveSpecialMissionQuestButton.dataset.approveSpecialMissionQuest,
+      approveSpecialMissionQuestButton.dataset.specialQuestId,
+    );
+    return;
+  }
+
+  const rejectSpecialMissionQuestButton = event.target.closest("[data-reject-special-mission-quest]");
+  if (rejectSpecialMissionQuestButton) {
+    rejectSpecialMissionQuest(
+      rejectSpecialMissionQuestButton.dataset.rejectSpecialMissionQuest,
+      rejectSpecialMissionQuestButton.dataset.specialQuestId,
+    );
     return;
   }
 

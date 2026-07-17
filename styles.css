@@ -8092,6 +8092,84 @@ h3 {
   gap: 10px;
 }
 
+.special-mission-approval-panel {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(72, 143, 88, 0.3);
+  border-radius: 10px;
+  padding: 12px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(110, 181, 120, 0.2), transparent 7rem),
+    linear-gradient(180deg, rgba(255, 247, 223, 0.68), rgba(244, 230, 198, 0.42));
+  box-shadow: inset 0 0 0 1px rgba(255, 247, 223, 0.24);
+}
+
+.special-mission-approval-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.special-mission-approval-head h4 {
+  margin: 2px 0 0;
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 950;
+}
+
+.special-mission-approval-head strong {
+  flex: 0 0 auto;
+  border: 1px solid rgba(72, 143, 88, 0.28);
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: #295d32;
+  background: rgba(231, 250, 221, 0.72);
+  font-size: 0.86rem;
+  font-weight: 950;
+}
+
+.special-mission-approval-list {
+  display: grid;
+  gap: 8px;
+}
+
+.special-mission-approval-item {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  border: 1px solid rgba(111, 63, 38, 0.16);
+  border-radius: 9px;
+  padding: 10px;
+  background: rgba(255, 247, 223, 0.6);
+}
+
+.special-mission-approval-item div:first-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.special-mission-approval-item span,
+.special-mission-approval-item small {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 850;
+}
+
+.special-mission-approval-item strong {
+  color: var(--ink);
+  font-size: 0.98rem;
+  font-weight: 950;
+  overflow-wrap: anywhere;
+}
+
+.special-mission-approval-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
 .special-mission-item {
   display: grid;
   gap: 10px;
@@ -8909,7 +8987,8 @@ h3 {
 
 @media (max-width: 679px) {
   .special-mission-edit-grid,
-  .special-mission-edit-form .reward-input-grid {
+  .special-mission-edit-form .reward-input-grid,
+  .special-mission-approval-actions {
     grid-template-columns: 1fr;
   }
 
