@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "3.7";
+const APP_VERSION = "3.8";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "夏休み宿題大作戦に、読書感想文を書く章を追加しました。",
-  "本を決める、読む、メモする、下書き、清書、完成まで細かく進められるようにしました。",
-  "既に作成済みの夏休みミッションにも、読書感想文の章を自動で追加します。",
+  "夏休み宿題大作戦の章が、順番どおりに解放されるように修正しました。",
+  "今日やることは、いま攻略中の一番手前の章から表示されるようにしました。",
+  "1回だけのクエストには、不要な進捗率入力を表示しないようにしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -525,7 +525,7 @@ const SPECIAL_MISSION_TEMPLATES = [
         icon: "🎨",
         order: 4,
         startDate: `${SUMMER_HOMEWORK_YEAR}-08-01`,
-        unlockConditions: [],
+        unlockConditions: [{ type: "chapterCompleted", chapterId: "chapter-3-kanji" }],
         completionConditions: [{ type: "questCompleted", questId: "creation-ready" }],
         boss: {
           enabled: true,
@@ -560,7 +560,7 @@ const SPECIAL_MISSION_TEMPLATES = [
         icon: "📖",
         order: 6,
         startDate: SUMMER_HOMEWORK_START_DATE,
-        unlockConditions: [],
+        unlockConditions: [{ type: "questCompleted", questId: "reading-report-ready" }],
         completionConditions: [{ type: "questCompletionCount", questId: "diary-entry", target: 12 }],
         boss: {
           enabled: false,
@@ -3170,6 +3170,45 @@ function ensureSummerHomeworkReadingChapter(mission) {
   });
 }
 
+function ensureSummerHomeworkChapterUnlocks(mission) {
+  const isSummerHomeworkMission = mission.templateId === "summer-homework-campaign" || mission.title.includes("夏休み宿題");
+  if (!isSummerHomeworkMission) {
+    return mission;
+  }
+
+  const unlockRules = {
+    "chapter-2-calculation": [{ type: "chapterCompleted", chapterId: "chapter-1-preparation" }],
+    "chapter-3-kanji": [{ type: "chapterCompleted", chapterId: "chapter-2-calculation" }],
+    "chapter-4-creation": [{ type: "chapterCompleted", chapterId: "chapter-3-kanji" }],
+    "chapter-5-reading-report": [{ type: "chapterCompleted", chapterId: "chapter-4-creation" }],
+    "chapter-5-memory": [{ type: "questCompleted", questId: "reading-report-ready" }],
+  };
+  let changed = false;
+  const chapters = mission.chapters.map((chapter) => {
+    const unlockConditions = unlockRules[chapter.id];
+    if (!unlockConditions) {
+      return chapter;
+    }
+    const current = JSON.stringify(chapter.unlockConditions || []);
+    const next = JSON.stringify(unlockConditions);
+    if (current === next) {
+      return chapter;
+    }
+    changed = true;
+    return { ...chapter, unlockConditions: clonePlainObject(unlockConditions) };
+  });
+
+  if (!changed) {
+    return mission;
+  }
+
+  return normalizeSpecialMission({
+    ...mission,
+    chapters,
+    updatedAt: mission.updatedAt || new Date().toISOString(),
+  });
+}
+
 function createSpecialMissionFromTemplate(templateId = "summer-homework-campaign", overrides = {}) {
   const template = SPECIAL_MISSION_TEMPLATES.find((item) => item.templateId === templateId) || SPECIAL_MISSION_TEMPLATES[0];
   const nowIso = new Date().toISOString();
@@ -3206,6 +3245,7 @@ function loadSpecialMissions() {
       .map(normalizeSpecialMission)
       .filter(Boolean)
       .map(ensureSummerHomeworkReadingChapter)
+      .map(ensureSummerHomeworkChapterUnlocks)
       .sort((a, b) => a.order - b.order);
     localStorage.setItem(SPECIAL_MISSIONS_KEY, JSON.stringify(normalizedMissions));
     return normalizedMissions;
@@ -7562,7 +7602,7 @@ function getSpecialMissionAllQuests(mission) {
 
 function isSpecialMissionQuestProgressComplete(quest, questProgress) {
   if (quest.questType === "daily") {
-    return questProgress.completedDates.includes(getDateKey());
+    return questProgress.completedDates.length > 0 || questProgress.completionCount > 0;
   }
   if (quest.progressSettings.mode === "percent") {
     return questProgress.percent >= Math.max(1, quest.progressSettings.targetPercent || 100);
@@ -7579,7 +7619,7 @@ function isSpecialMissionQuestComplete(missionId, quest) {
     return true;
   }
   if (quest.questType === "daily") {
-    return questProgress.completedDates.includes(getDateKey());
+    return questProgress.completedDates.length > 0 || questProgress.completionCount > 0;
   }
   if (questProgress.status === "approved" && quest.totalTargetCount <= 1) {
     return true;
@@ -7730,17 +7770,26 @@ function scoreSpecialMissionQuestRecommendation(quest) {
   return score;
 }
 
+function getCurrentSpecialMissionChapter(mission) {
+  return mission.chapters
+    .filter((chapter) => isSpecialMissionChapterUnlocked(mission, chapter.id))
+    .sort((a, b) => a.order - b.order)
+    .find((chapter) => !isSpecialMissionChapterCompleted(mission, chapter.id)) || null;
+}
+
 function getSpecialMissionRecommendedQuests(mission) {
   const limit = Math.max(1, mission.settings.recommendedQuestCount || 3);
+  const currentChapter = getCurrentSpecialMissionChapter(mission);
   return getSpecialMissionAllQuests(mission)
     .filter((quest) =>
+      (!currentChapter || quest.chapterId === currentChapter.id) &&
       isSpecialMissionChapterUnlocked(mission, quest.chapterId) &&
       isSpecialMissionQuestUnlocked(mission, quest) &&
       isSpecialMissionQuestAvailableToday(quest) &&
       !isSpecialMissionQuestDoneForToday(mission.id, quest) &&
       !isSpecialMissionQuestPending(mission.id, quest),
     )
-    .sort((a, b) => scoreSpecialMissionQuestRecommendation(b) - scoreSpecialMissionQuestRecommendation(a) || a.order - b.order)
+    .sort((a, b) => (a.order - b.order) || scoreSpecialMissionQuestRecommendation(b) - scoreSpecialMissionQuestRecommendation(a))
     .slice(0, limit);
 }
 
@@ -7756,7 +7805,14 @@ function getSpecialMissionRewardPreview(mission) {
   return parts.length ? `最終報酬 ${parts.join(" / ")}` : "最終報酬あり";
 }
 
+function shouldShowSpecialMissionProgressInput(quest) {
+  return ["milestone", "progress_rate", "period_count"].includes(quest.questType);
+}
+
 function getSpecialMissionProgressInputHtml(mission, quest) {
+  if (!shouldShowSpecialMissionProgressInput(quest)) {
+    return "";
+  }
   const questProgress = getSpecialMissionQuestProgress(mission.id, quest.id);
   if (quest.progressSettings.mode === "percent") {
     const targetPercent = Math.max(1, quest.progressSettings.targetPercent || 100);
