@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "3.1";
+const APP_VERSION = "3.2";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "特別ミッションの承認待ちを、ギルド管理から確認できるようにしました。",
-  "保護者が承認すると報酬が付与され、差し戻しもできるようにしました。",
-  "日記のような回数型クエストが、1回で完了扱いにならないよう調整しました。",
+  "特別ミッション編集で、チャプターとクエスト内容を調整できるようにしました。",
+  "クエストごとのXP、Gold、能力値、承認の有無を編集できるようにしました。",
+  "テンプレートを家庭の宿題内容に合わせて使いやすくしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -6974,6 +6974,81 @@ function renderSpecialMissionApprovalQueue() {
   `;
 }
 
+function renderSpecialMissionChapterEditor(mission) {
+  if (!mission.chapters.length) {
+    return `<p class="managed-quest-empty">チャプターはまだありません。</p>`;
+  }
+
+  return `
+    <div class="special-mission-chapter-editor">
+      <div>
+        <p class="section-kicker">Chapters</p>
+        <h4>チャプターとクエスト</h4>
+        <p>家庭の宿題内容に合わせて、名前・説明・報酬を調整できます。</p>
+      </div>
+      ${mission.chapters.map((chapter) => `
+        <section class="special-mission-chapter-edit-card">
+          <label>
+            チャプター名
+            <input type="text" name="chapterTitle:${escapeHtml(chapter.id)}" value="${escapeHtml(chapter.title)}" maxlength="50">
+          </label>
+          <label>
+            説明
+            <textarea name="chapterDescription:${escapeHtml(chapter.id)}" rows="2" maxlength="180">${escapeHtml(chapter.description)}</textarea>
+          </label>
+          <div class="special-mission-quest-edit-list">
+            ${chapter.quests.map((quest) => {
+              const rewards = normalizeRewardBundle(quest.rewards || {});
+              return `
+                <article class="special-mission-quest-edit-card">
+                  <label>
+                    クエスト名
+                    <input type="text" name="questTitle:${escapeHtml(quest.id)}" value="${escapeHtml(quest.title)}" maxlength="60">
+                  </label>
+                  <label>
+                    説明
+                    <textarea name="questDescription:${escapeHtml(quest.id)}" rows="2" maxlength="180">${escapeHtml(quest.description)}</textarea>
+                  </label>
+                  <div class="special-mission-quest-edit-grid">
+                    <label>
+                      XP
+                      <input type="number" name="questXp:${escapeHtml(quest.id)}" inputmode="numeric" min="0" max="9999" value="${rewards.xp}">
+                    </label>
+                    <label>
+                      Gold
+                      <input type="number" name="questGold:${escapeHtml(quest.id)}" inputmode="numeric" min="0" max="9999" value="${rewards.gold}">
+                    </label>
+                    <label>
+                      能力
+                      <select name="questStat:${escapeHtml(quest.id)}">
+                        ${STAT_KEYS.map((stat) => `<option value="${stat}"${quest.stat === stat ? " selected" : ""}>${stat}</option>`).join("")}
+                      </select>
+                    </label>
+                    <label>
+                      目安分
+                      <input type="number" name="questMinutes:${escapeHtml(quest.id)}" inputmode="numeric" min="0" max="180" value="${quest.estimatedMinutes}">
+                    </label>
+                  </div>
+                  <div class="special-mission-quest-flags">
+                    <label class="setting-check">
+                      <input type="checkbox" name="questRequired:${escapeHtml(quest.id)}"${quest.required ? " checked" : ""}>
+                      <span>必須</span>
+                    </label>
+                    <label class="setting-check">
+                      <input type="checkbox" name="questApproval:${escapeHtml(quest.id)}"${quest.approvalRequired ? " checked" : ""}>
+                      <span>承認あり</span>
+                    </label>
+                  </div>
+                </article>
+              `;
+            }).join("")}
+          </div>
+        </section>
+      `).join("")}
+    </div>
+  `;
+}
+
 function renderSpecialMissionManager() {
   const list = document.querySelector("[data-special-mission-list]");
   if (!list) {
@@ -7066,6 +7141,7 @@ function renderSpecialMissionManager() {
             <input type="checkbox" name="enabled"${mission.enabled ? " checked" : ""}>
             <span>有効にする</span>
           </label>
+          ${renderSpecialMissionChapterEditor(mission)}
           <p class="form-message" data-edit-special-mission-message aria-live="polite"></p>
           <div class="special-mission-actions">
             <button class="quest-manage-button" type="submit">保存</button>
@@ -7161,6 +7237,33 @@ function handleSpecialMissionEditSubmit(event) {
     if (item.id !== missionId) {
       return item;
     }
+    const updatedChapters = item.chapters.map((chapter) => ({
+      ...chapter,
+      title: String(formData.get(`chapterTitle:${chapter.id}`) || chapter.title).trim() || chapter.title,
+      description: String(formData.get(`chapterDescription:${chapter.id}`) || chapter.description).trim(),
+      quests: chapter.quests.map((quest) => {
+        const stat = STAT_KEYS.includes(formData.get(`questStat:${quest.id}`))
+          ? String(formData.get(`questStat:${quest.id}`))
+          : quest.stat;
+        const rewards = normalizeRewardBundle(quest.rewards || {});
+        const statReward = normalizeNonNegativeNumber(rewards.stats[stat], 1) || 1;
+        return {
+          ...quest,
+          title: String(formData.get(`questTitle:${quest.id}`) || quest.title).trim() || quest.title,
+          description: String(formData.get(`questDescription:${quest.id}`) || quest.description).trim(),
+          estimatedMinutes: formData.get(`questMinutes:${quest.id}`),
+          required: formData.get(`questRequired:${quest.id}`) === "on",
+          approvalRequired: formData.get(`questApproval:${quest.id}`) === "on",
+          stat,
+          rewards: {
+            ...rewards,
+            xp: formData.get(`questXp:${quest.id}`),
+            gold: formData.get(`questGold:${quest.id}`),
+            stats: { [stat]: statReward },
+          },
+        };
+      }),
+    }));
     return normalizeSpecialMission({
       ...item,
       title,
@@ -7187,6 +7290,7 @@ function handleSpecialMissionEditSubmit(event) {
         ...item.settings,
         recommendedQuestCount: formData.get("recommendedQuestCount"),
       },
+      chapters: updatedChapters,
       updatedAt: new Date().toISOString(),
     });
   }).filter(Boolean);
