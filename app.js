@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "2.8";
+const APP_VERSION = "2.9";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "ギルド管理に特別ミッション管理を追加しました。",
-  "夏休み宿題大作戦テンプレートからミッションを作成できるようにしました。",
-  "特別ミッションの公開、停止、複製、削除ができるようにしました。",
+  "公開中の特別ミッションをホーム画面に表示できるようにしました。",
+  "今日のおすすめクエストを自動表示するようにしました。",
+  "承認不要の特別ミッションは子ども側で完了できるようにしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -3172,6 +3172,7 @@ function loadSpecialMissionProgress() {
 
 function saveSpecialMissionProgress() {
   localStorage.setItem(SPECIAL_MISSION_PROGRESS_KEY, JSON.stringify(specialMissionProgress));
+  scheduleCloudSave();
 }
 
 function normalizeReward(rawReward) {
@@ -7128,6 +7129,347 @@ function handleSpecialMissionEditSubmit(event) {
   setSpecialMissionMessage("特別ミッションを保存しました");
 }
 
+function isSpecialMissionActive(mission, dateKey = getDateKey()) {
+  if (!mission || !mission.enabled || mission.status !== "published" || !mission.isPublished) {
+    return false;
+  }
+  if (mission.startDate && dateKey < mission.startDate) {
+    return false;
+  }
+  if (mission.endDate && dateKey > mission.endDate) {
+    return false;
+  }
+  return true;
+}
+
+function getActiveSpecialMissions(dateKey = getDateKey()) {
+  return specialMissions
+    .filter((mission) => isSpecialMissionActive(mission, dateKey))
+    .sort((a, b) => a.order - b.order);
+}
+
+function getPrimarySpecialMission() {
+  return getActiveSpecialMissions()[0] || null;
+}
+
+function getSpecialMissionProgressState(missionId) {
+  if (!specialMissionProgress[missionId]) {
+    specialMissionProgress[missionId] = normalizeSpecialMissionProgress({
+      [missionId]: {
+        questProgress: {},
+        chapterBosses: {},
+        claimedRewards: [],
+        earlyCompletionRewarded: false,
+        mainCompletedAt: "",
+        completedAt: "",
+        updatedAt: new Date().toISOString(),
+      },
+    })[missionId];
+  }
+  return specialMissionProgress[missionId];
+}
+
+function getSpecialMissionQuestProgress(missionId, questId) {
+  const missionProgress = getSpecialMissionProgressState(missionId);
+  if (!missionProgress.questProgress[questId]) {
+    missionProgress.questProgress[questId] = normalizeSpecialQuestProgress();
+  }
+  return missionProgress.questProgress[questId];
+}
+
+function getSpecialMissionAllQuests(mission) {
+  return mission.chapters.flatMap((chapter) =>
+    chapter.quests.map((quest) => ({
+      ...quest,
+      chapterId: chapter.id,
+      chapterTitle: chapter.title,
+      chapterOrder: chapter.order,
+    })),
+  ).sort((a, b) => (a.chapterOrder - b.chapterOrder) || (a.order - b.order));
+}
+
+function isSpecialMissionQuestComplete(missionId, quest) {
+  const questProgress = getSpecialMissionQuestProgress(missionId, quest.id);
+  if (questProgress.status === "completed" || questProgress.status === "approved") {
+    return true;
+  }
+  if (quest.questType === "daily") {
+    return questProgress.completedDates.includes(getDateKey());
+  }
+  return questProgress.completionCount >= quest.totalTargetCount || questProgress.percent >= 100;
+}
+
+function isSpecialMissionQuestPending(missionId, quest) {
+  const questProgress = getSpecialMissionQuestProgress(missionId, quest.id);
+  return questProgress.pendingApproval || questProgress.status === "pending_approval";
+}
+
+function isSpecialMissionQuestUnlocked(mission, quest) {
+  return quest.prerequisiteQuestIds.every((questId) => {
+    const prerequisite = getSpecialMissionAllQuests(mission).find((item) => item.id === questId);
+    return prerequisite ? isSpecialMissionQuestComplete(mission.id, prerequisite) : false;
+  });
+}
+
+function isSpecialMissionQuestAvailableToday(quest, dateKey = getDateKey()) {
+  if (quest.schedule.startDate && dateKey < quest.schedule.startDate) {
+    return false;
+  }
+  if (quest.schedule.dueDate && dateKey > quest.schedule.dueDate) {
+    return false;
+  }
+  if (quest.questType === "specific_date") {
+    return quest.schedule.specificDates.length === 0 || quest.schedule.specificDates.includes(dateKey);
+  }
+  if (quest.questType === "weekday") {
+    const weekday = getJapanDayOfWeek(new Date(`${dateKey}T00:00:00+09:00`));
+    return quest.schedule.weekdays.length === 0 || quest.schedule.weekdays.includes(weekday);
+  }
+  return true;
+}
+
+function getSpecialMissionProgressSummary(mission) {
+  const quests = getSpecialMissionAllQuests(mission).filter((quest) => quest.required);
+  if (quests.length === 0) {
+    return { completed: 0, total: 0, percent: 0, pending: 0 };
+  }
+  const completed = quests.filter((quest) => isSpecialMissionQuestComplete(mission.id, quest)).length;
+  const pending = quests.filter((quest) => isSpecialMissionQuestPending(mission.id, quest)).length;
+  return {
+    completed,
+    total: quests.length,
+    percent: Math.round((completed / quests.length) * 100),
+    pending,
+  };
+}
+
+function getSpecialMissionDayLabel(dateKey, prefix) {
+  if (!dateKey) {
+    return `${prefix} 未設定`;
+  }
+  const diff = getDayDifference(getDateKey(), dateKey);
+  if (diff < 0) {
+    return `${prefix} 経過`;
+  }
+  if (diff === 0) {
+    return `${prefix} 今日`;
+  }
+  return `${prefix} あと${diff}日`;
+}
+
+function scoreSpecialMissionQuestRecommendation(quest) {
+  let score = 0;
+  if (quest.required) {
+    score += 80;
+  }
+  if (quest.schedule.dueDate) {
+    const dueDiff = getDayDifference(getDateKey(), quest.schedule.dueDate);
+    score += dueDiff < 0 ? 120 : Math.max(0, 60 - dueDiff * 8);
+  }
+  if (quest.estimatedMinutes <= 15) {
+    score += 24;
+  }
+  if (quest.questType === "daily") {
+    score += 18;
+  }
+  if (quest.questType === "period_count") {
+    score += 12;
+  }
+  return score;
+}
+
+function getSpecialMissionRecommendedQuests(mission) {
+  const limit = Math.max(1, mission.settings.recommendedQuestCount || 3);
+  return getSpecialMissionAllQuests(mission)
+    .filter((quest) =>
+      isSpecialMissionQuestUnlocked(mission, quest) &&
+      isSpecialMissionQuestAvailableToday(quest) &&
+      !isSpecialMissionQuestComplete(mission.id, quest) &&
+      !isSpecialMissionQuestPending(mission.id, quest),
+    )
+    .sort((a, b) => scoreSpecialMissionQuestRecommendation(b) - scoreSpecialMissionQuestRecommendation(a) || a.order - b.order)
+    .slice(0, limit);
+}
+
+function getSpecialMissionRewardPreview(mission) {
+  const rewards = mission.rewards;
+  const parts = [];
+  if (rewards.xp > 0) {
+    parts.push(`${formatNumber(rewards.xp)}XP`);
+  }
+  if (rewards.gold > 0) {
+    parts.push(`${formatNumber(rewards.gold)}G`);
+  }
+  return parts.length ? `最終報酬 ${parts.join(" / ")}` : "最終報酬あり";
+}
+
+function applySpecialMissionQuestReward(quest, completedAt) {
+  const previousLevel = getLevel(progress.xp);
+  const rewards = normalizeRewardBundle(quest.rewards || {});
+  const currentStats = normalizeStats(progress.stats);
+  const nextStats = { ...currentStats };
+  STAT_KEYS.forEach((stat) => {
+    nextStats[stat] += normalizeNonNegativeNumber(rewards.stats[stat], 0);
+  });
+  const nextXp = progress.xp + rewards.xp;
+  const nextLevel = getLevel(nextXp);
+
+  progress = {
+    ...progress,
+    xp: nextXp,
+    gold: progress.gold + rewards.gold,
+    totalGoldEarned: Math.max(0, progress.totalGoldEarned || progress.gold || 0) + rewards.gold,
+    stats: nextStats,
+    recentStatHistory: [
+      ...STAT_KEYS.filter((stat) => normalizeNonNegativeNumber(rewards.stats[stat], 0) > 0),
+      ...normalizeRecentStatHistory(progress.recentStatHistory),
+    ].slice(0, RECENT_STAT_HISTORY_LIMIT),
+    titleHistory: updateTitleHistory(progress.titleHistory, previousLevel, nextLevel, completedAt.toISOString()),
+  };
+
+  return { previousLevel, nextLevel, xp: rewards.xp, gold: rewards.gold };
+}
+
+function completeSpecialMissionQuest(missionId, questId) {
+  const mission = specialMissions.find((item) => item.id === missionId);
+  if (!mission || !isSpecialMissionActive(mission)) {
+    return;
+  }
+  const quest = getSpecialMissionAllQuests(mission).find((item) => item.id === questId);
+  if (!quest || !isSpecialMissionQuestUnlocked(mission, quest) || !isSpecialMissionQuestAvailableToday(quest)) {
+    return;
+  }
+  if (isSpecialMissionQuestComplete(mission.id, quest) || isSpecialMissionQuestPending(mission.id, quest)) {
+    return;
+  }
+
+  const completedAt = new Date();
+  const completedAtIso = completedAt.toISOString();
+  const dateKey = getDateKey(completedAt);
+  const missionProgress = getSpecialMissionProgressState(mission.id);
+  const questProgress = getSpecialMissionQuestProgress(mission.id, quest.id);
+  const nextCompletionCount = Math.min(quest.totalTargetCount, questProgress.completionCount + 1);
+  const nextPercent = Math.min(100, Math.round((nextCompletionCount / Math.max(1, quest.totalTargetCount)) * 100));
+
+  if (quest.approvalRequired) {
+    missionProgress.questProgress[quest.id] = normalizeSpecialQuestProgress({
+      ...questProgress,
+      status: "pending_approval",
+      pendingApproval: true,
+      currentValue: nextCompletionCount,
+      completionCount: nextCompletionCount,
+      percent: nextPercent,
+      targetValue: quest.totalTargetCount,
+      completedDates: [...new Set([...questProgress.completedDates, dateKey])],
+    });
+    missionProgress.updatedAt = completedAtIso;
+    specialMissionProgress = {
+      ...specialMissionProgress,
+      [mission.id]: missionProgress,
+    };
+    saveSpecialMissionProgress();
+    render();
+    showToast("承認待ちにしました");
+    return;
+  }
+
+  const rewardResult = applySpecialMissionQuestReward(quest, completedAt);
+  const isComplete = nextCompletionCount >= quest.totalTargetCount || nextPercent >= 100;
+  missionProgress.questProgress[quest.id] = normalizeSpecialQuestProgress({
+    ...questProgress,
+    status: isComplete ? "completed" : "in_progress",
+    pendingApproval: false,
+    currentValue: nextCompletionCount,
+    completionCount: nextCompletionCount,
+    percent: nextPercent,
+    targetValue: quest.totalTargetCount,
+    completedDates: [...new Set([...questProgress.completedDates, dateKey])],
+    rewardedAt: completedAtIso,
+  });
+  missionProgress.updatedAt = completedAtIso;
+  specialMissionProgress = {
+    ...specialMissionProgress,
+    [mission.id]: missionProgress,
+  };
+
+  const finalLevel = getLevel(progress.xp);
+  const shouldPlayEvolution = finalLevel > rewardResult.previousLevel && syncCharacterStageState(finalLevel, { allowEvolution: true });
+  if (shouldPlayEvolution) {
+    queueCharacterEvolution();
+  }
+
+  saveProgress();
+  saveSpecialMissionProgress();
+  render();
+  playSound("questComplete");
+  showToast(`${quest.title} 完了！`);
+  checkAchievements();
+  if (finalLevel > rewardResult.previousLevel) {
+    playLevelUpAnimation(rewardResult.previousLevel, finalLevel);
+  }
+  if (shouldPlayEvolution) {
+    playEvolutionAnimation();
+  }
+}
+
+function renderSpecialMissionHome() {
+  const card = document.querySelector("[data-special-mission-card]");
+  const list = document.querySelector("[data-special-mission-recommend-list]");
+  if (!card || !list) {
+    return;
+  }
+
+  const mission = getPrimarySpecialMission();
+  card.hidden = !mission;
+  list.innerHTML = "";
+  if (!mission) {
+    return;
+  }
+
+  const summary = getSpecialMissionProgressSummary(mission);
+  const recommendedQuests = getSpecialMissionRecommendedQuests(mission);
+  setText("[data-special-mission-title]", `${mission.icon} ${mission.title}`);
+  setText("[data-special-mission-story]", mission.description || mission.story || "期間限定の冒険を進めましょう。");
+  setText("[data-special-mission-progress]", `${summary.percent}%`);
+  setText("[data-special-mission-days-left]", getSpecialMissionDayLabel(mission.endDate, "締切"));
+  setText("[data-special-mission-target-left]", getSpecialMissionDayLabel(mission.targetCompletionDate, "推奨"));
+  setText("[data-special-mission-reward-preview]", getSpecialMissionRewardPreview(mission));
+  const bar = document.querySelector("[data-special-mission-bar]");
+  if (bar) {
+    bar.style.width = `${summary.percent}%`;
+  }
+
+  if (summary.total === 0) {
+    list.innerHTML = `<p class="special-mission-empty">クエストはまだありません。</p>`;
+    return;
+  }
+  if (recommendedQuests.length === 0) {
+    list.innerHTML = `<p class="special-mission-empty">${summary.pending > 0 ? "保護者の承認待ちがあります。" : "今日は攻略完了です。"}</p>`;
+    return;
+  }
+
+  recommendedQuests.forEach((quest) => {
+    const item = document.createElement("article");
+    item.className = "special-mission-recommend-item";
+    const rewards = normalizeRewardBundle(quest.rewards || {});
+    item.innerHTML = `
+      <div>
+        <span>${escapeHtml(quest.chapterTitle)}</span>
+        <strong>${escapeHtml(quest.title)}</strong>
+        <small>${escapeHtml(quest.estimatedMinutes ? `目安 ${quest.estimatedMinutes}分` : "今日できるクエスト")}</small>
+      </div>
+      <div class="special-mission-recommend-rewards">
+        ${rewards.xp > 0 ? `<span>+${formatNumber(rewards.xp)} XP</span>` : ""}
+        ${rewards.gold > 0 ? `<span>+${formatNumber(rewards.gold)} G</span>` : ""}
+      </div>
+      <button type="button" data-complete-special-mission-quest="${escapeHtml(mission.id)}" data-special-quest-id="${escapeHtml(quest.id)}">
+        ${quest.approvalRequired ? "報告する" : "完了"}
+      </button>
+    `;
+    list.append(item);
+  });
+}
+
 function handleRewardCreateSubmit(event) {
   event.preventDefault();
   if (!isParentUnlocked) {
@@ -9304,6 +9646,7 @@ function render() {
   renderCharacter(level);
   renderQuests();
   renderHomeDailyMission();
+  renderSpecialMissionHome();
   renderSummerEventCard();
   renderBossBattle();
   applyWorldTheme();
@@ -9741,6 +10084,15 @@ document.addEventListener("click", (event) => {
   const deleteSpecialMissionButton = event.target.closest("[data-delete-special-mission]");
   if (deleteSpecialMissionButton) {
     deleteSpecialMission(deleteSpecialMissionButton.dataset.deleteSpecialMission);
+    return;
+  }
+
+  const completeSpecialMissionQuestButton = event.target.closest("[data-complete-special-mission-quest]");
+  if (completeSpecialMissionQuestButton) {
+    completeSpecialMissionQuest(
+      completeSpecialMissionQuestButton.dataset.completeSpecialMissionQuest,
+      completeSpecialMissionQuestButton.dataset.specialQuestId,
+    );
     return;
   }
 
