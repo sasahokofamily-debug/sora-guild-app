@@ -8425,7 +8425,7 @@ h3 {
 }
 
 .special-mission-card[data-mission-theme="summer"] .special-mission-home-head > strong,
-.special-mission-card[data-mission-theme="summer"] .special-mission-overview-head span {
+.special-mission-card[data-mission-theme="summer"] .special-mission-overview-count {
   border-color: rgba(42, 142, 170, 0.34);
   color: #174f68;
   background: linear-gradient(180deg, rgba(234, 252, 255, 0.94), rgba(154, 218, 229, 0.62));
@@ -8579,15 +8579,39 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .special-mission-overview-head strong {
+  min-width: 0;
   color: var(--ink);
   font-size: 0.94rem;
   font-weight: 950;
 }
 
-.special-mission-overview-head span {
+.special-mission-overview-toggle-meta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.special-mission-overview-count {
   flex: 0 0 auto;
   border: 1px solid rgba(111, 63, 38, 0.18);
   border-radius: 999px;
@@ -8598,9 +8622,25 @@ h3 {
   font-weight: 950;
 }
 
+.special-mission-overview-toggle-meta i {
+  width: 1em;
+  color: var(--wood-dark);
+  font-size: 0.76rem;
+  font-style: normal;
+  text-align: center;
+}
+
+.special-mission-overview-head:active {
+  opacity: 0.72;
+}
+
 .special-mission-chapter-list {
   display: grid;
   gap: 7px;
+}
+
+.special-mission-chapter-list[hidden] {
+  display: none;
 }
 
 .special-mission-chapter-item {

@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "4.1";
+const APP_VERSION = "4.2";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "夏休み宿題大作戦に、青空とひまわりをイメージした季節の色を加えました。",
-  "進捗バーや章の攻略表示を夏色に揃え、特別な冒険だと分かりやすくしました。",
-  "羊皮紙の世界観とスマホでの読みやすさはそのまま維持しています。",
+  "特別ミッションの章一覧を、必要なときだけ開けるようにしました。",
+  "ホームには進捗と今日やることを優先して表示し、スクロール量を減らしました。",
+  "章の見出し全体を押せるようにし、スマホで開閉しやすくしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -1585,6 +1585,7 @@ let editingRewardId = null;
 let editingSpecialMissionId = null;
 let isQuestCreateOpen = false;
 let isWorldMapOpen = false;
+let isSpecialMissionOverviewOpen = false;
 let activeQuestCategory = "daily_required";
 let questSwipeStartX = 0;
 let questSwipeStartY = 0;
@@ -8104,6 +8105,19 @@ function renderSpecialMissionHome() {
   const mission = getPrimarySpecialMission();
   card.hidden = !mission;
   card.dataset.missionTheme = mission ? String(mission.theme || "guild") : "guild";
+  const overviewToggle = document.querySelector("[data-special-mission-overview-toggle]");
+  const overviewLabel = document.querySelector("[data-special-mission-overview-label]");
+  const overviewIndicator = document.querySelector("[data-special-mission-overview-indicator]");
+  chapterList.hidden = !isSpecialMissionOverviewOpen;
+  if (overviewToggle) {
+    overviewToggle.setAttribute("aria-expanded", String(isSpecialMissionOverviewOpen));
+  }
+  if (overviewLabel) {
+    overviewLabel.textContent = isSpecialMissionOverviewOpen ? "閉じる" : "全体を見る";
+  }
+  if (overviewIndicator) {
+    overviewIndicator.textContent = isSpecialMissionOverviewOpen ? "▼" : "▶";
+  }
   list.innerHTML = "";
   chapterList.innerHTML = "";
   if (!mission) {
@@ -10524,6 +10538,13 @@ document.addEventListener("click", (event) => {
   if (worldMapToggle) {
     isWorldMapOpen = !isWorldMapOpen;
     renderWorldMap();
+    return;
+  }
+
+  const specialMissionOverviewToggle = event.target.closest("[data-special-mission-overview-toggle]");
+  if (specialMissionOverviewToggle) {
+    isSpecialMissionOverviewOpen = !isSpecialMissionOverviewOpen;
+    renderSpecialMissionHome();
     return;
   }
 

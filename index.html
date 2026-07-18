@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260717-summer-mission41">
+    <link rel="stylesheet" href="styles.css?v=20260718-special-collapse42">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -94,7 +94,7 @@
         <div class="app-brand-block">
           <p class="eyebrow">Fantasy Guild Log</p>
           <h1 data-app-name>そらクエスト</h1>
-          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 4.1</button>
+          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 4.2</button>
         </div>
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
@@ -171,11 +171,15 @@
               <span data-special-mission-target-left>推奨日未設定</span>
             </div>
             <div class="special-mission-overview">
-              <div class="special-mission-overview-head">
-                <strong>ミッション全体</strong>
-                <span data-special-mission-chapter-count>0 / 0</span>
-              </div>
-              <div class="special-mission-chapter-list" data-special-mission-chapter-list></div>
+              <button class="special-mission-overview-head" type="button" data-special-mission-overview-toggle aria-expanded="false" aria-controls="special-mission-chapter-list">
+                <strong>章の進み具合</strong>
+                <span class="special-mission-overview-toggle-meta">
+                  <span class="special-mission-overview-count" data-special-mission-chapter-count>0 / 0</span>
+                  <span data-special-mission-overview-label>全体を見る</span>
+                  <i data-special-mission-overview-indicator aria-hidden="true">▶</i>
+                </span>
+              </button>
+              <div id="special-mission-chapter-list" class="special-mission-chapter-list" data-special-mission-chapter-list hidden></div>
             </div>
             <div class="special-mission-today">
               <div class="special-mission-today-head">
@@ -1235,13 +1239,13 @@
         <div class="version-notes-card" role="dialog" aria-modal="true" aria-labelledby="version-notes-title">
           <p class="section-kicker">Update</p>
           <h3 id="version-notes-title" data-version-notes-title>
-            <span class="version-notes-title-version">Version 4.1</span><br>
+            <span class="version-notes-title-version">Version 4.2</span><br>
             <span class="version-notes-title-label">更新内容</span>
           </h3>
           <ul data-version-notes-list>
-            <li>夏休み宿題大作戦に、青空とひまわりをイメージした季節の色を加えました。</li>
-            <li>進捗バーや章の攻略表示を夏色に揃え、特別な冒険だと分かりやすくしました。</li>
-            <li>羊皮紙の世界観とスマホでの読みやすさはそのまま維持しています。</li>
+            <li>特別ミッションの章一覧を、必要なときだけ開けるようにしました。</li>
+            <li>ホームには進捗と今日やることを優先して表示し、スクロール量を減らしました。</li>
+            <li>章の見出し全体を押せるようにし、スマホで開閉しやすくしました。</li>
           </ul>
           <button type="button" data-version-notes-close>閉じる</button>
         </div>
@@ -1434,6 +1438,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260717-summer-mission41" defer></script>
+    <script src="app.js?v=20260718-special-collapse42" defer></script>
   </body>
 </html>
