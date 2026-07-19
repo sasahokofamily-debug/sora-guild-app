@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260718-special-collapse42">
+    <link rel="stylesheet" href="styles.css?v=20260719-special-history43">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -94,7 +94,7 @@
         <div class="app-brand-block">
           <p class="eyebrow">Fantasy Guild Log</p>
           <h1 data-app-name>そらクエスト</h1>
-          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 4.2</button>
+          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 4.3</button>
         </div>
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
@@ -187,6 +187,17 @@
                 <span data-special-mission-reward-preview>報酬あり</span>
               </div>
               <div class="special-mission-recommend-list" data-special-mission-recommend-list></div>
+            </div>
+            <div class="special-mission-history">
+              <button class="special-mission-history-head" type="button" data-special-mission-history-toggle aria-expanded="false" aria-controls="special-mission-history-list">
+                <strong>完了した履歴</strong>
+                <span class="special-mission-history-toggle-meta">
+                  <span class="special-mission-history-count" data-special-mission-history-count>0件</span>
+                  <span data-special-mission-history-label>履歴を見る</span>
+                  <i data-special-mission-history-indicator aria-hidden="true">▶</i>
+                </span>
+              </button>
+              <div id="special-mission-history-list" class="special-mission-history-list" data-special-mission-history-list hidden></div>
             </div>
           </section>
 
@@ -1239,13 +1250,13 @@
         <div class="version-notes-card" role="dialog" aria-modal="true" aria-labelledby="version-notes-title">
           <p class="section-kicker">Update</p>
           <h3 id="version-notes-title" data-version-notes-title>
-            <span class="version-notes-title-version">Version 4.2</span><br>
+            <span class="version-notes-title-version">Version 4.3</span><br>
             <span class="version-notes-title-label">更新内容</span>
           </h3>
           <ul data-version-notes-list>
-            <li>特別ミッションの章一覧を、必要なときだけ開けるようにしました。</li>
-            <li>ホームには進捗と今日やることを優先して表示し、スクロール量を減らしました。</li>
-            <li>章の見出し全体を押せるようにし、スマホで開閉しやすくしました。</li>
+            <li>夏休み宿題大作戦の第1章から第6章を、好きな順番で同時に進められるようにしました。</li>
+            <li>特別ミッションで完了・報告したクエストを、日時と章ごとの履歴で確認できるようにしました。</li>
+            <li>これまでの保存データを維持したまま、新しい進行方式へ自動で切り替えます。</li>
           </ul>
           <button type="button" data-version-notes-close>閉じる</button>
         </div>
@@ -1438,6 +1449,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260718-special-collapse42" defer></script>
+    <script src="app.js?v=20260719-special-history43" defer></script>
   </body>
 </html>

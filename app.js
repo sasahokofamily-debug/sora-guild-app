@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "4.2";
+const APP_VERSION = "4.3";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "特別ミッションの章一覧を、必要なときだけ開けるようにしました。",
-  "ホームには進捗と今日やることを優先して表示し、スクロール量を減らしました。",
-  "章の見出し全体を押せるようにし、スマホで開閉しやすくしました。",
+  "夏休み宿題大作戦の第1章から第6章を、好きな順番で同時に進められるようにしました。",
+  "特別ミッションで完了・報告したクエストを、日時と章ごとの履歴で確認できるようにしました。",
+  "これまでの保存データを維持したまま、新しい進行方式へ自動で切り替えます。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -354,7 +354,7 @@ const SUMMER_READING_REPORT_CHAPTER = {
   icon: "📚",
   order: 5,
   startDate: `${SUMMER_HOMEWORK_YEAR}-08-01`,
-  unlockConditions: [{ type: "chapterCompleted", chapterId: "chapter-4-creation" }],
+  unlockConditions: [],
   completionConditions: [{ type: "questCompleted", questId: "reading-report-ready" }],
   boss: {
     enabled: true,
@@ -466,7 +466,7 @@ const SPECIAL_MISSION_TEMPLATES = [
         icon: "🧮",
         order: 2,
         startDate: `${SUMMER_HOMEWORK_YEAR}-07-21`,
-        unlockConditions: [{ type: "chapterCompleted", chapterId: "chapter-1-preparation" }],
+        unlockConditions: [],
         completionConditions: [{ type: "questCompleted", questId: "calc-100" }],
         boss: {
           enabled: true,
@@ -495,7 +495,7 @@ const SPECIAL_MISSION_TEMPLATES = [
         icon: "🌲",
         order: 3,
         startDate: `${SUMMER_HOMEWORK_YEAR}-07-24`,
-        unlockConditions: [{ type: "chapterCompleted", chapterId: "chapter-2-calculation" }],
+        unlockConditions: [],
         completionConditions: [{ type: "questCompleted", questId: "kanji-100" }],
         boss: {
           enabled: true,
@@ -525,7 +525,7 @@ const SPECIAL_MISSION_TEMPLATES = [
         icon: "🎨",
         order: 4,
         startDate: `${SUMMER_HOMEWORK_YEAR}-08-01`,
-        unlockConditions: [{ type: "chapterCompleted", chapterId: "chapter-3-kanji" }],
+        unlockConditions: [],
         completionConditions: [{ type: "questCompleted", questId: "creation-ready" }],
         boss: {
           enabled: true,
@@ -560,7 +560,7 @@ const SPECIAL_MISSION_TEMPLATES = [
         icon: "📖",
         order: 6,
         startDate: SUMMER_HOMEWORK_START_DATE,
-        unlockConditions: [{ type: "questCompleted", questId: "reading-report-ready" }],
+        unlockConditions: [],
         completionConditions: [{ type: "questCompletionCount", questId: "diary-entry", target: 12 }],
         boss: {
           enabled: false,
@@ -1586,6 +1586,7 @@ let editingSpecialMissionId = null;
 let isQuestCreateOpen = false;
 let isWorldMapOpen = false;
 let isSpecialMissionOverviewOpen = false;
+let isSpecialMissionHistoryOpen = false;
 let activeQuestCategory = "daily_required";
 let questSwipeStartX = 0;
 let questSwipeStartY = 0;
@@ -3178,11 +3179,12 @@ function ensureSummerHomeworkChapterUnlocks(mission) {
   }
 
   const unlockRules = {
-    "chapter-2-calculation": [{ type: "chapterCompleted", chapterId: "chapter-1-preparation" }],
-    "chapter-3-kanji": [{ type: "chapterCompleted", chapterId: "chapter-2-calculation" }],
-    "chapter-4-creation": [{ type: "chapterCompleted", chapterId: "chapter-3-kanji" }],
-    "chapter-5-reading-report": [{ type: "chapterCompleted", chapterId: "chapter-4-creation" }],
-    "chapter-5-memory": [{ type: "questCompleted", questId: "reading-report-ready" }],
+    "chapter-1-preparation": [],
+    "chapter-2-calculation": [],
+    "chapter-3-kanji": [],
+    "chapter-4-creation": [],
+    "chapter-5-reading-report": [],
+    "chapter-5-memory": [],
   };
   let changed = false;
   const chapters = mission.chapters.map((chapter) => {
@@ -3261,6 +3263,31 @@ function saveSpecialMissions() {
 }
 
 function normalizeSpecialQuestProgress(rawProgress = {}) {
+  const completionHistory = Array.isArray(rawProgress.completionHistory)
+    ? rawProgress.completionHistory.map((item, index) => {
+        if (!item || typeof item !== "object") {
+          return null;
+        }
+        const completedAt = String(item.completedAt || "");
+        const dateKey = normalizeDateKeyInput(item.dateKey || completedAt.slice(0, 10));
+        if (!completedAt && !dateKey) {
+          return null;
+        }
+        const status = ["completed", "pending_approval", "approved", "rejected"].includes(item.status)
+          ? item.status
+          : "completed";
+        return {
+          id: String(item.id || `completion-${completedAt || dateKey}-${index}`),
+          completedAt,
+          dateKey,
+          status,
+          resolvedAt: String(item.resolvedAt || ""),
+          currentValue: normalizeNonNegativeNumber(item.currentValue, 0),
+          completionCount: normalizeNonNegativeNumber(item.completionCount, 0),
+          percent: Math.max(0, Math.min(100, normalizeNonNegativeNumber(item.percent, 0))),
+        };
+      }).filter(Boolean)
+    : [];
   return {
     status: ["not_started", "in_progress", "pending_approval", "approved", "rejected", "completed"].includes(rawProgress.status)
       ? rawProgress.status
@@ -3270,6 +3297,7 @@ function normalizeSpecialQuestProgress(rawProgress = {}) {
     percent: Math.max(0, Math.min(100, normalizeNonNegativeNumber(rawProgress.percent, 0))),
     completionCount: normalizeNonNegativeNumber(rawProgress.completionCount, 0),
     completedDates: normalizeStringList(rawProgress.completedDates),
+    completionHistory,
     reachedMilestones: normalizeStringList(rawProgress.reachedMilestones),
     pendingApproval: Boolean(rawProgress.pendingApproval),
     approvedAt: String(rawProgress.approvedAt || ""),
@@ -7601,6 +7629,81 @@ function getSpecialMissionAllQuests(mission) {
   ).sort((a, b) => (a.chapterOrder - b.chapterOrder) || (a.order - b.order));
 }
 
+function appendSpecialMissionCompletionHistory(questProgress, reportUpdate, completedAtIso, dateKey, status) {
+  return [
+    ...questProgress.completionHistory,
+    {
+      id: `completion-${completedAtIso}-${questProgress.completionHistory.length}`,
+      completedAt: completedAtIso,
+      dateKey,
+      status,
+      resolvedAt: "",
+      currentValue: reportUpdate.currentValue,
+      completionCount: reportUpdate.completionCount,
+      percent: reportUpdate.percent,
+    },
+  ];
+}
+
+function resolveLatestSpecialMissionCompletionHistory(questProgress, status, resolvedAt) {
+  let resolved = false;
+  return questProgress.completionHistory.map((item, index, items) => {
+    const reverseIndex = items.length - 1 - index;
+    const target = items[reverseIndex];
+    if (!resolved && target.status === "pending_approval") {
+      resolved = true;
+      return { ...target, status, resolvedAt };
+    }
+    return target;
+  }).reverse();
+}
+
+function getSpecialMissionCompletionHistory(mission) {
+  const entries = [];
+  getSpecialMissionAllQuests(mission).forEach((quest) => {
+    const questProgress = getSpecialMissionQuestProgress(mission.id, quest.id);
+    const storedHistory = questProgress.completionHistory.length > 0
+      ? questProgress.completionHistory
+      : questProgress.completedDates.map((dateKey, index) => ({
+          id: `legacy-${quest.id}-${dateKey}-${index}`,
+          completedAt: index === questProgress.completedDates.length - 1
+            ? questProgress.approvedAt || questProgress.rewardedAt || ""
+            : "",
+          dateKey,
+          status: questProgress.pendingApproval ? "pending_approval" : "completed",
+          resolvedAt: "",
+          currentValue: questProgress.currentValue,
+          completionCount: Math.min(questProgress.completionCount, index + 1),
+          percent: questProgress.percent,
+        }));
+    storedHistory.forEach((item) => {
+      entries.push({ ...item, quest });
+    });
+  });
+  return entries.sort((a, b) => {
+    const aTime = a.completedAt || `${a.dateKey || ""}T00:00:00`;
+    const bTime = b.completedAt || `${b.dateKey || ""}T00:00:00`;
+    return bTime.localeCompare(aTime);
+  });
+}
+
+function formatSpecialMissionHistoryDate(item) {
+  if (item.completedAt) {
+    const date = new Date(item.completedAt);
+    if (!Number.isNaN(date.getTime())) {
+      const parts = getJapanDateTimeParts(date);
+      return `${Number(parts.month)}/${Number(parts.day)} ${parts.hour}:${parts.minute}`;
+    }
+  }
+  return formatDateKeyShort(item.dateKey) || "記録日時なし";
+}
+
+function getSpecialMissionHistoryStatusLabel(status) {
+  if (status === "pending_approval") return "承認待ち";
+  if (status === "rejected") return "差し戻し";
+  return "完了";
+}
+
 function isSpecialMissionQuestProgressComplete(quest, questProgress) {
   if (quest.questType === "daily") {
     return questProgress.completedDates.length > 0 || questProgress.completionCount > 0;
@@ -7780,18 +7883,34 @@ function getCurrentSpecialMissionChapter(mission) {
 
 function getSpecialMissionRecommendedQuests(mission) {
   const limit = Math.max(1, mission.settings.recommendedQuestCount || 3);
-  const currentChapter = getCurrentSpecialMissionChapter(mission);
-  return getSpecialMissionAllQuests(mission)
+  const availableQuests = getSpecialMissionAllQuests(mission)
     .filter((quest) =>
-      (!currentChapter || quest.chapterId === currentChapter.id) &&
       isSpecialMissionChapterUnlocked(mission, quest.chapterId) &&
       isSpecialMissionQuestUnlocked(mission, quest) &&
       isSpecialMissionQuestAvailableToday(quest) &&
       !isSpecialMissionQuestDoneForToday(mission.id, quest) &&
       !isSpecialMissionQuestPending(mission.id, quest),
-    )
-    .sort((a, b) => (a.order - b.order) || scoreSpecialMissionQuestRecommendation(b) - scoreSpecialMissionQuestRecommendation(a))
-    .slice(0, limit);
+    );
+  const nextQuestByChapter = [];
+  const seenChapterIds = new Set();
+  availableQuests
+    .sort((a, b) => a.chapterOrder - b.chapterOrder || a.order - b.order)
+    .forEach((quest) => {
+      if (!seenChapterIds.has(quest.chapterId)) {
+        seenChapterIds.add(quest.chapterId);
+        nextQuestByChapter.push(quest);
+      }
+    });
+  const selectedQuestIds = new Set(nextQuestByChapter.map((quest) => quest.id));
+  const additionalQuests = availableQuests
+    .filter((quest) => !selectedQuestIds.has(quest.id))
+    .sort((a, b) =>
+      scoreSpecialMissionQuestRecommendation(b) - scoreSpecialMissionQuestRecommendation(a) ||
+      a.chapterOrder - b.chapterOrder ||
+      a.order - b.order,
+    );
+  return [...nextQuestByChapter, ...additionalQuests]
+    .slice(0, Math.max(limit, nextQuestByChapter.length));
 }
 
 function getSpecialMissionRewardPreview(mission) {
@@ -7934,6 +8053,13 @@ function completeSpecialMissionQuest(missionId, questId, options = {}) {
       percent: reportUpdate.percent,
       targetValue: reportUpdate.targetValue,
       completedDates: [...new Set([...questProgress.completedDates, dateKey])],
+      completionHistory: appendSpecialMissionCompletionHistory(
+        questProgress,
+        reportUpdate,
+        completedAtIso,
+        dateKey,
+        "pending_approval",
+      ),
     });
     missionProgress.updatedAt = completedAtIso;
     specialMissionProgress = {
@@ -7964,6 +8090,13 @@ function completeSpecialMissionQuest(missionId, questId, options = {}) {
     percent: reportUpdate.percent,
     targetValue: reportUpdate.targetValue,
     completedDates: [...new Set([...questProgress.completedDates, dateKey])],
+    completionHistory: appendSpecialMissionCompletionHistory(
+      questProgress,
+      reportUpdate,
+      completedAtIso,
+      dateKey,
+      "completed",
+    ),
     rewardedAt: completedAtIso,
   });
   missionProgress.updatedAt = completedAtIso;
@@ -8020,6 +8153,7 @@ function approveSpecialMissionQuest(missionId, questId) {
     pendingApproval: false,
     approvedAt: approvedAtIso,
     rewardedAt: approvedAtIso,
+    completionHistory: resolveLatestSpecialMissionCompletionHistory(questProgress, "approved", approvedAtIso),
   });
   missionProgress.updatedAt = approvedAtIso;
   specialMissionProgress = {
@@ -8082,6 +8216,7 @@ function rejectSpecialMissionQuest(missionId, questId) {
     percent: nextPercent,
     completedDates: nextCompletedDates,
     rejectedAt,
+    completionHistory: resolveLatestSpecialMissionCompletionHistory(questProgress, "rejected", rejectedAt),
   });
   missionProgress.updatedAt = rejectedAt;
   specialMissionProgress = {
@@ -8098,7 +8233,8 @@ function renderSpecialMissionHome() {
   const card = document.querySelector("[data-special-mission-card]");
   const list = document.querySelector("[data-special-mission-recommend-list]");
   const chapterList = document.querySelector("[data-special-mission-chapter-list]");
-  if (!card || !list || !chapterList) {
+  const historyList = document.querySelector("[data-special-mission-history-list]");
+  if (!card || !list || !chapterList || !historyList) {
     return;
   }
 
@@ -8108,7 +8244,11 @@ function renderSpecialMissionHome() {
   const overviewToggle = document.querySelector("[data-special-mission-overview-toggle]");
   const overviewLabel = document.querySelector("[data-special-mission-overview-label]");
   const overviewIndicator = document.querySelector("[data-special-mission-overview-indicator]");
+  const historyToggle = document.querySelector("[data-special-mission-history-toggle]");
+  const historyLabel = document.querySelector("[data-special-mission-history-label]");
+  const historyIndicator = document.querySelector("[data-special-mission-history-indicator]");
   chapterList.hidden = !isSpecialMissionOverviewOpen;
+  historyList.hidden = !isSpecialMissionHistoryOpen;
   if (overviewToggle) {
     overviewToggle.setAttribute("aria-expanded", String(isSpecialMissionOverviewOpen));
   }
@@ -8118,14 +8258,25 @@ function renderSpecialMissionHome() {
   if (overviewIndicator) {
     overviewIndicator.textContent = isSpecialMissionOverviewOpen ? "▼" : "▶";
   }
+  if (historyToggle) {
+    historyToggle.setAttribute("aria-expanded", String(isSpecialMissionHistoryOpen));
+  }
+  if (historyLabel) {
+    historyLabel.textContent = isSpecialMissionHistoryOpen ? "閉じる" : "履歴を見る";
+  }
+  if (historyIndicator) {
+    historyIndicator.textContent = isSpecialMissionHistoryOpen ? "▼" : "▶";
+  }
   list.innerHTML = "";
   chapterList.innerHTML = "";
+  historyList.innerHTML = "";
   if (!mission) {
     return;
   }
 
   const summary = getSpecialMissionProgressSummary(mission);
   const recommendedQuests = getSpecialMissionRecommendedQuests(mission);
+  const completionHistory = getSpecialMissionCompletionHistory(mission);
   setText("[data-special-mission-title]", `${mission.icon} ${mission.title}`);
   setText("[data-special-mission-story]", mission.description || mission.story || "期間限定の冒険を進めましょう。");
   setText("[data-special-mission-progress]", `${summary.percent}%`);
@@ -8138,6 +8289,7 @@ function renderSpecialMissionHome() {
   }
   const completedChapters = mission.chapters.filter((chapter) => isSpecialMissionChapterCompleted(mission, chapter.id)).length;
   setText("[data-special-mission-chapter-count]", `${completedChapters} / ${mission.chapters.length}`);
+  setText("[data-special-mission-history-count]", `${completionHistory.length}件`);
   mission.chapters.forEach((chapter) => {
     const chapterSummary = getSpecialMissionChapterSummary(mission, chapter);
     const statusLabel = getSpecialMissionChapterStatusLabel(mission, chapter);
@@ -8155,6 +8307,32 @@ function renderSpecialMissionHome() {
     `;
     chapterList.append(item);
   });
+
+  if (completionHistory.length === 0) {
+    historyList.innerHTML = `<p class="special-mission-empty">完了したクエストはまだありません。</p>`;
+  } else {
+    completionHistory.slice(0, 30).forEach((historyItem) => {
+      const statusLabel = getSpecialMissionHistoryStatusLabel(historyItem.status);
+      const rewards = normalizeRewardBundle(historyItem.quest.rewards || {});
+      const rewardParts = [];
+      if (rewards.xp > 0) rewardParts.push(`+${formatNumber(rewards.xp)} XP`);
+      if (rewards.gold > 0) rewardParts.push(`+${formatNumber(rewards.gold)} G`);
+      const item = document.createElement("article");
+      item.className = `special-mission-history-item status-${historyItem.status}`;
+      item.innerHTML = `
+        <div class="special-mission-history-main">
+          <time>${escapeHtml(formatSpecialMissionHistoryDate(historyItem))}</time>
+          <strong>${escapeHtml(historyItem.quest.title)}</strong>
+          <small>${escapeHtml(historyItem.quest.chapterTitle)}</small>
+        </div>
+        <div class="special-mission-history-side">
+          <span>${escapeHtml(statusLabel)}</span>
+          ${rewardParts.length ? `<small>${escapeHtml(rewardParts.join(" / "))}</small>` : ""}
+        </div>
+      `;
+      historyList.append(item);
+    });
+  }
 
   if (summary.total === 0) {
     list.innerHTML = `<p class="special-mission-empty">クエストはまだありません。</p>`;
@@ -10544,6 +10722,13 @@ document.addEventListener("click", (event) => {
   const specialMissionOverviewToggle = event.target.closest("[data-special-mission-overview-toggle]");
   if (specialMissionOverviewToggle) {
     isSpecialMissionOverviewOpen = !isSpecialMissionOverviewOpen;
+    renderSpecialMissionHome();
+    return;
+  }
+
+  const specialMissionHistoryToggle = event.target.closest("[data-special-mission-history-toggle]");
+  if (specialMissionHistoryToggle) {
+    isSpecialMissionHistoryOpen = !isSpecialMissionHistoryOpen;
     renderSpecialMissionHome();
     return;
   }

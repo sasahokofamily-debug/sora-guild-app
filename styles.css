@@ -8425,7 +8425,8 @@ h3 {
 }
 
 .special-mission-card[data-mission-theme="summer"] .special-mission-home-head > strong,
-.special-mission-card[data-mission-theme="summer"] .special-mission-overview-count {
+.special-mission-card[data-mission-theme="summer"] .special-mission-overview-count,
+.special-mission-card[data-mission-theme="summer"] .special-mission-history-count {
   border-color: rgba(42, 142, 170, 0.34);
   color: #174f68;
   background: linear-gradient(180deg, rgba(234, 252, 255, 0.94), rgba(154, 218, 229, 0.62));
@@ -8450,6 +8451,7 @@ h3 {
 }
 
 .special-mission-card[data-mission-theme="summer"] .special-mission-overview,
+.special-mission-card[data-mission-theme="summer"] .special-mission-history,
 .special-mission-card[data-mission-theme="summer"] .special-mission-today {
   border-top-color: rgba(42, 142, 170, 0.24);
 }
@@ -8562,7 +8564,8 @@ h3 {
   font-weight: 900;
 }
 
-.special-mission-overview {
+.special-mission-overview,
+.special-mission-history {
   display: grid;
   gap: 8px;
   min-width: 0;
@@ -8574,7 +8577,8 @@ h3 {
   box-shadow: none;
 }
 
-.special-mission-overview-head {
+.special-mission-overview-head,
+.special-mission-history-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -8592,14 +8596,16 @@ h3 {
   -webkit-tap-highlight-color: transparent;
 }
 
-.special-mission-overview-head strong {
+.special-mission-overview-head strong,
+.special-mission-history-head strong {
   min-width: 0;
   color: var(--ink);
   font-size: 0.94rem;
   font-weight: 950;
 }
 
-.special-mission-overview-toggle-meta {
+.special-mission-overview-toggle-meta,
+.special-mission-history-toggle-meta {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
@@ -8611,7 +8617,8 @@ h3 {
   white-space: nowrap;
 }
 
-.special-mission-overview-count {
+.special-mission-overview-count,
+.special-mission-history-count {
   flex: 0 0 auto;
   border: 1px solid rgba(111, 63, 38, 0.18);
   border-radius: 999px;
@@ -8622,7 +8629,8 @@ h3 {
   font-weight: 950;
 }
 
-.special-mission-overview-toggle-meta i {
+.special-mission-overview-toggle-meta i,
+.special-mission-history-toggle-meta i {
   width: 1em;
   color: var(--wood-dark);
   font-size: 0.76rem;
@@ -8630,7 +8638,8 @@ h3 {
   text-align: center;
 }
 
-.special-mission-overview-head:active {
+.special-mission-overview-head:active,
+.special-mission-history-head:active {
   opacity: 0.72;
 }
 
@@ -8641,6 +8650,81 @@ h3 {
 
 .special-mission-chapter-list[hidden] {
   display: none;
+}
+
+.special-mission-history-list {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+}
+
+.special-mission-history-list[hidden] {
+  display: none;
+}
+
+.special-mission-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  border-bottom: 1px solid rgba(111, 63, 38, 0.14);
+  padding: 9px 2px;
+}
+
+.special-mission-history-item:last-child {
+  border-bottom: 0;
+}
+
+.special-mission-history-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.special-mission-history-main time,
+.special-mission-history-main small,
+.special-mission-history-side small {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.special-mission-history-main strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.special-mission-history-side {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  flex: 0 0 auto;
+  max-width: 42%;
+  text-align: right;
+}
+
+.special-mission-history-side > span {
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #fff8df;
+  background: #54764f;
+  font-size: 0.68rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.special-mission-history-item.status-pending_approval .special-mission-history-side > span {
+  color: #3b291d;
+  background: #e5bd5f;
+}
+
+.special-mission-history-item.status-rejected .special-mission-history-side > span {
+  background: #8d5a50;
 }
 
 .special-mission-chapter-item {
