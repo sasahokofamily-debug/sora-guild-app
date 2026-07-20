@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "4.6";
+const APP_VERSION = "4.7";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "特別ミッションの承認待ちを、ギルド画面の上部にまとめました。",
-  "承認待ちがあるときだけ表示され、タップすると内容を確認できます。",
-  "承認と差し戻しは、開いた一覧からそのまま行えます。",
+  "「計算プリント1ページ」を、同じ日に続けて完了できるようにしました。",
+  "押すたびに1ページ分の進捗と報酬が記録されます。",
+  "ほかの毎日クエストの回数制限は変更していません。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -461,8 +461,8 @@ const SPECIAL_MISSION_TEMPLATES = [
       {
         id: "chapter-2-calculation",
         title: "第2章 計算の洞窟",
-        description: "7月21日〜27日の計算編。枚数ではなく10分タイマーで進めます。",
-        story: "数字の洞窟を進むほど、暗算ゴーレムの力が弱まります。",
+        description: "7月21日〜27日の計算編。プリントを1ページずつ進めます。",
+        story: "1ページ進むたび、暗算ゴーレムの力が少しずつ弱まります。",
         icon: "🧮",
         order: 2,
         startDate: `${SUMMER_HOMEWORK_YEAR}-07-21`,
@@ -479,7 +479,7 @@ const SPECIAL_MISSION_TEMPLATES = [
           rewards: { xp: 30, gold: 15, stats: { STR: 0, INT: 1, END: 1, DEX: 1 } },
         },
         quests: [
-          { title: "計算プリントを10分進める", description: "タイマーを使って10分だけ進めます。続けられそうなら続けてもOKです。", questType: "daily", stat: "DEX", repeatable: true, dailyLimit: 1, xpReward: 8, goldReward: 2 },
+          { title: "計算プリント1ページ", description: "1ページ終わるごとに完了します。続けて何ページでも進められます。", questType: "daily", stat: "DEX", repeatable: true, dailyLimit: 99, xpReward: 8, goldReward: 2 },
           { id: "calc-25", title: "計算プリント25％", description: "計算プリントの4分の1まで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, progressSettings: { mode: "percent", targetPercent: 25 } },
           { id: "calc-50", title: "計算プリント50％", description: "半分まで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["calc-25"], progressSettings: { mode: "percent", targetPercent: 50 } },
           { id: "calc-75", title: "計算プリント75％", description: "あと少しのところまで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["calc-50"], progressSettings: { mode: "percent", targetPercent: 75 } },
@@ -3214,6 +3214,62 @@ function ensureSummerHomeworkChapterUnlocks(mission) {
   });
 }
 
+function ensureSummerHomeworkRepeatableCalculationPages(mission) {
+  const isSummerHomeworkMission = mission.templateId === "summer-homework-campaign" || mission.title.includes("夏休み宿題");
+  if (!isSummerHomeworkMission) {
+    return mission;
+  }
+
+  let changed = false;
+  const chapters = mission.chapters.map((chapter) => {
+    if (chapter.id !== "chapter-2-calculation") {
+      return chapter;
+    }
+    const chapterDescription = /10分タイマー/.test(chapter.description)
+      ? "7月21日〜27日の計算編。プリントを1ページずつ進めます。"
+      : chapter.description;
+    const chapterStory = /数字の洞窟を進むほど/.test(chapter.story)
+      ? "1ページ進むたび、暗算ゴーレムの力が少しずつ弱まります。"
+      : chapter.story;
+    if (chapterDescription !== chapter.description || chapterStory !== chapter.story) {
+      changed = true;
+    }
+    const quests = chapter.quests.map((quest, index) => {
+      const isCalculationPageQuest = /計算プリント.*[1１]ページ/.test(quest.title)
+        || (index === 0 && /計算プリント.*10分/.test(quest.title));
+      if (!isCalculationPageQuest) {
+        return quest;
+      }
+      const nextTitle = /計算プリント.*10分/.test(quest.title) ? "計算プリント1ページ" : quest.title;
+      const nextDescription = /10分/.test(quest.description)
+        ? "1ページ終わるごとに完了します。続けて何ページでも進められます。"
+        : quest.description;
+      if (quest.questType === "daily" && quest.repeatable && quest.dailyLimit === 99 && nextTitle === quest.title && nextDescription === quest.description) {
+        return quest;
+      }
+      changed = true;
+      return {
+        ...quest,
+        title: nextTitle,
+        description: nextDescription,
+        questType: "daily",
+        repeatable: true,
+        dailyLimit: 99,
+      };
+    });
+    return { ...chapter, description: chapterDescription, story: chapterStory, quests };
+  });
+
+  if (!changed) {
+    return mission;
+  }
+  return normalizeSpecialMission({
+    ...mission,
+    chapters,
+    updatedAt: mission.updatedAt || new Date().toISOString(),
+  });
+}
+
 function createSpecialMissionFromTemplate(templateId = "summer-homework-campaign", overrides = {}) {
   const template = SPECIAL_MISSION_TEMPLATES.find((item) => item.templateId === templateId) || SPECIAL_MISSION_TEMPLATES[0];
   const nowIso = new Date().toISOString();
@@ -3251,6 +3307,7 @@ function loadSpecialMissions() {
       .filter(Boolean)
       .map(ensureSummerHomeworkReadingChapter)
       .map(ensureSummerHomeworkChapterUnlocks)
+      .map(ensureSummerHomeworkRepeatableCalculationPages)
       .sort((a, b) => a.order - b.order);
     localStorage.setItem(SPECIAL_MISSIONS_KEY, JSON.stringify(normalizedMissions));
     return normalizedMissions;
@@ -7766,7 +7823,15 @@ function isSpecialMissionQuestDoneForToday(missionId, quest) {
     return isSpecialMissionQuestComplete(missionId, quest);
   }
   const questProgress = getSpecialMissionQuestProgress(missionId, quest.id);
-  return questProgress.completedDates.includes(getDateKey());
+  const dateKey = getDateKey();
+  if (!quest.repeatable) {
+    return questProgress.completedDates.includes(dateKey);
+  }
+  const historyCount = questProgress.completionHistory.filter((item) =>
+    item.dateKey === dateKey && item.status !== "rejected",
+  ).length;
+  const completedToday = historyCount || (questProgress.completedDates.includes(dateKey) ? 1 : 0);
+  return completedToday >= Math.max(1, quest.dailyLimit || 1);
 }
 
 function isSpecialMissionChapterCompleted(mission, chapterId) {
@@ -8412,7 +8477,7 @@ function renderSpecialMissionHome() {
           ${rewards.gold > 0 ? `<span>+${formatNumber(rewards.gold)} G</span>` : ""}
         </div>
         <button type="submit">
-          ${quest.approvalRequired ? "報告する" : "完了"}
+          ${quest.approvalRequired ? "報告する" : quest.repeatable && /[1１]ページ/.test(quest.title) ? "1ページ完了" : "完了"}
         </button>
       </form>
     `;
