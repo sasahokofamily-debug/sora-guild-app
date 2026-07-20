@@ -8108,33 +8108,43 @@ h3 {
   gap: 10px;
 }
 
-.special-mission-approval-panel {
+.special-approval-summary {
   display: grid;
-  gap: 10px;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 10px;
   border: 1px solid rgba(72, 143, 88, 0.3);
   border-radius: 10px;
-  padding: 12px;
+  padding: 8px;
   background:
     radial-gradient(circle at 18% 0%, rgba(110, 181, 120, 0.2), transparent 7rem),
     linear-gradient(180deg, rgba(255, 247, 223, 0.68), rgba(244, 230, 198, 0.42));
   box-shadow: inset 0 0 0 1px rgba(255, 247, 223, 0.24);
+  box-sizing: border-box;
 }
 
-.special-mission-approval-head {
+.special-approval-summary[hidden] {
+  display: none;
+}
+
+.special-approval-summary-toggle {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.special-mission-approval-head h4 {
-  margin: 2px 0 0;
+  gap: 8px;
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  padding: 6px 8px;
   color: var(--ink);
-  font-size: 1rem;
+  background: transparent;
+  font-size: 0.92rem;
   font-weight: 950;
+  text-align: left;
 }
 
-.special-mission-approval-head strong {
+.special-approval-summary-toggle strong {
+  margin-left: auto;
   flex: 0 0 auto;
   border: 1px solid rgba(72, 143, 88, 0.28);
   border-radius: 999px;
@@ -8143,6 +8153,23 @@ h3 {
   background: rgba(231, 250, 221, 0.72);
   font-size: 0.86rem;
   font-weight: 950;
+}
+
+.special-approval-summary-indicator {
+  flex: 0 0 auto;
+  width: 18px;
+  color: #5d452d;
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.special-approval-summary-content {
+  display: grid;
+  gap: 8px;
+}
+
+.special-approval-summary-content[hidden] {
+  display: none;
 }
 
 .special-mission-approval-list {
@@ -8184,6 +8211,27 @@ h3 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.special-approval-summary .quest-manage-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--cream);
+  background: linear-gradient(180deg, #c4493e, var(--red));
+  box-shadow: 0 4px 0 #5b211e;
+  font-size: 0.84rem;
+  font-weight: 900;
+  box-sizing: border-box;
+}
+
+.special-approval-summary .quest-manage-button.is-secondary {
+  color: var(--wood-dark);
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+  box-shadow: 0 4px 0 #8d6522;
 }
 
 .special-mission-item {
@@ -9729,8 +9777,7 @@ h3 {
 @media (max-width: 679px) {
   .special-mission-edit-grid,
   .special-mission-edit-form .reward-input-grid,
-  .special-mission-quest-edit-grid,
-  .special-mission-approval-actions {
+  .special-mission-quest-edit-grid {
     grid-template-columns: 1fr;
   }
 

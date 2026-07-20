@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "4.5";
+const APP_VERSION = "4.6";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "章の中にある「進める」から、該当するクエストへすぐ移動できるようにしました。",
-  "進捗入力や保護者への報告が必要なクエストにも、迷わず進めます。",
-  "移動先を一瞬光らせ、どのクエストを選んだか分かりやすくしました。",
+  "特別ミッションの承認待ちを、ギルド画面の上部にまとめました。",
+  "承認待ちがあるときだけ表示され、タップすると内容を確認できます。",
+  "承認と差し戻しは、開いた一覧からそのまま行えます。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -1593,6 +1593,7 @@ let questSwipeStartX = 0;
 let questSwipeStartY = 0;
 let growthChartMode = "xp";
 const openAdminSections = new Set(["basic", "data"]);
+let isSpecialApprovalQueueOpen = false;
 const openGrowthCollections = new Set();
 let previousDailyRequiredComplete = false;
 let hasRenderedQuestCategoryProgress = false;
@@ -7098,9 +7099,6 @@ function getPendingSpecialMissionApprovals() {
 
 function renderSpecialMissionApprovalQueue() {
   const pendingItems = getPendingSpecialMissionApprovals();
-  if (pendingItems.length === 0) {
-    return "";
-  }
 
   const itemsHtml = pendingItems.map(({ mission, quest, questProgress }) => {
     const rewards = normalizeRewardBundle(quest.rewards || {});
@@ -7126,20 +7124,33 @@ function renderSpecialMissionApprovalQueue() {
     `;
   }).join("");
 
-  return `
-    <section class="special-mission-approval-panel" aria-label="特別ミッションの承認待ち">
-      <div class="special-mission-approval-head">
-        <div>
-          <p class="section-kicker">Approval</p>
-          <h4>承認待ち</h4>
-        </div>
-        <strong>${pendingItems.length}件</strong>
-      </div>
-      <div class="special-mission-approval-list">
-        ${itemsHtml}
-      </div>
-    </section>
-  `;
+  return itemsHtml;
+}
+
+function renderSpecialMissionApprovalSummary() {
+  const summary = document.querySelector("[data-special-approval-summary]");
+  const count = document.querySelector("[data-special-approval-count]");
+  const toggle = document.querySelector("[data-special-approval-toggle]");
+  const content = document.querySelector("[data-special-approval-content]");
+  if (!summary || !count || !toggle || !content) {
+    return;
+  }
+
+  const pendingItems = getPendingSpecialMissionApprovals();
+  const hasPendingItems = pendingItems.length > 0;
+  if (!hasPendingItems) {
+    isSpecialApprovalQueueOpen = false;
+  }
+
+  summary.hidden = !hasPendingItems;
+  count.textContent = `${pendingItems.length}件`;
+  toggle.setAttribute("aria-expanded", String(isSpecialApprovalQueueOpen));
+  const indicator = toggle.querySelector(".special-approval-summary-indicator");
+  if (indicator) {
+    indicator.textContent = isSpecialApprovalQueueOpen ? "▼" : "▶";
+  }
+  content.hidden = !isSpecialApprovalQueueOpen;
+  content.innerHTML = hasPendingItems ? renderSpecialMissionApprovalQueue() : "";
 }
 
 function renderSpecialMissionChapterEditor(mission) {
@@ -7274,7 +7285,7 @@ function renderSpecialMissionManager() {
   }
 
   list.innerHTML = "";
-  list.insertAdjacentHTML("beforeend", renderSpecialMissionApprovalQueue());
+  renderSpecialMissionApprovalSummary();
   if (specialMissions.length === 0) {
     const empty = document.createElement("p");
     empty.className = "managed-quest-empty";
@@ -10961,6 +10972,13 @@ document.addEventListener("click", (event) => {
   const adminSectionToggle = event.target.closest("[data-admin-section-toggle]");
   if (adminSectionToggle) {
     toggleAdminSection(adminSectionToggle.dataset.adminSectionToggle);
+    return;
+  }
+
+  const specialApprovalToggle = event.target.closest("[data-special-approval-toggle]");
+  if (specialApprovalToggle) {
+    isSpecialApprovalQueueOpen = !isSpecialApprovalQueueOpen;
+    renderSpecialMissionApprovalSummary();
     return;
   }
 

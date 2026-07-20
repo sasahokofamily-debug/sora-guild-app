@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260720-special-focus45">
+    <link rel="stylesheet" href="styles.css?v=20260720-special-approval46">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -669,8 +669,19 @@
               進行状況はこの端末に保存されます。
             </p>
           </div>
+          <section class="special-approval-summary" data-special-approval-summary hidden>
+            <button class="special-approval-summary-toggle" type="button" data-special-approval-toggle aria-expanded="false">
+              <span>承認待ち</span>
+              <strong data-special-approval-count>0件</strong>
+              <span class="special-approval-summary-indicator" aria-hidden="true">▶</span>
+            </button>
+            <div class="special-approval-summary-content" data-special-approval-content hidden></div>
+          </section>
           <div class="panel admin-panel app-history-panel">
             <h3>更新履歴</h3>
+            <p>
+              Version 4.6：特別ミッションの承認待ちを、ギルド画面上部から確認できるようにしました。
+            </p>
             <p>
               Version 3.9：特別ミッションカードの見た目を他の画面と合わせました。
             </p>
@@ -1449,6 +1460,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260720-special-focus45" defer></script>
+    <script src="app.js?v=20260720-special-approval46" defer></script>
   </body>
 </html>
