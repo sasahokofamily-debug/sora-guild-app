@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "4.8";
+const APP_VERSION = "4.9";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "「漢字プリント1ページ」も、同じ日に続けて完了できるようにしました。",
-  "計算と漢字は、押すたびに1ページ分の進捗と報酬が記録されます。",
-  "ほかの毎日クエストの回数制限は変更していません。",
+  "計算・漢字プリントの分かりにくいパーセント入力をなくしました。",
+  "「1ページ完了」を繰り返し、最後に「全部終わった」を押す流れへ整理しました。",
+  "カードには、これまでに完了した合計ページ数を表示します。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -480,10 +480,7 @@ const SPECIAL_MISSION_TEMPLATES = [
         },
         quests: [
           { title: "計算プリント1ページ", description: "1ページ終わるごとに完了します。続けて何ページでも進められます。", questType: "daily", stat: "DEX", repeatable: true, dailyLimit: 99, xpReward: 8, goldReward: 2 },
-          { id: "calc-25", title: "計算プリント25％", description: "計算プリントの4分の1まで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, progressSettings: { mode: "percent", targetPercent: 25 } },
-          { id: "calc-50", title: "計算プリント50％", description: "半分まで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["calc-25"], progressSettings: { mode: "percent", targetPercent: 50 } },
-          { id: "calc-75", title: "計算プリント75％", description: "あと少しのところまで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["calc-50"], progressSettings: { mode: "percent", targetPercent: 75 } },
-          { id: "calc-100", title: "計算プリント100％", description: "最後まで終わらせます。", questType: "milestone", stat: "END", xpReward: 40, goldReward: 10, prerequisiteQuestIds: ["calc-75"], progressSettings: { mode: "percent", targetPercent: 100 } },
+          { id: "calc-100", title: "計算プリントが全部終わった", description: "すべてのページが終わったら完了します。", questType: "once", stat: "END", xpReward: 40, goldReward: 10 },
           { title: "計算の間違い直し", description: "間違えた問題を直します。", stat: "INT", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["calc-100"], titleReward: "数の探索者" },
         ],
       },
@@ -509,10 +506,7 @@ const SPECIAL_MISSION_TEMPLATES = [
         },
         quests: [
           { title: "漢字プリント1ページ", description: "1ページ終わるごとに完了します。続けて何ページでも進められます。", questType: "daily", stat: "INT", repeatable: true, dailyLimit: 99, xpReward: 10, goldReward: 2 },
-          { id: "kanji-25", title: "漢字プリント25％", description: "漢字プリントの4分の1まで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, progressSettings: { mode: "percent", targetPercent: 25 } },
-          { id: "kanji-50", title: "漢字プリント50％", description: "半分まで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["kanji-25"], progressSettings: { mode: "percent", targetPercent: 50 } },
-          { id: "kanji-75", title: "漢字プリント75％", description: "あと少しのところまで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["kanji-50"], progressSettings: { mode: "percent", targetPercent: 75 } },
-          { id: "kanji-100", title: "漢字プリント100％", description: "最後まで終わらせます。", questType: "milestone", stat: "END", xpReward: 40, goldReward: 10, prerequisiteQuestIds: ["kanji-75"], progressSettings: { mode: "percent", targetPercent: 100 } },
+          { id: "kanji-100", title: "漢字プリントが全部終わった", description: "すべてのページが終わったら完了します。", questType: "once", stat: "END", xpReward: 40, goldReward: 10 },
           { title: "間違えた漢字を3個書き直す", description: "間違えた漢字を3個だけ丁寧に書き直します。", stat: "INT", xpReward: 15, goldReward: 4, prerequisiteQuestIds: ["kanji-100"] },
           { title: "名前や日付の書き忘れを確認する", description: "漢字プリントの名前や日付を見直します。", stat: "DEX", xpReward: 10, goldReward: 3, prerequisiteQuestIds: ["kanji-100"], titleReward: "言葉の守り手" },
         ],
@@ -3291,6 +3285,66 @@ function ensureSummerHomeworkRepeatableStudyPages(mission) {
   });
 }
 
+function ensureSummerHomeworkSimpleStudyCompletion(mission) {
+  const isSummerHomeworkMission = mission.templateId === "summer-homework-campaign" || mission.title.includes("夏休み宿題");
+  if (!isSummerHomeworkMission) {
+    return mission;
+  }
+
+  const chapterSettings = {
+    "chapter-2-calculation": { prefix: "calc", title: "計算プリントが全部終わった" },
+    "chapter-3-kanji": { prefix: "kanji", title: "漢字プリントが全部終わった" },
+  };
+  let changed = false;
+  const chapters = mission.chapters.map((chapter) => {
+    const setting = chapterSettings[chapter.id];
+    if (!setting) {
+      return chapter;
+    }
+    const removedIds = new Set([`${setting.prefix}-25`, `${setting.prefix}-50`, `${setting.prefix}-75`]);
+    const quests = chapter.quests
+      .filter((quest) => {
+        const shouldKeep = !removedIds.has(quest.id);
+        changed ||= !shouldKeep;
+        return shouldKeep;
+      })
+      .map((quest) => {
+        if (quest.id !== `${setting.prefix}-100`) {
+          return quest;
+        }
+        const isAlreadySimple = quest.questType === "once"
+          && quest.title === setting.title
+          && quest.prerequisiteQuestIds.length === 0;
+        if (isAlreadySimple) {
+          return quest;
+        }
+        changed = true;
+        return {
+          ...quest,
+          title: setting.title,
+          description: "すべてのページが終わったら完了します。",
+          questType: "once",
+          repeatable: false,
+          dailyLimit: 1,
+          totalTargetCount: 1,
+          prerequisiteQuestIds: [],
+          progressSettings: { mode: "count", targetPercent: 100, targetValue: 1, totalValue: 1 },
+        };
+      })
+      .map((quest, index) => ({ ...quest, order: index + 1 }));
+    return { ...chapter, quests };
+  });
+
+  if (!changed) {
+    return mission;
+  }
+  return normalizeSpecialMission({
+    ...mission,
+    chapters,
+    updatedAt: mission.updatedAt || new Date().toISOString(),
+  });
+}
+
 function createSpecialMissionFromTemplate(templateId = "summer-homework-campaign", overrides = {}) {
   const template = SPECIAL_MISSION_TEMPLATES.find((item) => item.templateId === templateId) || SPECIAL_MISSION_TEMPLATES[0];
   const nowIso = new Date().toISOString();
@@ -3329,6 +3383,7 @@ function loadSpecialMissions() {
       .map(ensureSummerHomeworkReadingChapter)
       .map(ensureSummerHomeworkChapterUnlocks)
       .map(ensureSummerHomeworkRepeatableStudyPages)
+      .map(ensureSummerHomeworkSimpleStudyCompletion)
       .sort((a, b) => a.order - b.order);
     localStorage.setItem(SPECIAL_MISSIONS_KEY, JSON.stringify(normalizedMissions));
     return normalizedMissions;
@@ -7798,6 +7853,10 @@ function getSpecialMissionQuestListStatus(mission, quest) {
   if (isSpecialMissionQuestPending(mission.id, quest)) {
     return { key: "pending", label: "承認待ち" };
   }
+  if (quest.repeatable && /[1１]ページ/.test(quest.title)) {
+    const questProgress = getSpecialMissionQuestProgress(mission.id, quest.id);
+    return { key: "open", label: questProgress.completionCount > 0 ? `${questProgress.completionCount}ページ` : "未完了" };
+  }
   if (isSpecialMissionQuestComplete(mission.id, quest)) {
     return { key: "complete", label: "完了" };
   }
@@ -8485,12 +8544,18 @@ function renderSpecialMissionHome() {
     item.className = "special-mission-recommend-item";
     item.dataset.specialMissionRecommendQuest = quest.id;
     const rewards = normalizeRewardBundle(quest.rewards || {});
+    const questProgress = getSpecialMissionQuestProgress(mission.id, quest.id);
+    const progressLabel = quest.repeatable && /[1１]ページ/.test(quest.title)
+      ? `これまでに ${questProgress.completionCount}ページ完了`
+      : quest.estimatedMinutes
+        ? `目安 ${quest.estimatedMinutes}分`
+        : "今日できるクエスト";
     item.innerHTML = `
       <form data-special-mission-quest-report="${escapeHtml(mission.id)}" data-special-quest-id="${escapeHtml(quest.id)}">
         <div>
           <span>${escapeHtml(quest.chapterTitle)}</span>
           <strong>${escapeHtml(quest.title)}</strong>
-          <small>${escapeHtml(quest.estimatedMinutes ? `目安 ${quest.estimatedMinutes}分` : "今日できるクエスト")}</small>
+          <small>${escapeHtml(progressLabel)}</small>
         </div>
         ${getSpecialMissionProgressInputHtml(mission, quest)}
         <div class="special-mission-recommend-rewards">
