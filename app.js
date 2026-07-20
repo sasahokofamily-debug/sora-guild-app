@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "4.3";
+const APP_VERSION = "4.4";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "夏休み宿題大作戦の第1章から第6章を、好きな順番で同時に進められるようにしました。",
-  "特別ミッションで完了・報告したクエストを、日時と章ごとの履歴で確認できるようにしました。",
-  "これまでの保存データを維持したまま、新しい進行方式へ自動で切り替えます。",
+  "特別ミッションの章をタップして、章内の全クエストを確認できるようにしました。",
+  "完了・承認待ち・未完了・順番待ちが、一覧で分かるようになりました。",
+  "章一覧は必要なところだけ開けるため、スマホでもコンパクトに確認できます。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -1587,6 +1587,7 @@ let isQuestCreateOpen = false;
 let isWorldMapOpen = false;
 let isSpecialMissionOverviewOpen = false;
 let isSpecialMissionHistoryOpen = false;
+const openSpecialMissionChapterIds = new Set();
 let activeQuestCategory = "daily_required";
 let questSwipeStartX = 0;
 let questSwipeStartY = 0;
@@ -7704,6 +7705,19 @@ function getSpecialMissionHistoryStatusLabel(status) {
   return "完了";
 }
 
+function getSpecialMissionQuestListStatus(mission, quest) {
+  if (isSpecialMissionQuestPending(mission.id, quest)) {
+    return { key: "pending", label: "承認待ち" };
+  }
+  if (isSpecialMissionQuestComplete(mission.id, quest)) {
+    return { key: "complete", label: "完了" };
+  }
+  if (!isSpecialMissionQuestUnlocked(mission, quest)) {
+    return { key: "locked", label: "順番待ち" };
+  }
+  return { key: "open", label: "未完了" };
+}
+
 function isSpecialMissionQuestProgressComplete(quest, questProgress) {
   if (quest.questType === "daily") {
     return questProgress.completedDates.length > 0 || questProgress.completionCount > 0;
@@ -8293,17 +8307,39 @@ function renderSpecialMissionHome() {
   mission.chapters.forEach((chapter) => {
     const chapterSummary = getSpecialMissionChapterSummary(mission, chapter);
     const statusLabel = getSpecialMissionChapterStatusLabel(mission, chapter);
+    const isChapterOpen = openSpecialMissionChapterIds.has(chapter.id);
+    const chapterQuests = getSpecialMissionAllQuests(mission).filter((quest) => quest.chapterId === chapter.id);
     const item = document.createElement("article");
     item.className = `special-mission-chapter-item status-${statusLabel === "完了" ? "complete" : statusLabel === "未解放" ? "locked" : "active"}`;
     item.innerHTML = `
-      <div class="special-mission-chapter-main">
-        <span class="special-mission-chapter-icon">${escapeHtml(chapter.icon || "📜")}</span>
-        <div>
-          <strong>${escapeHtml(chapter.title)}</strong>
-          <small>${chapterSummary.total > 0 ? `${chapterSummary.completed} / ${chapterSummary.total} クエスト` : "クエスト未設定"}</small>
+      <button class="special-mission-chapter-toggle" type="button" data-special-mission-chapter-toggle="${escapeHtml(chapter.id)}" aria-expanded="${isChapterOpen}" aria-controls="special-mission-chapter-quests-${escapeHtml(chapter.id)}">
+        <div class="special-mission-chapter-main">
+          <span class="special-mission-chapter-icon">${escapeHtml(chapter.icon || "📜")}</span>
+          <div>
+            <strong>${escapeHtml(chapter.title)}</strong>
+            <small>${chapterSummary.total > 0 ? `${chapterSummary.completed} / ${chapterSummary.total} クエスト` : "クエスト未設定"}</small>
+          </div>
         </div>
+        <span class="special-mission-chapter-end">
+          <span class="special-mission-chapter-status">${escapeHtml(statusLabel)}</span>
+          <i aria-hidden="true">${isChapterOpen ? "▼" : "▶"}</i>
+        </span>
+      </button>
+      <div id="special-mission-chapter-quests-${escapeHtml(chapter.id)}" class="special-mission-chapter-quests"${isChapterOpen ? "" : " hidden"}>
+        ${chapterQuests.map((quest) => {
+          const questStatus = getSpecialMissionQuestListStatus(mission, quest);
+          return `
+            <div class="special-mission-chapter-quest status-${questStatus.key}">
+              <span aria-hidden="true">${questStatus.key === "complete" ? "✓" : questStatus.key === "pending" ? "…" : questStatus.key === "locked" ? "○" : "◇"}</span>
+              <div>
+                <strong>${escapeHtml(quest.title)}</strong>
+                <small>${escapeHtml(quest.estimatedMinutes ? `目安 ${quest.estimatedMinutes}分` : "")}</small>
+              </div>
+              <em>${escapeHtml(questStatus.label)}</em>
+            </div>
+          `;
+        }).join("") || `<p class="special-mission-empty">クエストはまだありません。</p>`}
       </div>
-      <span class="special-mission-chapter-status">${escapeHtml(statusLabel)}</span>
     `;
     chapterList.append(item);
   });
@@ -10729,6 +10765,18 @@ document.addEventListener("click", (event) => {
   const specialMissionHistoryToggle = event.target.closest("[data-special-mission-history-toggle]");
   if (specialMissionHistoryToggle) {
     isSpecialMissionHistoryOpen = !isSpecialMissionHistoryOpen;
+    renderSpecialMissionHome();
+    return;
+  }
+
+  const specialMissionChapterToggle = event.target.closest("[data-special-mission-chapter-toggle]");
+  if (specialMissionChapterToggle) {
+    const chapterId = specialMissionChapterToggle.dataset.specialMissionChapterToggle;
+    if (openSpecialMissionChapterIds.has(chapterId)) {
+      openSpecialMissionChapterIds.delete(chapterId);
+    } else {
+      openSpecialMissionChapterIds.add(chapterId);
+    }
     renderSpecialMissionHome();
     return;
   }

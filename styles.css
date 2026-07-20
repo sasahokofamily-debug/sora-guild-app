@@ -8728,10 +8728,8 @@ h3 {
 }
 
 .special-mission-chapter-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 9px;
+  display: grid;
+  gap: 0;
   min-width: 0;
   min-height: 48px;
   border: 0;
@@ -8740,6 +8738,29 @@ h3 {
   padding: 7px 2px;
   background: transparent;
   box-shadow: none;
+}
+
+.special-mission-chapter-toggle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.special-mission-chapter-toggle:active {
+  opacity: 0.72;
 }
 
 .special-mission-chapter-item:last-child {
@@ -8766,12 +8787,124 @@ h3 {
   align-items: center;
   gap: 8px;
   min-width: 0;
+  overflow: hidden;
+}
+
+.special-mission-chapter-end {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+
+.special-mission-chapter-end i {
+  width: 1em;
+  color: var(--wood-dark);
+  font-size: 0.72rem;
+  font-style: normal;
+  text-align: center;
+}
+
+.special-mission-chapter-quests {
+  display: grid;
+  gap: 0;
+  margin: 7px 0 1px 38px;
+  border-top: 1px solid rgba(111, 63, 38, 0.14);
+}
+
+.special-mission-chapter-quests[hidden] {
+  display: none;
+}
+
+.special-mission-chapter-quest {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  border-bottom: 1px solid rgba(111, 63, 38, 0.11);
+  padding: 8px 0;
+}
+
+.special-mission-chapter-quest:last-child {
+  border-bottom: 0;
+}
+
+.special-mission-chapter-quest > span {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(111, 63, 38, 0.24);
+  border-radius: 50%;
+  color: var(--wood-dark);
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
+.special-mission-chapter-quest > div {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.special-mission-chapter-quest strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.special-mission-chapter-quest small {
+  color: var(--muted);
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+.special-mission-chapter-quest em {
+  color: var(--muted);
+  font-size: 0.64rem;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.special-mission-chapter-quest.status-complete > span {
+  border-color: rgba(57, 120, 75, 0.38);
+  color: #fff8df;
+  background: #54764f;
+}
+
+.special-mission-chapter-quest.status-complete em {
+  color: #426844;
+}
+
+.special-mission-chapter-quest.status-pending > span {
+  border-color: rgba(165, 116, 35, 0.38);
+  background: rgba(229, 189, 95, 0.42);
+}
+
+.special-mission-chapter-quest.status-locked {
+  opacity: 0.58;
+}
+
+@media (max-width: 380px) {
+  .special-mission-chapter-quests {
+    margin-left: 30px;
+  }
+
+  .special-mission-chapter-quest {
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    gap: 5px;
+  }
 }
 
 .special-mission-chapter-main div {
   display: grid;
   gap: 2px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .special-mission-chapter-icon {
@@ -8787,6 +8920,8 @@ h3 {
 }
 
 .special-mission-chapter-main strong {
+  display: block;
+  min-width: 0;
   color: var(--ink);
   font-size: 0.86rem;
   font-weight: 950;
