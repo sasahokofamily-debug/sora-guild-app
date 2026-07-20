@@ -8870,6 +8870,28 @@ h3 {
   white-space: nowrap;
 }
 
+.special-mission-chapter-quest > button {
+  min-width: 52px;
+  min-height: 32px;
+  border: 1px solid rgba(38, 126, 151, 0.34);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: #fffdf2;
+  background: linear-gradient(180deg, #3b9db2, #21758f);
+  box-shadow: 0 2px 0 rgba(24, 72, 87, 0.34);
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 950;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.special-mission-chapter-quest > button:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(24, 72, 87, 0.3);
+}
+
 .special-mission-chapter-quest.status-complete > span {
   border-color: rgba(57, 120, 75, 0.38);
   color: #fff8df;
@@ -8996,6 +9018,27 @@ h3 {
   padding: 9px;
   background: rgba(255, 247, 223, 0.36);
   box-shadow: inset 0 1px 0 rgba(255, 247, 223, 0.42);
+}
+
+.special-mission-recommend-item.is-focus-highlight {
+  animation: special-mission-focus-pulse 1.25s ease-out;
+}
+
+@keyframes special-mission-focus-pulse {
+  0%, 100% {
+    box-shadow: var(--paper-inner-shadow), 0 2px 8px rgba(0, 0, 0, 0.16);
+  }
+  24%, 62% {
+    border-color: rgba(38, 153, 184, 0.82);
+    box-shadow: var(--paper-inner-shadow), 0 0 0 4px rgba(67, 185, 203, 0.22), 0 5px 16px rgba(28, 98, 116, 0.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .special-mission-recommend-item.is-focus-highlight {
+    animation: none;
+    border-color: rgba(38, 153, 184, 0.82);
+  }
 }
 
 .special-mission-recommend-item form {

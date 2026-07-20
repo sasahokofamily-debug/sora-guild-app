@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "4.4";
+const APP_VERSION = "4.5";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "特別ミッションの章をタップして、章内の全クエストを確認できるようにしました。",
-  "完了・承認待ち・未完了・順番待ちが、一覧で分かるようになりました。",
-  "章一覧は必要なところだけ開けるため、スマホでもコンパクトに確認できます。",
+  "章の中にある「進める」から、該当するクエストへすぐ移動できるようにしました。",
+  "進捗入力や保護者への報告が必要なクエストにも、迷わず進めます。",
+  "移動先を一瞬光らせ、どのクエストを選んだか分かりやすくしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -8290,6 +8290,7 @@ function renderSpecialMissionHome() {
 
   const summary = getSpecialMissionProgressSummary(mission);
   const recommendedQuests = getSpecialMissionRecommendedQuests(mission);
+  const recommendedQuestIds = new Set(recommendedQuests.map((quest) => quest.id));
   const completionHistory = getSpecialMissionCompletionHistory(mission);
   setText("[data-special-mission-title]", `${mission.icon} ${mission.title}`);
   setText("[data-special-mission-story]", mission.description || mission.story || "期間限定の冒険を進めましょう。");
@@ -8328,6 +8329,7 @@ function renderSpecialMissionHome() {
       <div id="special-mission-chapter-quests-${escapeHtml(chapter.id)}" class="special-mission-chapter-quests"${isChapterOpen ? "" : " hidden"}>
         ${chapterQuests.map((quest) => {
           const questStatus = getSpecialMissionQuestListStatus(mission, quest);
+          const canFocusQuest = questStatus.key === "open" && recommendedQuestIds.has(quest.id);
           return `
             <div class="special-mission-chapter-quest status-${questStatus.key}">
               <span aria-hidden="true">${questStatus.key === "complete" ? "✓" : questStatus.key === "pending" ? "…" : questStatus.key === "locked" ? "○" : "◇"}</span>
@@ -8335,7 +8337,9 @@ function renderSpecialMissionHome() {
                 <strong>${escapeHtml(quest.title)}</strong>
                 <small>${escapeHtml(quest.estimatedMinutes ? `目安 ${quest.estimatedMinutes}分` : "")}</small>
               </div>
-              <em>${escapeHtml(questStatus.label)}</em>
+              ${canFocusQuest
+                ? `<button type="button" data-focus-special-mission-quest="${escapeHtml(quest.id)}">進める</button>`
+                : `<em>${escapeHtml(questStatus.label)}</em>`}
             </div>
           `;
         }).join("") || `<p class="special-mission-empty">クエストはまだありません。</p>`}
@@ -8382,6 +8386,7 @@ function renderSpecialMissionHome() {
   recommendedQuests.forEach((quest) => {
     const item = document.createElement("article");
     item.className = "special-mission-recommend-item";
+    item.dataset.specialMissionRecommendQuest = quest.id;
     const rewards = normalizeRewardBundle(quest.rewards || {});
     item.innerHTML = `
       <form data-special-mission-quest-report="${escapeHtml(mission.id)}" data-special-quest-id="${escapeHtml(quest.id)}">
@@ -8402,6 +8407,26 @@ function renderSpecialMissionHome() {
     `;
     list.append(item);
   });
+}
+
+function focusSpecialMissionRecommendedQuest(questId) {
+  const target = Array.from(document.querySelectorAll("[data-special-mission-recommend-quest]"))
+    .find((item) => item.dataset.specialMissionRecommendQuest === questId);
+  if (!target) {
+    showToast("このクエストは今日の一覧にありません");
+    return;
+  }
+  target.classList.remove("is-focus-highlight");
+  void target.offsetWidth;
+  target.classList.add("is-focus-highlight");
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+  window.setTimeout(() => {
+    const firstControl = target.querySelector("input, button");
+    if (firstControl) {
+      firstControl.focus({ preventScroll: true });
+    }
+  }, 420);
+  window.setTimeout(() => target.classList.remove("is-focus-highlight"), 1500);
 }
 
 function handleRewardCreateSubmit(event) {
@@ -10778,6 +10803,12 @@ document.addEventListener("click", (event) => {
       openSpecialMissionChapterIds.add(chapterId);
     }
     renderSpecialMissionHome();
+    return;
+  }
+
+  const focusSpecialMissionQuestButton = event.target.closest("[data-focus-special-mission-quest]");
+  if (focusSpecialMissionQuestButton) {
+    focusSpecialMissionRecommendedQuest(focusSpecialMissionQuestButton.dataset.focusSpecialMissionQuest);
     return;
   }
 
