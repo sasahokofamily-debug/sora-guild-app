@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "4.7";
+const APP_VERSION = "4.8";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,8 +64,8 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "「計算プリント1ページ」を、同じ日に続けて完了できるようにしました。",
-  "押すたびに1ページ分の進捗と報酬が記録されます。",
+  "「漢字プリント1ページ」も、同じ日に続けて完了できるようにしました。",
+  "計算と漢字は、押すたびに1ページ分の進捗と報酬が記録されます。",
   "ほかの毎日クエストの回数制限は変更していません。",
 ];
 const WORLD_AREAS = [
@@ -490,8 +490,8 @@ const SPECIAL_MISSION_TEMPLATES = [
       {
         id: "chapter-3-kanji",
         title: "第3章 漢字の森",
-        description: "7月24日〜31日の漢字編。苦手でも10分だけ進めます。",
-        story: "忘れ文字の魔樹は、毎日の積み重ねで道を開きます。",
+        description: "7月24日〜31日の漢字編。プリントを1ページずつ進めます。",
+        story: "1ページ進むたび、忘れ文字の魔樹への道が少しずつ開きます。",
         icon: "🌲",
         order: 3,
         startDate: `${SUMMER_HOMEWORK_YEAR}-07-24`,
@@ -508,7 +508,7 @@ const SPECIAL_MISSION_TEMPLATES = [
           rewards: { xp: 30, gold: 15, stats: { STR: 0, INT: 2, END: 1, DEX: 0 } },
         },
         quests: [
-          { title: "漢字プリントを10分進める", description: "漢字プリントを10分だけ進めます。苦手な日はここだけでOKです。", questType: "daily", stat: "INT", repeatable: true, dailyLimit: 1, xpReward: 10, goldReward: 2 },
+          { title: "漢字プリント1ページ", description: "1ページ終わるごとに完了します。続けて何ページでも進められます。", questType: "daily", stat: "INT", repeatable: true, dailyLimit: 99, xpReward: 10, goldReward: 2 },
           { id: "kanji-25", title: "漢字プリント25％", description: "漢字プリントの4分の1まで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, progressSettings: { mode: "percent", targetPercent: 25 } },
           { id: "kanji-50", title: "漢字プリント50％", description: "半分まで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["kanji-25"], progressSettings: { mode: "percent", targetPercent: 50 } },
           { id: "kanji-75", title: "漢字プリント75％", description: "あと少しのところまで進めます。", questType: "milestone", stat: "END", xpReward: 20, goldReward: 5, prerequisiteQuestIds: ["kanji-50"], progressSettings: { mode: "percent", targetPercent: 75 } },
@@ -3214,7 +3214,7 @@ function ensureSummerHomeworkChapterUnlocks(mission) {
   });
 }
 
-function ensureSummerHomeworkRepeatableCalculationPages(mission) {
+function ensureSummerHomeworkRepeatableStudyPages(mission) {
   const isSummerHomeworkMission = mission.templateId === "summer-homework-campaign" || mission.title.includes("夏休み宿題");
   if (!isSummerHomeworkMission) {
     return mission;
@@ -3222,25 +3222,46 @@ function ensureSummerHomeworkRepeatableCalculationPages(mission) {
 
   let changed = false;
   const chapters = mission.chapters.map((chapter) => {
-    if (chapter.id !== "chapter-2-calculation") {
+    const config = chapter.id === "chapter-2-calculation"
+      ? {
+          titlePattern: /計算プリント.*[1１]ページ/,
+          oldTitlePattern: /計算プリント.*10分/,
+          title: "計算プリント1ページ",
+          oldChapterDescriptionPattern: /10分タイマー/,
+          chapterDescription: "7月21日〜27日の計算編。プリントを1ページずつ進めます。",
+          oldChapterStoryPattern: /数字の洞窟を進むほど/,
+          chapterStory: "1ページ進むたび、暗算ゴーレムの力が少しずつ弱まります。",
+        }
+      : chapter.id === "chapter-3-kanji"
+        ? {
+            titlePattern: /漢字プリント.*[1１]ページ/,
+            oldTitlePattern: /漢字プリント.*10分/,
+            title: "漢字プリント1ページ",
+            oldChapterDescriptionPattern: /10分だけ進めます/,
+            chapterDescription: "7月24日〜31日の漢字編。プリントを1ページずつ進めます。",
+            oldChapterStoryPattern: /忘れ文字の魔樹は、毎日の積み重ねで/,
+            chapterStory: "1ページ進むたび、忘れ文字の魔樹への道が少しずつ開きます。",
+          }
+        : null;
+    if (!config) {
       return chapter;
     }
-    const chapterDescription = /10分タイマー/.test(chapter.description)
-      ? "7月21日〜27日の計算編。プリントを1ページずつ進めます。"
+    const chapterDescription = config.oldChapterDescriptionPattern.test(chapter.description)
+      ? config.chapterDescription
       : chapter.description;
-    const chapterStory = /数字の洞窟を進むほど/.test(chapter.story)
-      ? "1ページ進むたび、暗算ゴーレムの力が少しずつ弱まります。"
+    const chapterStory = config.oldChapterStoryPattern.test(chapter.story)
+      ? config.chapterStory
       : chapter.story;
     if (chapterDescription !== chapter.description || chapterStory !== chapter.story) {
       changed = true;
     }
     const quests = chapter.quests.map((quest, index) => {
-      const isCalculationPageQuest = /計算プリント.*[1１]ページ/.test(quest.title)
-        || (index === 0 && /計算プリント.*10分/.test(quest.title));
-      if (!isCalculationPageQuest) {
+      const isStudyPageQuest = config.titlePattern.test(quest.title)
+        || (index === 0 && config.oldTitlePattern.test(quest.title));
+      if (!isStudyPageQuest) {
         return quest;
       }
-      const nextTitle = /計算プリント.*10分/.test(quest.title) ? "計算プリント1ページ" : quest.title;
+      const nextTitle = config.oldTitlePattern.test(quest.title) ? config.title : quest.title;
       const nextDescription = /10分/.test(quest.description)
         ? "1ページ終わるごとに完了します。続けて何ページでも進められます。"
         : quest.description;
@@ -3307,7 +3328,7 @@ function loadSpecialMissions() {
       .filter(Boolean)
       .map(ensureSummerHomeworkReadingChapter)
       .map(ensureSummerHomeworkChapterUnlocks)
-      .map(ensureSummerHomeworkRepeatableCalculationPages)
+      .map(ensureSummerHomeworkRepeatableStudyPages)
       .sort((a, b) => a.order - b.order);
     localStorage.setItem(SPECIAL_MISSIONS_KEY, JSON.stringify(normalizedMissions));
     return normalizedMissions;
