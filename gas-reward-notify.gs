@@ -188,12 +188,27 @@ function sendWeeklyReport() {
     return;
   }
 
-  sendWeeklyReportEmail();
-  properties.setProperty(WEEKLY_REPORT_LAST_SENT_WEEK_KEY, currentWeekId);
+  const emailSent = sendWeeklyReportEmail();
+  if (emailSent) {
+    properties.setProperty(WEEKLY_REPORT_LAST_SENT_WEEK_KEY, currentWeekId);
+  } else {
+    console.warn("週間レポートを送信できなかったため、送信済みにはしませんでした");
+  }
+  return emailSent;
 }
 
 function sendWeeklyReportEmail(reportOverride) {
-  let report = reportOverride && typeof reportOverride === "object" ? reportOverride : null;
+  // 時間主導トリガーはイベントオブジェクトを第1引数に渡します。
+  // レポートとして必要な項目がないイベントは無視し、保存済みデータを使用します。
+  const hasReportFields = reportOverride &&
+    typeof reportOverride === "object" &&
+    !Array.isArray(reportOverride) &&
+    (reportOverride.notificationEmail ||
+      reportOverride.weekStart ||
+      reportOverride.savedAt ||
+      reportOverride.completed !== undefined ||
+      reportOverride.questsCompleted !== undefined);
+  let report = hasReportFields ? reportOverride : null;
   if (!report) {
     const stored = PropertiesService.getScriptProperties().getProperty(WEEKLY_REPORT_PROPERTY_KEY);
     try {
@@ -221,7 +236,8 @@ function sendWeeklyReportEmail(reportOverride) {
   };
   const notificationEmail = getNotificationEmail(safeReport);
   if (!notificationEmail) {
-    throw new Error("通知先メールアドレスが未設定です。");
+    console.warn("週間レポートを送信しませんでした: 通知先メールアドレスが未設定です。");
+    return false;
   }
   const isCurrentWeek = safeReport.weekStart === currentWeekStart;
   if (!isCurrentWeek) {
