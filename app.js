@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "4.9";
+const APP_VERSION = "5.0";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -64,9 +64,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "計算・漢字プリントの分かりにくいパーセント入力をなくしました。",
-  "「1ページ完了」を繰り返し、最後に「全部終わった」を押す流れへ整理しました。",
-  "カードには、これまでに完了した合計ページ数を表示します。",
+  "保護者が追加した特別ミッションを「今日やること」へ優先表示するようにしました。",
+  "章の途中に追加したミッションも、子ども画面からすぐ完了・報告できます。",
+  "同じ章の候補が重なりすぎないよう、表示を整理しました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -8061,26 +8061,33 @@ function getSpecialMissionRecommendedQuests(mission) {
       !isSpecialMissionQuestDoneForToday(mission.id, quest) &&
       !isSpecialMissionQuestPending(mission.id, quest),
     );
+  const orderedAvailableQuests = availableQuests
+    .sort((a, b) => a.chapterOrder - b.chapterOrder || a.order - b.order);
+  const customQuests = orderedAvailableQuests
+    .filter((quest) => String(quest.id || "").startsWith("custom-"));
   const nextQuestByChapter = [];
-  const seenChapterIds = new Set();
-  availableQuests
-    .sort((a, b) => a.chapterOrder - b.chapterOrder || a.order - b.order)
+  const seenChapterIds = new Set(customQuests.map((quest) => quest.chapterId));
+  orderedAvailableQuests
+    .filter((quest) => !String(quest.id || "").startsWith("custom-"))
     .forEach((quest) => {
       if (!seenChapterIds.has(quest.chapterId)) {
         seenChapterIds.add(quest.chapterId);
         nextQuestByChapter.push(quest);
       }
     });
-  const selectedQuestIds = new Set(nextQuestByChapter.map((quest) => quest.id));
-  const additionalQuests = availableQuests
+  const selectedQuestIds = new Set(
+    [...customQuests, ...nextQuestByChapter].map((quest) => quest.id),
+  );
+  const additionalQuests = orderedAvailableQuests
     .filter((quest) => !selectedQuestIds.has(quest.id))
     .sort((a, b) =>
       scoreSpecialMissionQuestRecommendation(b) - scoreSpecialMissionQuestRecommendation(a) ||
       a.chapterOrder - b.chapterOrder ||
       a.order - b.order,
     );
-  return [...nextQuestByChapter, ...additionalQuests]
-    .slice(0, Math.max(limit, nextQuestByChapter.length));
+  const minimumVisible = customQuests.length + nextQuestByChapter.length;
+  return [...customQuests, ...nextQuestByChapter, ...additionalQuests]
+    .slice(0, Math.max(limit, minimumVisible));
 }
 
 function getSpecialMissionRewardPreview(mission) {
