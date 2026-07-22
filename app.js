@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.0";
+const APP_VERSION = "5.1";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -26,6 +26,7 @@ const NOTIFICATION_SETTINGS_KEY = "sora_guild_app_notification_settings_dev";
 const AUDIO_SETTINGS_KEY = "sora_guild_app_audio_settings_dev";
 const BGM_ENABLED_KEY = "sora_guild_app_bgm_enabled_dev";
 const BGM_SRC = "./assets/audio/bgm/bgm_main.mp3";
+const SUMMER_BGM_SRC = "./assets/audio/bgm/bgm_summer.mp3";
 const SFX_ENABLED_KEY = "sora_guild_app_sfx_enabled_dev";
 const CHARACTER_STAGE_KEY = "sora_guild_app_character_stage_dev";
 const PARENT_PIN_KEY = "sora_guild_app_parent_pin_dev";
@@ -64,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "保護者が追加した特別ミッションを「今日やること」へ優先表示するようにしました。",
-  "章の途中に追加したミッションも、子ども画面からすぐ完了・報告できます。",
-  "同じ章の候補が重なりすぎないよう、表示を整理しました。",
+  "夏休みテーマの特別ミッション開催中は、夏限定BGMが流れるようになりました。",
+  "開催期間が終わると、通常のギルドBGMへ自動で戻ります。",
+  "夏BGMを読み込めない場合も、通常BGMでそのまま遊べます。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -1596,6 +1597,7 @@ let bgmEnabled = audioSettings.bgmEnabled;
 let bgmAudio = null;
 let bgmInteractionArmed = false;
 let bgmStarted = false;
+const unavailableBgmSources = new Set();
 let sfxInteractionPrimed = false;
 let sfxEnabled = audioSettings.sfxEnabled;
 const sounds = {
@@ -2111,17 +2113,69 @@ function getParentNote(dateKey = getDateKey()) {
   return loadParentNotes()[dateKey] || "";
 }
 
-function getBgmAudio() {
+function isSummerSpecialMission(mission) {
+  if (!mission) {
+    return false;
+  }
+  return mission.theme === "summer" ||
+    mission.themePreset === "summer" ||
+    mission.themePreset === "sunflower" ||
+    mission.templateId === "summer-homework-campaign";
+}
+
+function getCurrentBgmSrc() {
+  const hasActiveSummerMission = getActiveSpecialMissions().some(isSummerSpecialMission);
+  if (hasActiveSummerMission && !unavailableBgmSources.has(SUMMER_BGM_SRC)) {
+    return SUMMER_BGM_SRC;
+  }
+  return BGM_SRC;
+}
+
+function handleBgmLoadError() {
   if (!bgmAudio) {
-    bgmAudio = new Audio(BGM_SRC);
+    return;
+  }
+  const failedSrc = bgmAudio.getAttribute("src") || BGM_SRC;
+  console.warn("BGM音源を読み込めませんでした", failedSrc);
+  unavailableBgmSources.add(failedSrc);
+  if (failedSrc !== BGM_SRC) {
+    const shouldResume = bgmEnabled && !document.hidden;
+    bgmAudio.pause();
+    bgmAudio.src = BGM_SRC;
+    bgmAudio.load();
+    bgmStarted = false;
+    if (shouldResume) {
+      playBgm();
+    }
+  }
+}
+
+function getBgmAudio() {
+  const desiredSrc = getCurrentBgmSrc();
+  if (!bgmAudio) {
+    bgmAudio = new Audio(desiredSrc);
     bgmAudio.loop = true;
     bgmAudio.volume = getAudioVolume();
     bgmAudio.preload = "auto";
-    bgmAudio.addEventListener("error", () => {
-      console.warn("BGM音源を読み込めませんでした", BGM_SRC);
-    });
+    bgmAudio.addEventListener("error", handleBgmLoadError);
   }
   return bgmAudio;
+}
+
+function syncBgmTrack(resumePlayback = true) {
+  const audio = getBgmAudio();
+  const desiredSrc = getCurrentBgmSrc();
+  if (audio.getAttribute("src") === desiredSrc) {
+    return;
+  }
+  const shouldResume = bgmStarted && bgmEnabled && !document.hidden;
+  audio.pause();
+  audio.src = desiredSrc;
+  audio.load();
+  bgmStarted = false;
+  if (shouldResume && resumePlayback) {
+    playBgm();
+  }
 }
 
 function preloadAudioAssets() {
@@ -2180,6 +2234,7 @@ function playBgm() {
   if (!bgmEnabled) {
     return Promise.resolve(false);
   }
+  syncBgmTrack(false);
   const audio = getBgmAudio();
   audio.volume = getAudioVolume();
   const playPromise = audio.play();
@@ -10717,6 +10772,7 @@ function render() {
   applyDailyStreakReset();
   applyAppDisplayName();
   renderCurrentAppDateTime();
+  syncBgmTrack();
   const level = getLevel(progress.xp);
   const title = getTitle(level);
   progress.stats = normalizeStats(progress.stats);

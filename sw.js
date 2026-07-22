@@ -1,9 +1,9 @@
-const CACHE_NAME = "sora-quest-pwa-v108";
+const CACHE_NAME = "sora-quest-pwa-v109";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=20260722-custom-priority50",
-  "./app.js?v=20260722-custom-priority50",
+  "./styles.css?v=20260722-summer-bgm51",
+  "./app.js?v=20260722-summer-bgm51",
   "./firebase-config-auth.js?v=20260706-version18-title-break",
   "./manifest.json",
   "./assets/bg-guild.png",
@@ -48,6 +48,7 @@ const APP_SHELL = [
   "./assets/bosses/boss-14-necromancer.png",
   "./assets/bosses/boss-15-flame-dragon.png",
   "./assets/audio/bgm/bgm_main.mp3",
+  "./assets/audio/bgm/bgm_summer.mp3",
   "./assets/audio/sfx/sfx_tab.mp3",
   "./assets/audio/sfx/sfx_gold.mp3",
   "./assets/audio/sfx/sfx_achievement.mp3",
