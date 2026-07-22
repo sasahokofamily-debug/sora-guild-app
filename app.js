@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.4";
+const APP_VERSION = "5.5";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "計算・漢字プリントで、2ページ以上を入力できない問題を修正しました。",
-  "保存済みの古い上限設定に関係なく、1〜99ページをまとめて記録できます。",
-  "入力ページ数に応じて、XP・Gold・能力値がその場で変わります。",
+  "計算・漢字プリントの入力値が、勝手に1へ戻る問題を修正しました。",
+  "入力途中で画面が更新されても、ページ数を保持します。",
+  "ページ数は空欄から入力でき、1〜99ページをまとめて記録できます。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -1583,6 +1583,7 @@ let isWorldMapOpen = false;
 let isSpecialMissionOverviewOpen = false;
 let isSpecialMissionHistoryOpen = false;
 const openSpecialMissionChapterIds = new Set();
+const specialMissionPageCountDrafts = new Map();
 let activeQuestCategory = "daily_required";
 let questSwipeStartX = 0;
 let questSwipeStartY = 0;
@@ -7772,6 +7773,8 @@ function handleSpecialMissionQuestReportSubmit(event) {
     return;
   }
   event.preventDefault();
+  const draftKey = `${form.dataset.specialMissionQuestReport}:${form.dataset.specialQuestId}`;
+  specialMissionPageCountDrafts.delete(draftKey);
   completeSpecialMissionQuest(
     form.dataset.specialMissionQuestReport,
     form.dataset.specialQuestId,
@@ -7783,6 +7786,12 @@ function updateSpecialMissionBatchRewardPreview(input) {
   const form = input.closest("[data-special-mission-quest-report]");
   if (!form) {
     return;
+  }
+  const draftKey = `${form.dataset.specialMissionQuestReport}:${form.dataset.specialQuestId}`;
+  if (input.value === "") {
+    specialMissionPageCountDrafts.delete(draftKey);
+  } else {
+    specialMissionPageCountDrafts.set(draftKey, input.value);
   }
   const maxPages = Math.max(1, normalizeNonNegativeNumber(input.max, 1));
   const pageCount = Math.min(maxPages, Math.max(1, Math.floor(normalizeNonNegativeNumber(input.value, 1))));
@@ -8247,6 +8256,7 @@ function getSpecialMissionProgressInputHtml(mission, quest) {
   const questProgress = getSpecialMissionQuestProgress(mission.id, quest.id);
   if (isSpecialMissionWorksheetPageQuest(quest)) {
     const maxBatchPages = 99;
+    const draftValue = specialMissionPageCountDrafts.get(`${mission.id}:${quest.id}`) || "";
     const rewards = normalizeRewardBundle(quest.rewards || {});
     const unitRewards = [];
     if (rewards.xp > 0) unitRewards.push(`+${formatNumber(rewards.xp)} XP`);
@@ -8254,7 +8264,7 @@ function getSpecialMissionProgressInputHtml(mission, quest) {
     return `
       <label class="special-mission-progress-input special-mission-page-count-input">
         <span>今回終わったページ数</span>
-        <input type="number" name="reportValue" data-special-mission-page-count inputmode="numeric" min="1" max="${maxBatchPages}" step="1" value="1">
+        <input type="number" name="reportValue" data-special-mission-page-count inputmode="numeric" min="1" max="${maxBatchPages}" step="1" value="${escapeHtml(draftValue)}" placeholder="例：14" required>
         <small>ページ${unitRewards.length ? `（1ページ ${unitRewards.join(" / ")}）` : ""}</small>
       </label>
     `;
