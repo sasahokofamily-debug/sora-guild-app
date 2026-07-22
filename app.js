@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.3";
+const APP_VERSION = "5.4";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "計算・漢字の「今日やること」には、ページ数入力カードを常に表示するようにしました。",
-  "以前作った固定ページ数のクエストや「全部終わった」が先に出る問題を修正しました。",
-  "入力したページ数に応じて、XP・Gold・能力値がその場で変わります。",
+  "計算・漢字プリントで、2ページ以上を入力できない問題を修正しました。",
+  "保存済みの古い上限設定に関係なく、1〜99ページをまとめて記録できます。",
+  "入力ページ数に応じて、XP・Gold・能力値がその場で変わります。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -8246,7 +8246,7 @@ function getSpecialMissionProgressInputHtml(mission, quest) {
   }
   const questProgress = getSpecialMissionQuestProgress(mission.id, quest.id);
   if (isSpecialMissionWorksheetPageQuest(quest)) {
-    const maxBatchPages = Math.max(1, quest.dailyLimit || 99);
+    const maxBatchPages = 99;
     const rewards = normalizeRewardBundle(quest.rewards || {});
     const unitRewards = [];
     if (rewards.xp > 0) unitRewards.push(`+${formatNumber(rewards.xp)} XP`);
@@ -8388,7 +8388,7 @@ function completeSpecialMissionQuest(missionId, questId, options = {}) {
   const missionProgress = getSpecialMissionProgressState(mission.id);
   const questProgress = getSpecialMissionQuestProgress(mission.id, quest.id);
   const remainingPageLimit = isSpecialMissionWorksheetPageQuest(quest)
-    ? Math.max(1, quest.dailyLimit || 99)
+    ? 99
     : 1;
   const reportUpdate = getSpecialMissionQuestReportUpdate(
     quest,
