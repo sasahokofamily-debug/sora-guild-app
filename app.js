@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.2";
+const APP_VERSION = "5.3";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "計算・漢字プリントは、今回終わったページ数を数字で入力できるようになりました。",
-  "入力したページ数に合わせて、獲得予定のXP・Goldがその場で変わります。",
-  "能力値と完了履歴も、まとめて終わらせたページ数ぶん正しく記録します。",
+  "計算・漢字の「今日やること」には、ページ数入力カードを常に表示するようにしました。",
+  "以前作った固定ページ数のクエストや「全部終わった」が先に出る問題を修正しました。",
+  "入力したページ数に応じて、XP・Gold・能力値がその場で変わります。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -7988,6 +7988,20 @@ function isSpecialMissionWorksheetPageQuest(quest) {
   return Boolean(quest?.repeatable && /(?:計算|漢字).*?[1１]ページ/.test(String(quest.title || "")));
 }
 
+function isSpecialMissionWorksheetCompletionQuest(quest) {
+  return ["calc-100", "kanji-100"].includes(String(quest?.id || ""));
+}
+
+function isLegacySpecialMissionWorksheetBatchQuest(quest) {
+  const title = String(quest?.title || "");
+  return Boolean(
+    String(quest?.id || "").startsWith("custom-") &&
+    ["chapter-2-calculation", "chapter-3-kanji"].includes(quest?.chapterId) &&
+    /(?:計算|漢字)/.test(title) &&
+    /(?:[2-9２-９]|[1-9]\d+|[１-９][０-９]+)\s*ページ/.test(title),
+  );
+}
+
 function getSpecialMissionWorksheetPagesToday(missionId, quest) {
   const questProgress = getSpecialMissionQuestProgress(missionId, quest.id);
   const dateKey = getDateKey();
@@ -8009,7 +8023,7 @@ function isSpecialMissionQuestDoneForToday(missionId, quest) {
     return questProgress.completedDates.includes(dateKey);
   }
   if (isSpecialMissionWorksheetPageQuest(quest)) {
-    return getSpecialMissionWorksheetPagesToday(missionId, quest) >= Math.max(1, quest.dailyLimit || 1);
+    return false;
   }
   const historyCount = questProgress.completionHistory.filter((item) =>
     item.dateKey === dateKey && item.status !== "rejected",
@@ -8162,25 +8176,41 @@ function getSpecialMissionRecommendedQuests(mission) {
       isSpecialMissionChapterUnlocked(mission, quest.chapterId) &&
       isSpecialMissionQuestUnlocked(mission, quest) &&
       isSpecialMissionQuestAvailableToday(quest) &&
-      !isSpecialMissionQuestDoneForToday(mission.id, quest) &&
+      (isSpecialMissionWorksheetPageQuest(quest) || !isSpecialMissionQuestDoneForToday(mission.id, quest)) &&
+      !isLegacySpecialMissionWorksheetBatchQuest(quest) &&
+      !isSpecialMissionWorksheetCompletionQuest(quest) &&
       !isSpecialMissionQuestPending(mission.id, quest),
     );
   const orderedAvailableQuests = availableQuests
     .sort((a, b) => a.chapterOrder - b.chapterOrder || a.order - b.order);
+  const worksheetQuests = orderedAvailableQuests
+    .filter(isSpecialMissionWorksheetPageQuest);
+  const worksheetChapterIds = new Set(worksheetQuests.map((quest) => quest.chapterId));
   const customQuests = orderedAvailableQuests
-    .filter((quest) => String(quest.id || "").startsWith("custom-"));
+    .filter((quest) =>
+      String(quest.id || "").startsWith("custom-") &&
+      !worksheetChapterIds.has(quest.chapterId),
+    );
   const nextQuestByChapter = [];
-  const seenChapterIds = new Set(customQuests.map((quest) => quest.chapterId));
+  const seenChapterIds = new Set([
+    ...worksheetChapterIds,
+    ...customQuests.map((quest) => quest.chapterId),
+  ]);
   orderedAvailableQuests
-    .filter((quest) => !String(quest.id || "").startsWith("custom-"))
+    .filter((quest) =>
+      !isSpecialMissionWorksheetPageQuest(quest) &&
+      !String(quest.id || "").startsWith("custom-"),
+    )
     .forEach((quest) => {
       if (!seenChapterIds.has(quest.chapterId)) {
         seenChapterIds.add(quest.chapterId);
         nextQuestByChapter.push(quest);
       }
     });
+  const primaryQuests = [...worksheetQuests, ...customQuests, ...nextQuestByChapter]
+    .sort((a, b) => a.chapterOrder - b.chapterOrder || a.order - b.order);
   const selectedQuestIds = new Set(
-    [...customQuests, ...nextQuestByChapter].map((quest) => quest.id),
+    primaryQuests.map((quest) => quest.id),
   );
   const additionalQuests = orderedAvailableQuests
     .filter((quest) => !selectedQuestIds.has(quest.id))
@@ -8189,8 +8219,8 @@ function getSpecialMissionRecommendedQuests(mission) {
       a.chapterOrder - b.chapterOrder ||
       a.order - b.order,
     );
-  const minimumVisible = customQuests.length + nextQuestByChapter.length;
-  return [...customQuests, ...nextQuestByChapter, ...additionalQuests]
+  const minimumVisible = primaryQuests.length;
+  return [...primaryQuests, ...additionalQuests]
     .slice(0, Math.max(limit, minimumVisible));
 }
 
@@ -8216,8 +8246,7 @@ function getSpecialMissionProgressInputHtml(mission, quest) {
   }
   const questProgress = getSpecialMissionQuestProgress(mission.id, quest.id);
   if (isSpecialMissionWorksheetPageQuest(quest)) {
-    const completedToday = getSpecialMissionWorksheetPagesToday(mission.id, quest);
-    const remainingToday = Math.max(1, Math.max(1, quest.dailyLimit || 1) - completedToday);
+    const maxBatchPages = Math.max(1, quest.dailyLimit || 99);
     const rewards = normalizeRewardBundle(quest.rewards || {});
     const unitRewards = [];
     if (rewards.xp > 0) unitRewards.push(`+${formatNumber(rewards.xp)} XP`);
@@ -8225,7 +8254,7 @@ function getSpecialMissionProgressInputHtml(mission, quest) {
     return `
       <label class="special-mission-progress-input special-mission-page-count-input">
         <span>今回終わったページ数</span>
-        <input type="number" name="reportValue" data-special-mission-page-count inputmode="numeric" min="1" max="${remainingToday}" step="1" value="1">
+        <input type="number" name="reportValue" data-special-mission-page-count inputmode="numeric" min="1" max="${maxBatchPages}" step="1" value="1">
         <small>ページ${unitRewards.length ? `（1ページ ${unitRewards.join(" / ")}）` : ""}</small>
       </label>
     `;
@@ -8359,7 +8388,7 @@ function completeSpecialMissionQuest(missionId, questId, options = {}) {
   const missionProgress = getSpecialMissionProgressState(mission.id);
   const questProgress = getSpecialMissionQuestProgress(mission.id, quest.id);
   const remainingPageLimit = isSpecialMissionWorksheetPageQuest(quest)
-    ? Math.max(1, Math.max(1, quest.dailyLimit || 1) - getSpecialMissionWorksheetPagesToday(mission.id, quest))
+    ? Math.max(1, quest.dailyLimit || 99)
     : 1;
   const reportUpdate = getSpecialMissionQuestReportUpdate(
     quest,
