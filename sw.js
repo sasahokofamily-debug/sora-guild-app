@@ -1,9 +1,9 @@
-const CACHE_NAME = "sora-quest-pwa-v114";
+const CACHE_NAME = "sora-quest-pwa-v115";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=20260726-mission-form56",
-  "./app.js?v=20260726-mission-form56",
+  "./styles.css?v=20260726-history-toggle57",
+  "./app.js?v=20260726-history-toggle57",
   "./firebase-config-auth.js?v=20260706-version18-title-break",
   "./manifest.json",
   "./assets/bg-guild.png",

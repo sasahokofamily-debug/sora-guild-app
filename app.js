@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.6";
+const APP_VERSION = "5.7";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "特別ミッション管理の日付入力が、スマホでカードからはみ出す問題を修正しました。",
-  "ミッション編集フォームの横幅と余白を整えました。",
-  "iPhoneの小さい画面でも、入力欄がカード内に収まります。",
+  "ギルド画面の更新履歴を、必要なときだけ開けるようにしました。",
+  "更新履歴は初期状態で閉じているため、設定画面を短く見渡せます。",
+  "見出しをタップすると、これまでの更新内容を確認できます。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
