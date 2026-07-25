@@ -552,43 +552,60 @@ function buildWeeklyReportHtml(report, hasRecord) {
 
 function buildRewardExchangeHtml(report) {
   return `
-    <div style="margin:0;padding:28px 14px;background:#eadcc1;color-scheme:light only;supported-color-schemes:light;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',Meiryo,sans-serif;color:#3d291d;-webkit-text-size-adjust:100%;">
-      <div style="max-width:600px;margin:0 auto;padding:10px;border:1px solid #8b6530;border-radius:18px;background:#6b4526;box-shadow:0 18px 34px rgba(45,27,15,0.28);">
-        <div style="padding:24px 22px;border:2px solid #d2ad5b;border-radius:14px;background:#fff3d7;background-image:linear-gradient(135deg,rgba(111,77,59,0.035) 0 1px,transparent 1px 8px),linear-gradient(180deg,#fff8e6 0%,#f3dfb5 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,0.65),inset 0 -3px 8px rgba(92,54,22,0.13);">
-          <div style="margin:0 0 18px;padding:16px 14px;border:1px solid #d2ad5b;border-radius:12px;background:#f8e8c6;text-align:center;">
-            <p style="margin:0 0 7px;color:#6f4b1f;font-size:12px;font-weight:800;letter-spacing:0.08em;line-height:1.4;">FANTASY GUILD OFFICIAL REPORT</p>
-            <h1 style="margin:0;color:#2f2118;font-size:30px;font-weight:900;line-height:1.25;">ギルド報告書</h1>
+    <div style="width:100%;margin:0;padding:28px 12px;box-sizing:border-box;background:#171c24;color-scheme:light only;supported-color-schemes:light;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',Meiryo,sans-serif;color:#302117;-webkit-text-size-adjust:100%;word-break:break-word;">
+      <div style="width:100%;max-width:580px;margin:0 auto;box-sizing:border-box;border:1px solid #8c6a32;border-radius:18px;background:#2c211b;box-shadow:0 18px 40px rgba(0,0,0,0.45);overflow:hidden;">
+        <div style="padding:15px 18px;border-bottom:1px solid #8c6a32;background:#211915;text-align:center;">
+          <p style="margin:0;color:#e9cb78;font-size:11px;font-weight:900;letter-spacing:0.12em;line-height:1.5;">ROYAL GUILD・REWARD LICENSE</p>
+        </div>
+
+        <div style="padding:24px 18px;background:#f4e3b8;">
+          <div style="margin:0 0 18px;text-align:center;">
+            <div style="width:58px;height:58px;margin:0 auto 12px;border:2px solid #a9782c;border-radius:50%;background:#7d3029;color:#f8df92;font-size:30px;font-weight:900;line-height:58px;text-align:center;box-shadow:0 0 0 5px #e7ca7e;">◆</div>
+            <p style="margin:0 0 5px;color:#7d3029;font-size:12px;font-weight:900;letter-spacing:0.08em;line-height:1.5;">王都ギルド発行</p>
+            <h1 style="margin:0;color:#2b1d16;font-size:29px;font-weight:900;line-height:1.3;">ご褒美交換許可証</h1>
+            <div style="width:82px;height:2px;margin:14px auto 0;background:#a9782c;"></div>
           </div>
 
-          <p style="margin:0 0 18px;padding:15px 16px;border:1px solid #d8bc82;border-radius:10px;background:#fff0cf;color:#3d291d;font-size:17px;font-weight:700;line-height:1.8;">
-            冒険者 <strong style="font-size:20px;color:#2f2118;">${escapeHtml(report.adventurerName)}</strong> は、見事に任務を達成し、<br>
-            報酬として <strong style="color:#7a241f;">『${escapeHtml(report.reward)}』</strong> を交換しました。
-          </p>
+          <div style="margin:0 0 18px;padding:17px 16px;border:1px solid #b79554;border-radius:10px;background:#fff6dc;text-align:center;">
+            <p style="margin:0 0 5px;color:#76512d;font-size:13px;font-weight:800;line-height:1.5;">王都ギルドより、冒険者</p>
+            <p style="margin:0;color:#7d3029;font-size:22px;font-weight:900;line-height:1.45;">${escapeHtml(report.adventurerName)} へ</p>
+            <p style="margin:10px 0 0;color:#3a291f;font-size:15px;font-weight:700;line-height:1.75;">
+              日々の冒険で集めたGoldにより、<br>
+              次のご褒美との交換申請を受理しました。
+            </p>
+          </div>
 
-          <div style="margin:20px 0;padding:16px;border:1px solid rgba(139,101,48,0.42);border-radius:12px;background:#f8e8c6;box-shadow:inset 0 1px 0 rgba(255,255,255,0.55);">
-            <table role="presentation" style="width:100%;border-collapse:collapse;">
+          <div style="margin:0 0 18px;padding:18px 16px;border:2px solid #a9782c;border-radius:12px;background:#efe0b5;text-align:center;box-shadow:inset 0 0 0 4px #f9efcf;">
+            <p style="margin:0 0 7px;color:#76512d;font-size:12px;font-weight:900;letter-spacing:0.08em;line-height:1.4;">EXCHANGE REWARD</p>
+            <p style="margin:0;color:#2b1d16;font-size:24px;font-weight:900;line-height:1.45;word-break:break-word;">${escapeHtml(report.reward)}</p>
+          </div>
+
+          <div style="margin:0;padding:10px 16px;border:1px solid #b79554;border-radius:12px;background:#fff6dc;">
+            <p style="margin:4px 0 7px;color:#7d3029;font-size:14px;font-weight:900;line-height:1.4;text-align:center;">交換記録</p>
+            <table role="presentation" style="width:100%;table-layout:fixed;border-collapse:collapse;">
               <tr>
-                <td style="width:44%;padding:9px 4px;color:#6b4a2e;font-size:13px;font-weight:800;line-height:1.45;vertical-align:top;">交換したご褒美</td>
-                <td style="width:56%;padding:9px 4px;color:#2f2118;font-size:17px;font-weight:900;line-height:1.45;text-align:right;vertical-align:top;">${escapeHtml(report.reward)}</td>
+                <td style="width:48%;padding:11px 3px;border-top:1px solid #dfc99b;color:#65472e;font-size:14px;font-weight:800;line-height:1.4;">使用したGold</td>
+                <td style="width:52%;padding:11px 3px;border-top:1px solid #dfc99b;color:#8b2f2b;font-size:21px;font-weight:900;line-height:1.2;text-align:right;">${Number(report.gold || 0)} G</td>
               </tr>
               <tr>
-                <td style="padding:8px 4px;color:#6b4a2e;font-size:14px;font-weight:800;">消費Gold</td>
-                <td style="padding:8px 4px;color:#8f2f2a;font-size:22px;font-weight:900;text-align:right;">${Number(report.gold || 0)} G</td>
+                <td style="padding:11px 3px;border-top:1px solid #dfc99b;color:#65472e;font-size:14px;font-weight:800;line-height:1.4;">残りGold</td>
+                <td style="padding:11px 3px;border-top:1px solid #dfc99b;color:#6b501b;font-size:21px;font-weight:900;line-height:1.2;text-align:right;">${Number(report.remainingGold || 0)} G</td>
               </tr>
               <tr>
-                <td style="padding:8px 4px;color:#6b4a2e;font-size:14px;font-weight:800;">残りGold</td>
-                <td style="padding:8px 4px;color:#7b5a20;font-size:22px;font-weight:900;text-align:right;">${Number(report.remainingGold || 0)} G</td>
-              </tr>
-              <tr>
-                <td style="padding:8px 4px;color:#6b4a2e;font-size:14px;font-weight:800;">日時</td>
-                <td style="padding:8px 4px;color:#3d291d;font-size:14px;font-weight:800;text-align:right;">${escapeHtml(report.date)}</td>
+                <td style="padding:11px 3px;border-top:1px solid #dfc99b;color:#65472e;font-size:14px;font-weight:800;line-height:1.4;">申請日時</td>
+                <td style="padding:11px 3px;border-top:1px solid #dfc99b;color:#302117;font-size:13px;font-weight:800;line-height:1.45;text-align:right;word-break:break-word;">${escapeHtml(report.date)}</td>
               </tr>
             </table>
           </div>
 
-          <p style="margin:20px 0 0;padding:15px 16px;border:1px solid #b88b35;border-radius:12px;background:#efd37c;color:#2f2118;font-size:17px;font-weight:900;line-height:1.6;text-align:center;">
-            ギルドより称賛を贈ります。よくがんばりました。
-          </p>
+          <div style="margin:18px 0 0;padding:15px 16px;border-radius:12px;background:#7d3029;text-align:center;">
+            <p style="margin:0 0 4px;color:#f8e5aa;font-size:16px;font-weight:900;line-height:1.55;">交換申請を送りました</p>
+            <p style="margin:0;color:#fff7df;font-size:14px;font-weight:700;line-height:1.65;">ギルドより称賛を贈ります。よくがんばりました。</p>
+          </div>
+        </div>
+
+        <div style="padding:13px 16px;border-top:1px solid #8c6a32;background:#211915;text-align:center;">
+          <p style="margin:0;color:#d7bb73;font-size:11px;font-weight:700;line-height:1.6;">この書状は、そらクエスト王都ギルドより届けられました。</p>
         </div>
       </div>
     </div>
