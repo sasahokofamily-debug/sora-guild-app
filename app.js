@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.7";
+const APP_VERSION = "5.8";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "ギルド画面の更新履歴を、必要なときだけ開けるようにしました。",
-  "更新履歴は初期状態で閉じているため、設定画面を短く見渡せます。",
-  "見出しをタップすると、これまでの更新内容を確認できます。",
+  "ギルド管理の設定セクションを、すべて閉じた状態で開始するようにしました。",
+  "必要な設定だけを開けるため、管理画面を短く見渡せます。",
+  "各見出しをタップすると、これまでどおり開閉できます。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -1588,7 +1588,7 @@ let activeQuestCategory = "daily_required";
 let questSwipeStartX = 0;
 let questSwipeStartY = 0;
 let growthChartMode = "xp";
-const openAdminSections = new Set(["basic", "data"]);
+const openAdminSections = new Set();
 let isSpecialApprovalQueueOpen = false;
 const openGrowthCollections = new Set();
 let previousDailyRequiredComplete = false;
