@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.9";
+const APP_VERSION = "5.10";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "夏休みクエストを完了したときの専用演出を追加しました。",
-  "ミッション名と獲得XP・Goldを、画面中央に分かりやすく表示します。",
-  "演出は短時間で自然に消えるため、続けてクエストを進められます。",
+  "承認ありをOFFにした特別ミッションが、承認待ちになる問題を修正しました。",
+  "古いデータに残っている誤った承認待ちは、通常の完了状態へ自動修復します。",
+  "修復時もXP・Goldは一度だけ付与され、二重に増えません。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -798,6 +798,10 @@ function reloadAppStateFromStorage() {
   notificationSettings = loadNotificationSettings();
   audioSettings = loadAudioSettings();
   syncProgressNameFromAppSettings();
+  if (reconcileDisabledSpecialMissionApprovals()) {
+    saveProgress();
+    saveSpecialMissionProgress();
+  }
 }
 
 function setLoginMessage(message, isError = false) {
@@ -1551,6 +1555,10 @@ let audioSettings = loadAudioSettings();
 let currentAppDateKey = getDateKey();
 progress = reconcileProgressFromHistory(progress);
 syncProgressNameFromAppSettings();
+if (reconcileDisabledSpecialMissionApprovals()) {
+  saveProgress();
+  saveSpecialMissionProgress();
+}
 let rewardToastTimer;
 let clearToastTimer;
 let levelUpTimer;
@@ -1744,6 +1752,25 @@ function saveProgress() {
 function normalizeNonNegativeNumber(value, fallback = 0) {
   const numberValue = Number(value);
   return Number.isFinite(numberValue) ? Math.max(0, Math.round(numberValue)) : fallback;
+}
+
+function normalizeBooleanFlag(value, fallback = false) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+  if (typeof value === "number") {
+    return value !== 0;
+  }
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["true", "1", "on", "yes"].includes(normalized)) {
+      return true;
+    }
+    if (["false", "0", "off", "no", ""].includes(normalized)) {
+      return false;
+    }
+  }
+  return fallback;
 }
 
 function normalizeLoginBonusSettings(rawSettings = {}) {
@@ -3075,7 +3102,7 @@ function normalizeSpecialMissionQuest(rawQuest = {}, index = 0, chapterId = "") 
     repeatable: Boolean(rawQuest.repeatable),
     dailyLimit: Math.max(1, normalizeNonNegativeNumber(rawQuest.dailyLimit, 1)),
     totalTargetCount: Math.max(1, normalizeNonNegativeNumber(rawQuest.totalTargetCount, progressSettings.targetValue || 1)),
-    approvalRequired: Boolean(rawQuest.approvalRequired),
+    approvalRequired: normalizeBooleanFlag(rawQuest.approvalRequired),
     photoRequired: Boolean(rawQuest.photoRequired),
     memoRequired: Boolean(rawQuest.memoRequired),
     required: rawQuest.required !== false,
@@ -3492,7 +3519,7 @@ function normalizeSpecialQuestProgress(rawProgress = {}) {
     completedDates: normalizeStringList(rawProgress.completedDates),
     completionHistory,
     reachedMilestones: normalizeStringList(rawProgress.reachedMilestones),
-    pendingApproval: Boolean(rawProgress.pendingApproval),
+    pendingApproval: normalizeBooleanFlag(rawProgress.pendingApproval),
     approvedAt: String(rawProgress.approvedAt || ""),
     rejectedAt: String(rawProgress.rejectedAt || ""),
     rewardedAt: String(rawProgress.rewardedAt || ""),
@@ -3542,6 +3569,66 @@ function loadSpecialMissionProgress() {
 function saveSpecialMissionProgress() {
   localStorage.setItem(SPECIAL_MISSION_PROGRESS_KEY, JSON.stringify(specialMissionProgress));
   scheduleCloudSave();
+}
+
+function reconcileDisabledSpecialMissionApprovals() {
+  let changed = false;
+  const resolvedAt = new Date();
+  const resolvedAtIso = resolvedAt.toISOString();
+  const nextMissionProgress = { ...specialMissionProgress };
+
+  specialMissions.forEach((mission) => {
+    const storedMissionProgress = nextMissionProgress[mission.id];
+    if (!storedMissionProgress?.questProgress) {
+      return;
+    }
+
+    const questsById = new Map(getSpecialMissionAllQuests(mission).map((quest) => [quest.id, quest]));
+    let missionChanged = false;
+    const nextQuestProgress = { ...storedMissionProgress.questProgress };
+
+    Object.entries(nextQuestProgress).forEach(([questId, rawQuestProgress]) => {
+      const quest = questsById.get(questId);
+      const questProgress = normalizeSpecialQuestProgress(rawQuestProgress);
+      const isPending = questProgress.pendingApproval || questProgress.status === "pending_approval";
+      if (!quest || quest.approvalRequired || !isPending) {
+        return;
+      }
+
+      const pendingHistory = [...questProgress.completionHistory]
+        .reverse()
+        .find((item) => item.status === "pending_approval");
+      const rewardMultiplier = isSpecialMissionWorksheetPageQuest(quest)
+        ? Math.max(1, normalizeNonNegativeNumber(pendingHistory?.rewardMultiplier, 1))
+        : 1;
+      if (!questProgress.rewardedAt) {
+        applySpecialMissionQuestReward(quest, resolvedAt, rewardMultiplier);
+      }
+
+      nextQuestProgress[questId] = normalizeSpecialQuestProgress({
+        ...questProgress,
+        status: isSpecialMissionQuestProgressComplete(quest, questProgress) ? "completed" : "in_progress",
+        pendingApproval: false,
+        rewardedAt: questProgress.rewardedAt || resolvedAtIso,
+        completionHistory: resolveLatestSpecialMissionCompletionHistory(questProgress, "completed", resolvedAtIso),
+      });
+      missionChanged = true;
+      changed = true;
+    });
+
+    if (missionChanged) {
+      nextMissionProgress[mission.id] = {
+        ...storedMissionProgress,
+        questProgress: nextQuestProgress,
+        updatedAt: resolvedAtIso,
+      };
+    }
+  });
+
+  if (changed) {
+    specialMissionProgress = nextMissionProgress;
+  }
+  return changed;
 }
 
 function normalizeReward(rawReward) {
@@ -7762,10 +7849,19 @@ function handleSpecialMissionEditSubmit(event) {
     });
   }).filter(Boolean);
 
+  const repairedPendingApprovals = reconcileDisabledSpecialMissionApprovals();
   editingSpecialMissionId = null;
   saveSpecialMissions();
+  if (repairedPendingApprovals) {
+    saveProgress();
+    saveSpecialMissionProgress();
+  }
   render();
-  setSpecialMissionMessage("特別ミッションを保存しました");
+  setSpecialMissionMessage(
+    repairedPendingApprovals
+      ? "特別ミッションを保存し、不要な承認待ちを完了に直しました"
+      : "特別ミッションを保存しました",
+  );
 }
 
 function handleSpecialMissionQuestReportSubmit(event) {
