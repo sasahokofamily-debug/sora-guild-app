@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260726-admin-closed58">
+    <link rel="stylesheet" href="styles.css?v=20260726-special-clear59">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -680,9 +680,12 @@
           <details class="panel admin-panel app-history-panel">
             <summary>
               <span>更新履歴</span>
-              <small>Version 5.8</small>
+              <small>Version 5.9</small>
             </summary>
             <div class="app-history-content">
+              <p>
+                Version 5.9：夏休みクエスト完了時の専用演出を追加しました。
+              </p>
               <p>
                 Version 5.8：ギルド管理をすべて閉じた状態で開始するようにしました。
               </p>
@@ -1227,6 +1230,19 @@
       </main>
 
       <div class="reward-toast" data-reward-toast aria-live="polite"></div>
+      <div class="special-mission-complete-effect" data-special-mission-complete-effect role="status" aria-live="assertive" hidden>
+        <div class="special-mission-complete-card">
+          <span class="special-mission-complete-spark special-mission-complete-spark-a" aria-hidden="true">✦</span>
+          <span class="special-mission-complete-spark special-mission-complete-spark-b" aria-hidden="true">✧</span>
+          <span class="special-mission-complete-spark special-mission-complete-spark-c" aria-hidden="true">✦</span>
+          <span class="special-mission-complete-icon" data-special-mission-complete-icon aria-hidden="true">🌻</span>
+          <p class="section-kicker">Special Clear</p>
+          <h3>ミッション完了！</h3>
+          <strong data-special-mission-complete-title>夏休みクエスト</strong>
+          <p data-special-mission-complete-message>夏休み作戦が一歩進んだ！</p>
+          <div class="special-mission-complete-rewards" data-special-mission-complete-rewards>+10 XP / +3 Gold</div>
+        </div>
+      </div>
       <div class="app-reminder-toast" data-app-reminder-toast aria-live="polite"></div>
       <div class="login-bonus-toast" data-login-bonus-toast aria-live="polite"></div>
       <div class="achievement-toast" data-achievement-toast aria-live="polite"></div>
@@ -1480,6 +1496,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260726-admin-closed58" defer></script>
+    <script src="app.js?v=20260726-special-clear59" defer></script>
   </body>
 </html>

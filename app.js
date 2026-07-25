@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.8";
+const APP_VERSION = "5.9";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "ギルド管理の設定セクションを、すべて閉じた状態で開始するようにしました。",
-  "必要な設定だけを開けるため、管理画面を短く見渡せます。",
-  "各見出しをタップすると、これまでどおり開閉できます。",
+  "夏休みクエストを完了したときの専用演出を追加しました。",
+  "ミッション名と獲得XP・Goldを、画面中央に分かりやすく表示します。",
+  "演出は短時間で自然に消えるため、続けてクエストを進められます。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -1557,6 +1557,7 @@ let levelUpTimer;
 let evolutionTimer;
 let xpChangeTimer;
 let questCompleteTimer;
+let specialMissionCompleteTimer;
 let loginBonusTimer;
 let appReminderTimer;
 let achievementToastTimer;
@@ -8479,7 +8480,7 @@ function completeSpecialMissionQuest(missionId, questId, options = {}) {
   saveSpecialMissionProgress();
   render();
   playSound("questComplete");
-  showToast(rewardResult.rewardMultiplier > 1 ? `${rewardResult.rewardMultiplier}ページ完了！` : `${quest.title} 完了！`);
+  showSpecialMissionCompleteEffect(mission, quest, rewardResult);
   checkAchievements();
   if (finalLevel > rewardResult.previousLevel) {
     playLevelUpAnimation(rewardResult.previousLevel, finalLevel);
@@ -8487,6 +8488,43 @@ function completeSpecialMissionQuest(missionId, questId, options = {}) {
   if (shouldPlayEvolution) {
     playEvolutionAnimation();
   }
+}
+
+function showSpecialMissionCompleteEffect(mission, quest, rewardResult) {
+  const effect = document.querySelector("[data-special-mission-complete-effect]");
+  const icon = document.querySelector("[data-special-mission-complete-icon]");
+  const title = document.querySelector("[data-special-mission-complete-title]");
+  const message = document.querySelector("[data-special-mission-complete-message]");
+  const rewards = document.querySelector("[data-special-mission-complete-rewards]");
+  if (!effect || !icon || !title || !message || !rewards) {
+    return;
+  }
+
+  const multiplier = Math.max(1, normalizeNonNegativeNumber(rewardResult?.rewardMultiplier, 1));
+  const rewardParts = [];
+  if (rewardResult?.xp > 0) {
+    rewardParts.push(`+${formatNumber(rewardResult.xp)} XP`);
+  }
+  if (rewardResult?.gold > 0) {
+    rewardParts.push(`+${formatNumber(rewardResult.gold)} Gold`);
+  }
+
+  icon.textContent = mission?.icon || "🌟";
+  title.textContent = quest?.title || "特別ミッション";
+  message.textContent = multiplier > 1
+    ? `${formatNumber(multiplier)}ページ進んだ！`
+    : `${mission?.title || "特別ミッション"}が一歩進んだ！`;
+  rewards.textContent = rewardParts.length ? rewardParts.join("  /  ") : "ミッション完了！";
+
+  window.clearTimeout(specialMissionCompleteTimer);
+  effect.hidden = false;
+  effect.classList.remove("is-visible");
+  void effect.offsetWidth;
+  effect.classList.add("is-visible");
+  specialMissionCompleteTimer = window.setTimeout(() => {
+    effect.classList.remove("is-visible");
+    effect.hidden = true;
+  }, 1650);
 }
 
 function approveSpecialMissionQuest(missionId, questId) {
