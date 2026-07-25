@@ -8303,19 +8303,37 @@ h3 {
 .special-mission-edit-form {
   display: grid;
   gap: 10px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .special-mission-edit-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  min-width: 0;
+}
+
+.special-mission-edit-form label,
+.special-mission-edit-grid > label {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .special-mission-edit-form input,
 .special-mission-edit-form select,
 .special-mission-edit-form textarea {
+  display: block;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   box-sizing: border-box;
+}
+
+.special-mission-edit-form input[type="date"] {
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
 }
 
 .special-mission-chapter-editor {

@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.5";
+const APP_VERSION = "5.6";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "計算・漢字プリントの入力値が、勝手に1へ戻る問題を修正しました。",
-  "入力途中で画面が更新されても、ページ数を保持します。",
-  "ページ数は空欄から入力でき、1〜99ページをまとめて記録できます。",
+  "特別ミッション管理の日付入力が、スマホでカードからはみ出す問題を修正しました。",
+  "ミッション編集フォームの横幅と余白を整えました。",
+  "iPhoneの小さい画面でも、入力欄がカード内に収まります。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
