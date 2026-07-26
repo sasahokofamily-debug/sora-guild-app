@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.10";
+const APP_VERSION = "5.11";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "承認ありをOFFにした特別ミッションが、承認待ちになる問題を修正しました。",
-  "古いデータに残っている誤った承認待ちは、通常の完了状態へ自動修復します。",
-  "修復時もXP・Goldは一度だけ付与され、二重に増えません。",
+  "ご褒美交換後の完了演出が、スマホでも確実に見えるように修正しました。",
+  "交換したご褒美名を、赤と金のギルド演出で表示します。",
+  "ご褒美交換の効果音とメール通知は、これまでどおり動作します。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -9227,7 +9227,7 @@ function exchangeReward(rewardId) {
   saveProgress();
   saveRewardHistory();
   render();
-  showRewardExchangeToast();
+  showRewardExchangeToast(reward);
   checkAchievements();
   notifyRewardExchange(historyItem).then((notified) => {
     if (!notified) {
@@ -10292,14 +10292,16 @@ function showRewardFeedback(quest) {
   });
 }
 
-function showRewardExchangeToast() {
+function showRewardExchangeToast(reward) {
   const toast = document.querySelector("[data-reward-toast]");
   if (!toast) {
     return;
   }
 
+  const rewardName = String(reward?.name || "ご褒美").trim() || "ご褒美";
   enqueueToast(toast, {
-    message: "交換申請を送りました！",
+    message: `✦「${rewardName}」交換申請完了！✦`,
+    duration: 2600,
     timerName: "reward",
     beforeShow: (element) => element.classList.add("is-shop"),
     afterHide: (element) => element.classList.remove("is-shop"),

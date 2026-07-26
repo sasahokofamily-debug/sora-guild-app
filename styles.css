@@ -5671,9 +5671,19 @@ h3 {
 }
 
 .reward-toast.is-shop {
-  color: var(--wood-dark);
-  background: linear-gradient(180deg, #ffeaa3, #d8a83c 58%, #b97c28);
-  box-shadow: 0 10px 24px rgba(48, 29, 20, 0.28), 0 0 22px rgba(241, 210, 122, 0.42);
+  width: calc(100% - 28px);
+  max-width: 520px;
+  padding: 13px 20px;
+  border-color: rgba(255, 232, 143, 0.9);
+  color: #fff8e6;
+  background:
+    linear-gradient(180deg, rgba(255, 247, 223, 0.16), transparent 42%),
+    linear-gradient(180deg, #9b3d34, #762c28 58%, #4b211d);
+  box-shadow:
+    0 12px 28px rgba(32, 18, 12, 0.4),
+    0 0 26px rgba(241, 210, 122, 0.54);
+  font-size: 0.94rem;
+  line-height: 1.45;
 }
 
 .special-mission-complete-effect {
@@ -6065,6 +6075,10 @@ h3 {
   animation: guildToast 1700ms ease both;
 }
 
+.reward-toast.is-shop.is-visible {
+  animation: rewardExchangeToast 2600ms ease both;
+}
+
 .recent-achievement-card {
   transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
 }
@@ -6439,6 +6453,33 @@ h3 {
   100% {
     opacity: 0;
     transform: translateY(-12px) scale(0.98);
+  }
+}
+
+@keyframes rewardExchangeToast {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -14px) scale(0.9);
+    filter: brightness(1.35);
+  }
+
+  16% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1.05);
+    filter: brightness(1.12);
+  }
+
+  28%,
+  78% {
+    opacity: 1;
+    transform: translate(-50%, 2px) scale(1);
+    filter: brightness(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -10px) scale(0.98);
+    filter: brightness(1);
   }
 }
 
@@ -10653,8 +10694,11 @@ h3 {
   }
 
   .reward-toast {
-    right: 10px;
-    bottom: calc(98px + env(safe-area-inset-bottom));
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: calc(100% - 24px);
+    max-width: calc(100% - 24px);
   }
 
   .level-up-toast {
