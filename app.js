@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.11";
+const APP_VERSION = "5.12";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "ご褒美交換後の完了演出が、スマホでも確実に見えるように修正しました。",
-  "交換したご褒美名を、赤と金のギルド演出で表示します。",
-  "ご褒美交換の効果音とメール通知は、これまでどおり動作します。",
+  "計算・漢字プリントの締めクエストを、ページ入力クエストと一緒に表示するようにしました。",
+  "「プリントが全部終わった」を完了すると、次に「間違い直し」が表示されます。",
+  "既存の進捗、報酬、完了履歴はそのまま引き継ぎます。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -8284,7 +8284,6 @@ function getSpecialMissionRecommendedQuests(mission) {
       isSpecialMissionQuestAvailableToday(quest) &&
       (isSpecialMissionWorksheetPageQuest(quest) || !isSpecialMissionQuestDoneForToday(mission.id, quest)) &&
       !isLegacySpecialMissionWorksheetBatchQuest(quest) &&
-      !isSpecialMissionWorksheetCompletionQuest(quest) &&
       !isSpecialMissionQuestPending(mission.id, quest),
     );
   const orderedAvailableQuests = availableQuests
@@ -8292,6 +8291,17 @@ function getSpecialMissionRecommendedQuests(mission) {
   const worksheetQuests = orderedAvailableQuests
     .filter(isSpecialMissionWorksheetPageQuest);
   const worksheetChapterIds = new Set(worksheetQuests.map((quest) => quest.chapterId));
+  const worksheetFollowUpQuests = [];
+  worksheetChapterIds.forEach((chapterId) => {
+    const nextQuest = orderedAvailableQuests.find((quest) =>
+      quest.chapterId === chapterId &&
+      !isSpecialMissionWorksheetPageQuest(quest) &&
+      !isLegacySpecialMissionWorksheetBatchQuest(quest),
+    );
+    if (nextQuest) {
+      worksheetFollowUpQuests.push(nextQuest);
+    }
+  });
   const customQuests = orderedAvailableQuests
     .filter((quest) =>
       String(quest.id || "").startsWith("custom-") &&
@@ -8313,7 +8323,7 @@ function getSpecialMissionRecommendedQuests(mission) {
         nextQuestByChapter.push(quest);
       }
     });
-  const primaryQuests = [...worksheetQuests, ...customQuests, ...nextQuestByChapter]
+  const primaryQuests = [...worksheetQuests, ...worksheetFollowUpQuests, ...customQuests, ...nextQuestByChapter]
     .sort((a, b) => a.chapterOrder - b.chapterOrder || a.order - b.order);
   const selectedQuestIds = new Set(
     primaryQuests.map((quest) => quest.id),
