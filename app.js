@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.12";
+const APP_VERSION = "5.13";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "計算・漢字プリントの締めクエストを、ページ入力クエストと一緒に表示するようにしました。",
-  "「プリントが全部終わった」を完了すると、次に「間違い直し」が表示されます。",
-  "既存の進捗、報酬、完了履歴はそのまま引き継ぎます。",
+  "初回セットアップを、必須設定と任意設定に分けて分かりやすくしました。",
+  "はじめての使い方案内を、実際の操作順に沿った4ステップへ整理しました。",
+  "狭いスマホでも、最後の「冒険をはじめる」まで見やすくしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -633,24 +633,28 @@ const QUEST_PRIORITY_ORDER = {
 const QUEST_CATEGORY_ORDER = ["daily_required", "challenge"];
 const ONBOARDING_SLIDES = [
   {
-    kicker: "Guild Start",
-    title: "毎日のクエストで成長しよう",
-    text: "宿題やお手伝いをクエストとして達成すると、XP・Gold・能力値が育ちます。",
+    icon: "✓",
+    kicker: "Step 1",
+    title: "できたら「完了」を押そう",
+    text: "クエスト画面を開き、終わった宿題やお手伝いの「完了」を押します。",
   },
   {
-    kicker: "Daily Mission",
-    title: "毎日クエスト",
-    text: "今日やる最低限の任務です。終わると「今日の分、達成！」になります。",
+    icon: "★",
+    kicker: "Step 2",
+    title: "がんばりが成長になる",
+    text: "クエストを完了するとXP・Gold・能力値が増え、冒険者が少しずつ育ちます。",
   },
   {
-    kicker: "Challenge",
-    title: "チャレンジクエスト",
-    text: "できたら挑戦する追加依頼です。お手伝いや特別な挑戦に使えます。",
+    icon: "宝",
+    kicker: "Step 3",
+    title: "Goldをごほうびに交換",
+    text: "ためたGoldは、ごほうび画面から家庭のごほうびと交換できます。",
   },
   {
-    kicker: "Guild Master",
-    title: "親モード",
-    text: "クエストやご褒美の管理、リセット、親メモはギルド管理から行います。",
+    icon: "鍵",
+    kicker: "Step 4",
+    title: "設定は「ギルド」から",
+    text: "保護者はギルド画面で、クエスト・ごほうび・通知・バックアップを変更できます。",
   },
 ];
 const BACKUP_STORAGE_KEYS = [
@@ -9675,6 +9679,8 @@ function renderOnboardingSlide() {
   const kicker = document.querySelector("[data-onboarding-kicker]");
   const title = document.querySelector("[data-onboarding-title]");
   const text = document.querySelector("[data-onboarding-text]");
+  const icon = document.querySelector("[data-onboarding-icon]");
+  const step = document.querySelector("[data-onboarding-step]");
   const dots = document.querySelector("[data-onboarding-dots]");
   const prev = document.querySelector("[data-onboarding-prev]");
   const next = document.querySelector("[data-onboarding-next]");
@@ -9687,6 +9693,12 @@ function renderOnboardingSlide() {
   }
   if (text) {
     text.textContent = slide.text;
+  }
+  if (icon) {
+    icon.textContent = slide.icon;
+  }
+  if (step) {
+    step.textContent = `${onboardingIndex + 1} / ${ONBOARDING_SLIDES.length}`;
   }
   if (dots) {
     dots.innerHTML = ONBOARDING_SLIDES.map(

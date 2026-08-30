@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260731-study-followup512">
+    <link rel="stylesheet" href="styles.css?v=20260830-setup-guide513">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -680,9 +680,12 @@
           <details class="panel admin-panel app-history-panel">
             <summary>
               <span>更新履歴</span>
-              <small>Version 5.12</small>
+              <small>Version 5.13</small>
             </summary>
             <div class="app-history-content">
+              <p>
+                Version 5.13：初回セットアップと使い方案内を、操作順が分かる構成に改善しました。
+              </p>
               <p>
                 Version 5.12：計算・漢字プリントの「全部終わった」と「間違い直し」を順番に表示するようにしました。
               </p>
@@ -1366,32 +1369,53 @@
       </div>
       <div class="setup-modal" data-setup-modal hidden>
         <form class="setup-card" data-initial-setup-form role="dialog" aria-modal="true" aria-labelledby="setup-title">
-          <p class="section-kicker">Start Guide</p>
-          <h3 id="setup-title">冒険の準備をしましょう</h3>
-          <p class="setup-intro">名前だけ決めれば、すぐに始められます。</p>
-          <div class="setup-steps" aria-label="初回設定の流れ">
-            <span>名前</span>
-            <span>通知</span>
-            <span>PIN</span>
+          <div class="setup-heading">
+            <img src="assets/icons/guild-emblem.png" alt="" aria-hidden="true">
+            <div>
+              <p class="section-kicker">はじめての設定</p>
+              <h3 id="setup-title">冒険の準備をしましょう</h3>
+            </div>
           </div>
-          <label>
-            <span>子どもの名前 <b>必須</b></span>
-            <input type="text" name="childName" placeholder="そら" maxlength="20" required>
-          </label>
-          <label>
-            <span>アプリ名 <b>必須</b></span>
-            <input type="text" name="appDisplayName" placeholder="そらクエスト" maxlength="30" required>
-          </label>
-          <label>
-            <span>通知先メール <em>任意</em></span>
-            <input type="email" name="notificationEmail" placeholder="family@example.com" autocomplete="email">
-          </label>
-          <small>ごほうび通知や週間レポートの送り先です。あとから変更できます。</small>
-          <label>
-            <span>親管理PIN <em>任意</em></span>
-            <input type="password" name="parentPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="任意：4桁の数字">
-          </label>
-          <small>未入力なら初期PINを使います。あとからギルド画面で変更できます。</small>
+          <p class="setup-intro">まずは家族だけのクエスト名を決めます。必須入力は2つだけです。</p>
+          <section class="setup-field-group is-required" aria-labelledby="setup-basic-title">
+            <div class="setup-group-heading">
+              <span>1</span>
+              <div>
+                <strong id="setup-basic-title">基本設定</strong>
+                <small>ここだけ入力すれば始められます</small>
+              </div>
+            </div>
+            <label>
+              <span>子どもの名前 <b>必須</b></span>
+              <input type="text" name="childName" placeholder="例：そら" maxlength="20" autocomplete="name" required>
+            </label>
+            <small>ホーム画面や週間レポートに表示する名前です。</small>
+            <label>
+              <span>アプリ名 <b>必須</b></span>
+              <input type="text" name="appDisplayName" placeholder="例：そらクエスト" maxlength="30" required>
+            </label>
+            <small>家族だけの好きな冒険名を付けられます。</small>
+          </section>
+          <section class="setup-field-group" aria-labelledby="setup-parent-title">
+            <div class="setup-group-heading">
+              <span>2</span>
+              <div>
+                <strong id="setup-parent-title">保護者の設定</strong>
+                <small>空欄のままでも始められます</small>
+              </div>
+            </div>
+            <label>
+              <span>通知先メール <em>任意</em></span>
+              <input type="email" name="notificationEmail" placeholder="family@example.com" autocomplete="email">
+            </label>
+            <small>ごほうび交換や週間レポートを受け取るメールです。</small>
+            <label>
+              <span>親管理PIN <em>任意</em></span>
+              <input type="password" name="parentPin" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="4桁の数字">
+            </label>
+            <small>子どもが設定を変えないための暗証番号です。</small>
+          </section>
+          <p class="setup-later-note">通知先とPINは、あとから「ギルド」で変更できます。</p>
           <p class="form-message" data-setup-message aria-live="polite"></p>
           <button class="setup-submit" type="submit">冒険をはじめる</button>
         </form>
@@ -1399,6 +1423,8 @@
       <div class="onboarding-modal" data-onboarding-modal hidden>
         <div class="onboarding-card" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
           <button class="onboarding-skip" type="button" data-onboarding-skip>スキップ</button>
+          <span class="onboarding-step" data-onboarding-step>1 / 4</span>
+          <div class="onboarding-visual" data-onboarding-icon aria-hidden="true">✓</div>
           <p class="section-kicker" data-onboarding-kicker>Guild Start</p>
           <h3 id="onboarding-title" data-onboarding-title>毎日のクエストで成長しよう</h3>
           <p data-onboarding-text>宿題やお手伝いをクエストとして達成すると、XP・Gold・能力値が育ちます。</p>
@@ -1505,6 +1531,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260731-study-followup512" defer></script>
+    <script src="app.js?v=20260830-setup-guide513" defer></script>
   </body>
 </html>
