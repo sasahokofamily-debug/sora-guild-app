@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260830-setup-guide513">
+    <link rel="stylesheet" href="styles.css?v=20260831-mission-archive514">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -199,6 +199,23 @@
               </button>
               <div id="special-mission-history-list" class="special-mission-history-list" data-special-mission-history-list hidden></div>
             </div>
+          </section>
+
+          <section class="special-mission-archive-card" data-special-mission-archive-card hidden aria-labelledby="special-mission-archive-title">
+            <div class="special-mission-archive-head">
+              <span class="special-mission-archive-icon" data-special-mission-archive-icon aria-hidden="true">📜</span>
+              <div>
+                <p class="section-kicker">Adventure Record</p>
+                <h3 id="special-mission-archive-title" data-special-mission-archive-title>特別ミッション</h3>
+              </div>
+              <strong data-special-mission-archive-progress>0%</strong>
+            </div>
+            <div class="special-mission-archive-stats" aria-label="特別ミッションの攻略結果">
+              <span><small>完了</small><strong data-special-mission-archive-count>0 / 0</strong></span>
+              <span><small>獲得</small><strong data-special-mission-archive-xp>0 XP</strong></span>
+              <span><small>獲得</small><strong data-special-mission-archive-gold>0 G</strong></span>
+            </div>
+            <button type="button" data-open-special-mission-end-summary>冒険の記録を見る</button>
           </section>
 
           <div class="stat-grid">
@@ -680,9 +697,12 @@
           <details class="panel admin-panel app-history-panel">
             <summary>
               <span>更新履歴</span>
-              <small>Version 5.13</small>
+              <small>Version 5.14</small>
             </summary>
             <div class="app-history-content">
+              <p>
+                Version 5.14：終了した特別ミッションを冒険の記録として見返せるようにしました。
+              </p>
               <p>
                 Version 5.13：初回セットアップと使い方案内を、操作順が分かる構成に改善しました。
               </p>
@@ -1255,6 +1275,22 @@
           <div class="special-mission-complete-rewards" data-special-mission-complete-rewards>+10 XP / +3 Gold</div>
         </div>
       </div>
+      <div class="special-mission-end-modal" data-special-mission-end-modal hidden>
+        <div class="special-mission-end-card" role="dialog" aria-modal="true" aria-labelledby="special-mission-end-heading">
+          <span class="special-mission-end-icon" data-special-mission-end-icon aria-hidden="true">🏆</span>
+          <p class="section-kicker">Adventure Complete</p>
+          <h3 id="special-mission-end-heading">特別ミッション終了！</h3>
+          <strong data-special-mission-end-title>特別ミッション</strong>
+          <p>今回の冒険結果を記録しました。</p>
+          <div class="special-mission-end-stats" aria-label="特別ミッションの最終結果">
+            <span><small>達成率</small><strong data-special-mission-end-progress>0%</strong></span>
+            <span><small>完了クエスト</small><strong data-special-mission-end-count>0 / 0</strong></span>
+            <span><small>獲得XP</small><strong data-special-mission-end-xp>0 XP</strong></span>
+            <span><small>獲得Gold</small><strong data-special-mission-end-gold>0 G</strong></span>
+          </div>
+          <button type="button" data-special-mission-end-close>冒険の記録にしまう</button>
+        </div>
+      </div>
       <div class="app-reminder-toast" data-app-reminder-toast aria-live="polite"></div>
       <div class="login-bonus-toast" data-login-bonus-toast aria-live="polite"></div>
       <div class="achievement-toast" data-achievement-toast aria-live="polite"></div>
@@ -1531,6 +1567,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260830-setup-guide513" defer></script>
+    <script src="app.js?v=20260831-mission-archive514" defer></script>
   </body>
 </html>

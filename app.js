@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.13";
+const APP_VERSION = "5.14";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "初回セットアップを、必須設定と任意設定に分けて分かりやすくしました。",
-  "はじめての使い方案内を、実際の操作順に沿った4ステップへ整理しました。",
-  "狭いスマホでも、最後の「冒険をはじめる」まで見やすくしました。",
+  "終了した特別ミッションを「冒険の記録」としてホームから見返せるようにしました。",
+  "特別ミッション終了時に、達成率・完了数・獲得XP・Goldをまとめて表示します。",
+  "期間終了後は夏休みBGMから通常BGMへ自動で戻ります。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -1570,6 +1570,7 @@ let evolutionTimer;
 let xpChangeTimer;
 let questCompleteTimer;
 let specialMissionCompleteTimer;
+let specialMissionEndSummaryTimer;
 let loginBonusTimer;
 let appReminderTimer;
 let achievementToastTimer;
@@ -3551,6 +3552,7 @@ function normalizeSpecialMissionProgress(rawProgress = {}) {
           chapterBosses: missionProgress?.chapterBosses && typeof missionProgress.chapterBosses === "object" ? { ...missionProgress.chapterBosses } : {},
           claimedRewards: normalizeStringList(missionProgress?.claimedRewards),
           earlyCompletionRewarded: Boolean(missionProgress?.earlyCompletionRewarded),
+          endSummaryShown: Boolean(missionProgress?.endSummaryShown),
           mainCompletedAt: String(missionProgress?.mainCompletedAt || ""),
           completedAt: String(missionProgress?.completedAt || ""),
           updatedAt: String(missionProgress?.updatedAt || ""),
@@ -6514,6 +6516,9 @@ function switchScreen(screenId) {
     animateXpBarFrom(pendingXpAnimationStart);
     pendingXpAnimationStart = null;
   }
+  if (screenId === "home") {
+    queueSpecialMissionEndSummaryIfNeeded();
+  }
   if (currentScreen && currentScreen !== screenId) {
     playSound("tab");
   }
@@ -7187,6 +7192,9 @@ function setSpecialMissionMessage(message, isError = false) {
 function getSpecialMissionStatusLabel(mission) {
   if (!mission.enabled) {
     return "停止中";
+  }
+  if (isSpecialMissionEnded(mission)) {
+    return "終了済み";
   }
   return {
     draft: "下書き",
@@ -7923,6 +7931,23 @@ function isSpecialMissionActive(mission, dateKey = getDateKey()) {
   return true;
 }
 
+function isSpecialMissionEnded(mission, dateKey = getDateKey()) {
+  if (!mission || !mission.enabled || !mission.isPublished) {
+    return false;
+  }
+  return mission.status === "ended" || Boolean(mission.endDate && dateKey > mission.endDate);
+}
+
+function getEndedSpecialMissions(dateKey = getDateKey()) {
+  return specialMissions
+    .filter((mission) => isSpecialMissionEnded(mission, dateKey))
+    .sort((a, b) => String(b.endDate || b.updatedAt || "").localeCompare(String(a.endDate || a.updatedAt || "")));
+}
+
+function getLatestEndedSpecialMission(dateKey = getDateKey()) {
+  return getEndedSpecialMissions(dateKey)[0] || null;
+}
+
 function getActiveSpecialMissions(dateKey = getDateKey()) {
   return specialMissions
     .filter((mission) => isSpecialMissionActive(mission, dateKey))
@@ -7941,6 +7966,7 @@ function getSpecialMissionProgressState(missionId) {
         chapterBosses: {},
         claimedRewards: [],
         earlyCompletionRewarded: false,
+        endSummaryShown: false,
         mainCompletedAt: "",
         completedAt: "",
         updatedAt: new Date().toISOString(),
@@ -8026,6 +8052,97 @@ function getSpecialMissionCompletionHistory(mission) {
     const bTime = b.completedAt || `${b.dateKey || ""}T00:00:00`;
     return bTime.localeCompare(aTime);
   });
+}
+
+function getSpecialMissionEndRecord(mission) {
+  const summary = getSpecialMissionProgressSummary(mission);
+  const earned = getSpecialMissionCompletionHistory(mission)
+    .filter((item) => item.status === "completed" || item.status === "approved")
+    .reduce((totals, item) => {
+      const rewards = normalizeRewardBundle(item.quest.rewards || {});
+      const multiplier = Math.max(1, normalizeNonNegativeNumber(item.rewardMultiplier, 1));
+      totals.xp += rewards.xp * multiplier;
+      totals.gold += rewards.gold * multiplier;
+      return totals;
+    }, { xp: 0, gold: 0 });
+  return { ...summary, ...earned };
+}
+
+function renderSpecialMissionArchive() {
+  const card = document.querySelector("[data-special-mission-archive-card]");
+  const mission = getLatestEndedSpecialMission();
+  if (!card) {
+    return;
+  }
+  card.hidden = !mission;
+  if (!mission) {
+    return;
+  }
+  const record = getSpecialMissionEndRecord(mission);
+  card.dataset.missionTheme = String(mission.theme || "guild");
+  setText("[data-special-mission-archive-icon]", mission.icon || "📜");
+  setText("[data-special-mission-archive-title]", mission.title);
+  setText("[data-special-mission-archive-progress]", `${record.percent}%`);
+  setText("[data-special-mission-archive-count]", `${record.completed} / ${record.total}`);
+  setText("[data-special-mission-archive-xp]", `${formatNumber(record.xp)} XP`);
+  setText("[data-special-mission-archive-gold]", `${formatNumber(record.gold)} G`);
+}
+
+function showSpecialMissionEndSummary(mission) {
+  const modal = document.querySelector("[data-special-mission-end-modal]");
+  if (!modal || !mission) {
+    return;
+  }
+  const record = getSpecialMissionEndRecord(mission);
+  modal.dataset.missionId = mission.id;
+  setText("[data-special-mission-end-icon]", mission.icon || "🏆");
+  setText("[data-special-mission-end-title]", mission.title);
+  setText("[data-special-mission-end-progress]", `${record.percent}%`);
+  setText("[data-special-mission-end-count]", `${record.completed} / ${record.total}`);
+  setText("[data-special-mission-end-xp]", `${formatNumber(record.xp)} XP`);
+  setText("[data-special-mission-end-gold]", `${formatNumber(record.gold)} G`);
+  modal.hidden = false;
+  requestAnimationFrame(() => modal.classList.add("is-visible"));
+}
+
+function closeSpecialMissionEndSummary() {
+  const modal = document.querySelector("[data-special-mission-end-modal]");
+  if (!modal) {
+    return;
+  }
+  const missionId = modal.dataset.missionId;
+  if (missionId) {
+    const missionProgress = getSpecialMissionProgressState(missionId);
+    missionProgress.endSummaryShown = true;
+    missionProgress.updatedAt = new Date().toISOString();
+    saveSpecialMissionProgress();
+  }
+  modal.classList.remove("is-visible");
+  window.setTimeout(() => {
+    modal.hidden = true;
+  }, 180);
+}
+
+function queueSpecialMissionEndSummaryIfNeeded() {
+  const mission = getLatestEndedSpecialMission();
+  if (!mission || getSpecialMissionProgressState(mission.id).endSummaryShown) {
+    return;
+  }
+  window.clearTimeout(specialMissionEndSummaryTimer);
+  specialMissionEndSummaryTimer = window.setTimeout(() => {
+    const blockingModal = document.querySelector(
+      "[data-setup-modal]:not([hidden]), [data-onboarding-modal]:not([hidden]), [data-version-notes-modal]:not([hidden]), [data-cloud-migration-modal]:not([hidden])",
+    );
+    const homeIsVisible = document.querySelector("[data-screen='home']")?.classList.contains("is-active");
+    if (!homeIsVisible) {
+      return;
+    }
+    if (blockingModal) {
+      queueSpecialMissionEndSummaryIfNeeded();
+      return;
+    }
+    showSpecialMissionEndSummary(mission);
+  }, 1200);
 }
 
 function formatSpecialMissionHistoryDate(item) {
@@ -8766,6 +8883,8 @@ function renderSpecialMissionHome() {
     return;
   }
 
+  renderSpecialMissionArchive();
+  queueSpecialMissionEndSummaryIfNeeded();
   const mission = getPrimarySpecialMission();
   card.hidden = !mission;
   card.dataset.missionTheme = mission ? String(mission.theme || "guild") : "guild";
@@ -11294,6 +11413,24 @@ document.addEventListener("click", (event) => {
   const versionNotesBackdrop = event.target.closest("[data-version-notes-modal]");
   if (versionNotesBackdrop && event.target === versionNotesBackdrop) {
     closeVersionNotesModal();
+    return;
+  }
+
+  const specialMissionArchiveOpen = event.target.closest("[data-open-special-mission-end-summary]");
+  if (specialMissionArchiveOpen) {
+    showSpecialMissionEndSummary(getLatestEndedSpecialMission());
+    return;
+  }
+
+  const specialMissionEndClose = event.target.closest("[data-special-mission-end-close]");
+  if (specialMissionEndClose) {
+    closeSpecialMissionEndSummary();
+    return;
+  }
+
+  const specialMissionEndBackdrop = event.target.closest("[data-special-mission-end-modal]");
+  if (specialMissionEndBackdrop && event.target === specialMissionEndBackdrop) {
+    closeSpecialMissionEndSummary();
     return;
   }
 
