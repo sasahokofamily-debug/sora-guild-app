@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.14";
+const APP_VERSION = "5.15";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "終了した特別ミッションを「冒険の記録」としてホームから見返せるようにしました。",
-  "特別ミッション終了時に、達成率・完了数・獲得XP・Goldをまとめて表示します。",
-  "期間終了後は夏休みBGMから通常BGMへ自動で戻ります。",
+  "主要宿題を推奨クリア日までに終えると、早期クリア報酬を一度だけ受け取れるようにしました。",
+  "日記などの継続課題まで完了すると、特別ミッションの最終報酬を一度だけ付与します。",
+  "冒険の記録に、早期クリア報酬と最終報酬のXP・Goldも含めるようにしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -803,6 +803,12 @@ function reloadAppStateFromStorage() {
   audioSettings = loadAudioSettings();
   syncProgressNameFromAppSettings();
   if (reconcileDisabledSpecialMissionApprovals()) {
+    saveProgress();
+    saveSpecialMissionProgress();
+  }
+  const restoredSettlements = reconcileSpecialMissionRewardClaims();
+  if (restoredSettlements.length > 0) {
+    pendingSpecialMissionSettlements = [...pendingSpecialMissionSettlements, ...restoredSettlements];
     saveProgress();
     saveSpecialMissionProgress();
   }
@@ -1560,6 +1566,11 @@ let currentAppDateKey = getDateKey();
 progress = reconcileProgressFromHistory(progress);
 syncProgressNameFromAppSettings();
 if (reconcileDisabledSpecialMissionApprovals()) {
+  saveProgress();
+  saveSpecialMissionProgress();
+}
+let pendingSpecialMissionSettlements = reconcileSpecialMissionRewardClaims();
+if (pendingSpecialMissionSettlements.length > 0) {
   saveProgress();
   saveSpecialMissionProgress();
 }
@@ -8056,6 +8067,7 @@ function getSpecialMissionCompletionHistory(mission) {
 
 function getSpecialMissionEndRecord(mission) {
   const summary = getSpecialMissionProgressSummary(mission);
+  const missionProgress = getSpecialMissionProgressState(mission.id);
   const earned = getSpecialMissionCompletionHistory(mission)
     .filter((item) => item.status === "completed" || item.status === "approved")
     .reduce((totals, item) => {
@@ -8065,6 +8077,14 @@ function getSpecialMissionEndRecord(mission) {
       totals.gold += rewards.gold * multiplier;
       return totals;
     }, { xp: 0, gold: 0 });
+  if (missionProgress.earlyCompletionRewarded) {
+    earned.xp += mission.earlyCompletionRewards.xp;
+    earned.gold += mission.earlyCompletionRewards.gold;
+  }
+  if (missionProgress.claimedRewards.includes("final")) {
+    earned.xp += mission.rewards.xp;
+    earned.gold += mission.rewards.gold;
+  }
   return { ...summary, ...earned };
 }
 
@@ -8331,6 +8351,44 @@ function getSpecialMissionProgressSummary(mission) {
   };
 }
 
+function isSpecialMissionContinuationQuest(quest) {
+  return quest.questType === "daily" || quest.questType === "period_count";
+}
+
+function getSpecialMissionMainRequiredQuests(mission) {
+  return getSpecialMissionAllQuests(mission)
+    .filter((quest) => quest.required && !isSpecialMissionContinuationQuest(quest));
+}
+
+function isSpecialMissionMainCompleted(mission) {
+  const mainQuests = getSpecialMissionMainRequiredQuests(mission);
+  return mainQuests.length > 0 && mainQuests.every((quest) => isSpecialMissionQuestComplete(mission.id, quest));
+}
+
+function isSpecialMissionFullyCompleted(mission) {
+  const summary = getSpecialMissionProgressSummary(mission);
+  return summary.total > 0 && summary.completed === summary.total && summary.pending === 0;
+}
+
+function getSpecialMissionQuestCompletedAt(missionId, quest) {
+  const questProgress = getSpecialMissionQuestProgress(missionId, quest.id);
+  const acceptedHistory = questProgress.completionHistory
+    .filter((item) => item.status === "completed" || item.status === "approved")
+    .map((item) => item.resolvedAt || item.completedAt || (item.dateKey ? `${item.dateKey}T00:00:00+09:00` : ""))
+    .filter(Boolean)
+    .sort();
+  return acceptedHistory[acceptedHistory.length - 1] || questProgress.approvedAt || questProgress.rewardedAt || "";
+}
+
+function getSpecialMissionMainCompletedAt(mission) {
+  const mainQuests = getSpecialMissionMainRequiredQuests(mission);
+  if (mainQuests.length === 0 || !mainQuests.every((quest) => isSpecialMissionQuestComplete(mission.id, quest))) {
+    return "";
+  }
+  const completionTimes = mainQuests.map((quest) => getSpecialMissionQuestCompletedAt(mission.id, quest));
+  return completionTimes.every(Boolean) ? completionTimes.sort().at(-1) : "";
+}
+
 function getSpecialMissionChapterSummary(mission, chapter) {
   const quests = chapter.quests.filter((quest) => quest.required);
   if (quests.length === 0) {
@@ -8556,6 +8614,102 @@ function applySpecialMissionQuestReward(quest, completedAt, rewardMultiplier = 1
   return { previousLevel, nextLevel, xp: earnedXp, gold: earnedGold, rewardMultiplier: multiplier };
 }
 
+function applySpecialMissionRewardBundle(rawRewards, completedAt) {
+  const previousLevel = getLevel(progress.xp);
+  const rewards = normalizeRewardBundle(rawRewards || {});
+  const currentStats = normalizeStats(progress.stats);
+  const nextStats = { ...currentStats };
+  STAT_KEYS.forEach((stat) => {
+    nextStats[stat] += normalizeNonNegativeNumber(rewards.stats[stat], 0);
+  });
+  const nextXp = progress.xp + rewards.xp;
+  const nextLevel = getLevel(nextXp);
+  const earnedStatHistory = STAT_KEYS.flatMap((stat) =>
+    Array.from(
+      { length: Math.min(RECENT_STAT_HISTORY_LIMIT, normalizeNonNegativeNumber(rewards.stats[stat], 0)) },
+      () => stat,
+    ),
+  );
+
+  progress = {
+    ...progress,
+    xp: nextXp,
+    gold: progress.gold + rewards.gold,
+    totalGoldEarned: Math.max(0, progress.totalGoldEarned || progress.gold || 0) + rewards.gold,
+    stats: nextStats,
+    recentStatHistory: [
+      ...earnedStatHistory,
+      ...normalizeRecentStatHistory(progress.recentStatHistory),
+    ].slice(0, RECENT_STAT_HISTORY_LIMIT),
+    titleHistory: updateTitleHistory(progress.titleHistory, previousLevel, nextLevel, completedAt.toISOString()),
+  };
+
+  return { previousLevel, nextLevel, xp: rewards.xp, gold: rewards.gold };
+}
+
+function settleSpecialMissionRewards(mission, completedAt = new Date()) {
+  const missionProgress = getSpecialMissionProgressState(mission.id);
+  const completedAtIso = completedAt.toISOString();
+  const result = {
+    previousLevel: getLevel(progress.xp),
+    nextLevel: getLevel(progress.xp),
+    xp: 0,
+    gold: 0,
+    labels: [],
+  };
+
+  if (isSpecialMissionMainCompleted(mission) && !missionProgress.mainCompletedAt) {
+    missionProgress.mainCompletedAt = getSpecialMissionMainCompletedAt(mission) || completedAtIso;
+  }
+
+  const qualifiesForEarlyReward = Boolean(
+    missionProgress.mainCompletedAt &&
+    mission.targetCompletionDate &&
+    getDateKey(new Date(missionProgress.mainCompletedAt)) <= mission.targetCompletionDate,
+  );
+  if (qualifiesForEarlyReward && !missionProgress.earlyCompletionRewarded) {
+    const reward = applySpecialMissionRewardBundle(mission.earlyCompletionRewards, completedAt);
+    missionProgress.earlyCompletionRewarded = true;
+    missionProgress.claimedRewards = [...new Set([...missionProgress.claimedRewards, "early"])];
+    result.xp += reward.xp;
+    result.gold += reward.gold;
+    result.nextLevel = reward.nextLevel;
+    result.labels.push("早期クリア報酬");
+  }
+
+  if (isSpecialMissionFullyCompleted(mission) && !missionProgress.claimedRewards.includes("final")) {
+    const reward = applySpecialMissionRewardBundle(mission.rewards, completedAt);
+    missionProgress.claimedRewards = [...new Set([...missionProgress.claimedRewards, "final"])];
+    missionProgress.completedAt = completedAtIso;
+    result.xp += reward.xp;
+    result.gold += reward.gold;
+    result.nextLevel = reward.nextLevel;
+    result.labels.push("完全攻略報酬");
+  }
+
+  if (result.labels.length > 0) {
+    missionProgress.updatedAt = completedAtIso;
+  }
+  return result;
+}
+
+function getSpecialMissionSettlementMessage(result) {
+  if (!result?.labels?.length) {
+    return "";
+  }
+  const rewards = [];
+  if (result.xp > 0) rewards.push(`+${formatNumber(result.xp)} XP`);
+  if (result.gold > 0) rewards.push(`+${formatNumber(result.gold)} Gold`);
+  return `${result.labels.join("・")}！${rewards.length ? ` ${rewards.join(" / ")}` : ""}`;
+}
+
+function reconcileSpecialMissionRewardClaims() {
+  return specialMissions
+    .filter((mission) => mission.enabled && mission.isPublished && ["published", "ended"].includes(mission.status))
+    .map((mission) => settleSpecialMissionRewards(mission, new Date()))
+    .filter((result) => result.labels.length > 0);
+}
+
 function getSpecialMissionQuestReportUpdate(quest, questProgress, reportValue, maxBatchCount = 1) {
   const hasReportValue = reportValue !== undefined && reportValue !== null && String(reportValue) !== "";
   if (isSpecialMissionWorksheetPageQuest(quest)) {
@@ -8696,6 +8850,7 @@ function completeSpecialMissionQuest(missionId, questId, options = {}) {
     ...specialMissionProgress,
     [mission.id]: missionProgress,
   };
+  const settlementResult = settleSpecialMissionRewards(mission, completedAt);
 
   const finalLevel = getLevel(progress.xp);
   const shouldPlayEvolution = finalLevel > rewardResult.previousLevel && syncCharacterStageState(finalLevel, { allowEvolution: true });
@@ -8708,6 +8863,10 @@ function completeSpecialMissionQuest(missionId, questId, options = {}) {
   render();
   playSound("questComplete");
   showSpecialMissionCompleteEffect(mission, quest, rewardResult);
+  const settlementMessage = getSpecialMissionSettlementMessage(settlementResult);
+  if (settlementMessage) {
+    window.setTimeout(() => showToast(settlementMessage), 1750);
+  }
   checkAchievements();
   if (finalLevel > rewardResult.previousLevel) {
     playLevelUpAnimation(rewardResult.previousLevel, finalLevel);
@@ -8795,6 +8954,7 @@ function approveSpecialMissionQuest(missionId, questId) {
     ...specialMissionProgress,
     [mission.id]: missionProgress,
   };
+  const settlementResult = settleSpecialMissionRewards(mission, approvedAt);
 
   const finalLevel = getLevel(progress.xp);
   const shouldPlayEvolution = finalLevel > rewardResult.previousLevel && syncCharacterStageState(finalLevel, { allowEvolution: true });
@@ -8807,6 +8967,10 @@ function approveSpecialMissionQuest(missionId, questId) {
   render();
   playSound("achievement");
   showToast(rewardMultiplier > 1 ? `${rewardMultiplier}ページ分を承認しました` : `${quest.title}を承認しました`);
+  const settlementMessage = getSpecialMissionSettlementMessage(settlementResult);
+  if (settlementMessage) {
+    window.setTimeout(() => showToast(settlementMessage), 450);
+  }
   checkAchievements();
   if (finalLevel > rewardResult.previousLevel) {
     playLevelUpAnimation(rewardResult.previousLevel, finalLevel);
@@ -11939,6 +12103,13 @@ function startApp() {
   if (!isSetupVisible && !isOnboardingVisible) {
     window.setTimeout(showAppReminderToast, loginBonusResult.granted ? 2100 : 450);
     window.setTimeout(showVersionNotesIfNeeded, loginBonusResult.granted ? 2600 : 750);
+    pendingSpecialMissionSettlements.forEach((settlement, index) => {
+      const message = getSpecialMissionSettlementMessage(settlement);
+      if (message) {
+        window.setTimeout(() => showToast(message), (loginBonusResult.granted ? 3200 : 1500) + index * 350);
+      }
+    });
+    pendingSpecialMissionSettlements = [];
   }
   if (loginBonusResult.granted && !isSetupVisible && !isOnboardingVisible) {
     showLoginBonusToast(loginBonusResult);
