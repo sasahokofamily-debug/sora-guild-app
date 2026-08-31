@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260831-special-items516">
+    <link rel="stylesheet" href="styles.css?v=20260831-adventure-report517">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -704,9 +704,12 @@
           <details class="panel admin-panel app-history-panel">
             <summary>
               <span>更新履歴</span>
-              <small>Version 5.16</small>
+              <small>Version 5.17</small>
             </summary>
             <div class="app-history-content">
+              <p>
+                Version 5.17：終了した特別ミッションを、章の進捗や保護者コメント付きの冒険報告書で振り返れるようにしました。
+              </p>
               <p>
                 Version 5.16：特別ミッションの限定バッジ・称号・1回券を獲得して使えるようにしました。
               </p>
@@ -1291,17 +1294,38 @@
       <div class="special-mission-end-modal" data-special-mission-end-modal hidden>
         <div class="special-mission-end-card" role="dialog" aria-modal="true" aria-labelledby="special-mission-end-heading">
           <span class="special-mission-end-icon" data-special-mission-end-icon aria-hidden="true">🏆</span>
-          <p class="section-kicker">Adventure Complete</p>
-          <h3 id="special-mission-end-heading">特別ミッション終了！</h3>
+          <p class="section-kicker">Adventure Report</p>
+          <h3 id="special-mission-end-heading">冒険報告書</h3>
           <strong data-special-mission-end-title>特別ミッション</strong>
-          <p>今回の冒険結果を記録しました。</p>
+          <p data-special-mission-end-period>開催期間</p>
           <div class="special-mission-end-stats" aria-label="特別ミッションの最終結果">
             <span><small>達成率</small><strong data-special-mission-end-progress>0%</strong></span>
             <span><small>完了クエスト</small><strong data-special-mission-end-count>0 / 0</strong></span>
             <span><small>獲得XP</small><strong data-special-mission-end-xp>0 XP</strong></span>
             <span><small>獲得Gold</small><strong data-special-mission-end-gold>0 G</strong></span>
           </div>
+          <div class="special-mission-end-journey" aria-label="攻略記録">
+            <span><small>攻略日数</small><strong data-special-mission-end-duration>未記録</strong></span>
+            <span><small>攻略完了日</small><strong data-special-mission-end-completed-date>未記録</strong></span>
+            <span><small>早期攻略</small><strong data-special-mission-end-early>未達成</strong></span>
+          </div>
+          <section class="special-mission-end-section" aria-labelledby="special-mission-end-chapter-title">
+            <h4 id="special-mission-end-chapter-title">章の攻略記録</h4>
+            <div class="special-mission-end-chapters" data-special-mission-end-chapters></div>
+          </section>
           <div class="special-mission-end-special-rewards" data-special-mission-end-special-rewards hidden></div>
+          <section class="special-mission-end-section special-mission-end-reflection" aria-labelledby="special-mission-end-comment-title">
+            <h4 id="special-mission-end-comment-title">保護者からのことば</h4>
+            <p class="special-mission-end-comment is-empty" data-special-mission-end-comment>保護者からのコメントはまだありません。</p>
+            <form data-special-mission-reflection-form hidden>
+              <label>
+                振り返りコメント
+                <textarea name="reflectionComment" maxlength="180" rows="3" placeholder="例：最後までよく取り組めたね。次の冒険も楽しみにしています。" data-special-mission-reflection-input></textarea>
+              </label>
+              <button type="submit">コメントを保存</button>
+              <p class="form-message" data-special-mission-reflection-message aria-live="polite"></p>
+            </form>
+          </section>
           <button type="button" data-special-mission-end-close>冒険の記録にしまう</button>
         </div>
       </div>
@@ -1581,6 +1605,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260831-special-items516" defer></script>
+    <script src="app.js?v=20260831-adventure-report517" defer></script>
   </body>
 </html>

@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.16";
+const APP_VERSION = "5.17";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "特別ミッションで限定バッジと限定称号を獲得できるようにしました。",
-  "獲得したご褒美券をギルドショップで確認し、一度だけ使えるようにしました。",
-  "特別ミッションの冒険記録に、獲得した限定報酬を表示するようにしました。",
+  "終了した特別ミッションを、一枚の冒険報告書で振り返れるようにしました。",
+  "章ごとの達成数、攻略日数、早期クリア、獲得した限定報酬をまとめて表示します。",
+  "保護者から冒険報告書へ、振り返りコメントを残せるようにしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -3573,6 +3573,7 @@ function normalizeSpecialMissionProgress(rawProgress = {}) {
           claimedRewards: normalizeStringList(missionProgress?.claimedRewards),
           earlyCompletionRewarded: Boolean(missionProgress?.earlyCompletionRewarded),
           endSummaryShown: Boolean(missionProgress?.endSummaryShown),
+          reflectionComment: String(missionProgress?.reflectionComment || "").trim().slice(0, 180),
           mainCompletedAt: String(missionProgress?.mainCompletedAt || ""),
           completedAt: String(missionProgress?.completedAt || ""),
           updatedAt: String(missionProgress?.updatedAt || ""),
@@ -8153,6 +8154,38 @@ function getSpecialMissionEndRecord(mission) {
     badges: missionProgress.earnedBadges || [],
     titles: missionProgress.earnedTitles || [],
     rewardTickets: missionProgress.rewardTickets || [],
+    reflectionComment: missionProgress.reflectionComment || "",
+  };
+}
+
+function formatSpecialMissionRecordDate(value) {
+  if (!value) return "未記録";
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T12:00:00+09:00`) : new Date(value);
+  if (Number.isNaN(date.getTime())) return "未記録";
+  return date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "short", day: "numeric" });
+}
+
+function getSpecialMissionRecordJourney(mission) {
+  const missionProgress = getSpecialMissionProgressState(mission.id);
+  const completedHistory = getSpecialMissionCompletionHistory(mission)
+    .filter((item) => ["completed", "approved"].includes(item.status));
+  const dateKeys = completedHistory
+    .map((item) => item.dateKey || (item.completedAt ? getDateKey(new Date(item.completedAt)) : ""))
+    .filter(Boolean)
+    .sort();
+  const startedDate = dateKeys[0] || mission.startDate || "";
+  const completedValue = missionProgress.completedAt || missionProgress.mainCompletedAt || dateKeys.at(-1) || "";
+  const completedDate = completedValue ? (/^\d{4}-\d{2}-\d{2}$/.test(completedValue) ? completedValue : getDateKey(new Date(completedValue))) : "";
+  const durationDays = startedDate && completedDate ? Math.max(1, getDayDifference(startedDate, completedDate) + 1) : 0;
+  return {
+    startedDate,
+    completedDate,
+    durationDays,
+    earlyLabel: missionProgress.earlyCompletionRewarded
+      ? "早期クリア達成"
+      : missionProgress.mainCompletedAt
+        ? "通常クリア"
+        : "未達成",
   };
 }
 
@@ -8182,6 +8215,7 @@ function showSpecialMissionEndSummary(mission) {
     return;
   }
   const record = getSpecialMissionEndRecord(mission);
+  const journey = getSpecialMissionRecordJourney(mission);
   modal.dataset.missionId = mission.id;
   setText("[data-special-mission-end-icon]", mission.icon || "🏆");
   setText("[data-special-mission-end-title]", mission.title);
@@ -8189,6 +8223,24 @@ function showSpecialMissionEndSummary(mission) {
   setText("[data-special-mission-end-count]", `${record.completed} / ${record.total}`);
   setText("[data-special-mission-end-xp]", `${formatNumber(record.xp)} XP`);
   setText("[data-special-mission-end-gold]", `${formatNumber(record.gold)} G`);
+  setText("[data-special-mission-end-period]", `${formatSpecialMissionRecordDate(mission.startDate)}〜${formatSpecialMissionRecordDate(mission.endDate)}`);
+  setText("[data-special-mission-end-duration]", journey.durationDays > 0 ? `${journey.durationDays}日` : "未記録");
+  setText("[data-special-mission-end-completed-date]", formatSpecialMissionRecordDate(journey.completedDate));
+  setText("[data-special-mission-end-early]", journey.earlyLabel);
+  const chapterList = document.querySelector("[data-special-mission-end-chapters]");
+  if (chapterList) {
+    chapterList.innerHTML = mission.chapters.map((chapter) => {
+      const chapterSummary = getSpecialMissionChapterSummary(mission, chapter);
+      const completed = chapterSummary.total > 0 && chapterSummary.completed >= chapterSummary.total;
+      return `
+        <div class="special-mission-end-chapter${completed ? " is-complete" : ""}">
+          <span aria-hidden="true">${escapeHtml(chapter.icon || "📜")}</span>
+          <strong>${escapeHtml(chapter.title)}</strong>
+          <em>${chapterSummary.completed} / ${chapterSummary.total}</em>
+        </div>
+      `;
+    }).join("");
+  }
   const specialRewards = document.querySelector("[data-special-mission-end-special-rewards]");
   if (specialRewards) {
     const rewardItems = [
@@ -8199,8 +8251,43 @@ function showSpecialMissionEndSummary(mission) {
     specialRewards.hidden = rewardItems.length === 0;
     specialRewards.innerHTML = rewardItems.map((item) => `<span>${escapeHtml(item)}</span>`).join("");
   }
+  const comment = document.querySelector("[data-special-mission-end-comment]");
+  const commentInput = document.querySelector("[data-special-mission-reflection-input]");
+  const commentForm = document.querySelector("[data-special-mission-reflection-form]");
+  if (comment) {
+    comment.textContent = record.reflectionComment || "保護者からのコメントはまだありません。";
+    comment.classList.toggle("is-empty", !record.reflectionComment);
+  }
+  if (commentInput) commentInput.value = record.reflectionComment;
+  if (commentForm) {
+    commentForm.hidden = !isParentUnlocked;
+    commentForm.dataset.missionId = mission.id;
+  }
   modal.hidden = false;
   requestAnimationFrame(() => modal.classList.add("is-visible"));
+}
+
+function handleSpecialMissionReflectionSubmit(event) {
+  const form = event.target.closest("[data-special-mission-reflection-form]");
+  if (!form) return;
+  event.preventDefault();
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+  const missionId = form.dataset.missionId;
+  const missionProgress = getSpecialMissionProgressState(missionId);
+  const comment = String(new FormData(form).get("reflectionComment") || "").trim().slice(0, 180);
+  missionProgress.reflectionComment = comment;
+  missionProgress.updatedAt = new Date().toISOString();
+  saveSpecialMissionProgress();
+  const commentElement = document.querySelector("[data-special-mission-end-comment]");
+  if (commentElement) {
+    commentElement.textContent = comment || "保護者からのコメントはまだありません。";
+    commentElement.classList.toggle("is-empty", !comment);
+  }
+  const message = form.querySelector("[data-special-mission-reflection-message]");
+  if (message) message.textContent = comment ? "コメントを保存しました" : "コメントを削除しました";
 }
 
 function closeSpecialMissionEndSummary() {
@@ -12324,6 +12411,7 @@ document.querySelector("[data-quest-create-form]")?.addEventListener("submit", h
 document.querySelector("[data-quest-bulk-edit-form]")?.addEventListener("submit", handleQuestBulkEditSubmit);
 document.querySelector("[data-reward-create-form]")?.addEventListener("submit", handleRewardCreateSubmit);
 document.querySelector("[data-parent-note-form]")?.addEventListener("submit", handleParentNoteSubmit);
+document.querySelector("[data-special-mission-reflection-form]")?.addEventListener("submit", handleSpecialMissionReflectionSubmit);
 document.addEventListener("submit", handleQuestEditSubmit);
 document.addEventListener("submit", handleSpecialMissionEditSubmit);
 document.addEventListener("submit", handleSpecialMissionQuestReportSubmit);

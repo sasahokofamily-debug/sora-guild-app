@@ -5881,7 +5881,7 @@ h3 {
   inset: 0;
   z-index: 36;
   display: grid;
-  place-items: center;
+  place-items: start center;
   overflow-y: auto;
   padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
   background: rgba(25, 16, 13, 0.76);
@@ -5900,7 +5900,8 @@ h3 {
 .special-mission-end-card {
   display: grid;
   justify-items: center;
-  width: min(100%, 390px);
+  width: min(100%, 430px);
+  margin-block: auto;
   border: 2px solid rgba(201, 153, 55, 0.78);
   border-radius: 8px;
   padding: 22px 18px 20px;
@@ -6001,6 +6002,15 @@ h3 {
   margin-top: 12px;
 }
 
+.special-mission-end-special-rewards::before {
+  content: "獲得した限定報酬";
+  margin-bottom: 2px;
+  color: #68491e;
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-align: left;
+}
+
 .special-mission-end-special-rewards[hidden] {
   display: none;
 }
@@ -6014,6 +6024,163 @@ h3 {
   font-size: 0.78rem;
   font-weight: 900;
   overflow-wrap: anywhere;
+}
+
+.special-mission-end-journey {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  margin-top: 10px;
+  border-block: 1px solid rgba(151, 105, 34, 0.28);
+}
+
+.special-mission-end-journey span {
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 6px;
+}
+
+.special-mission-end-journey span + span {
+  border-left: 1px solid rgba(151, 105, 34, 0.2);
+}
+
+.special-mission-end-journey small {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 850;
+}
+
+.special-mission-end-journey strong {
+  color: #67451a;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.special-mission-end-section {
+  width: 100%;
+  margin-top: 14px;
+  text-align: left;
+}
+
+.special-mission-end-section h4 {
+  margin: 0 0 7px;
+  color: #68491e;
+  font-size: 0.78rem;
+}
+
+.special-mission-end-chapters {
+  display: grid;
+  border-block: 1px solid rgba(151, 105, 34, 0.24);
+}
+
+.special-mission-end-chapter {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 40px;
+  padding: 6px 2px;
+  color: #756753;
+}
+
+.special-mission-end-chapter + .special-mission-end-chapter {
+  border-top: 1px solid rgba(151, 105, 34, 0.16);
+}
+
+.special-mission-end-chapter > span {
+  font-size: 1rem;
+  text-align: center;
+}
+
+.special-mission-end-chapter strong {
+  min-width: 0;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.special-mission-end-chapter em {
+  border-radius: 999px;
+  padding: 3px 7px;
+  background: rgba(132, 104, 62, 0.11);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.special-mission-end-chapter.is-complete {
+  color: #315f4d;
+}
+
+.special-mission-end-chapter.is-complete em {
+  background: rgba(66, 131, 98, 0.14);
+}
+
+.special-mission-end-comment {
+  margin: 0;
+  border-left: 3px solid rgba(163, 113, 30, 0.56);
+  padding: 8px 10px;
+  color: #493720;
+  background: rgba(255, 249, 225, 0.5);
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.special-mission-end-comment.is-empty {
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.special-mission-end-reflection form {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.special-mission-end-reflection form[hidden] {
+  display: none;
+}
+
+.special-mission-end-reflection label {
+  display: grid;
+  gap: 5px;
+  color: #5b472d;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.special-mission-end-reflection textarea {
+  width: 100%;
+  min-height: 82px;
+  resize: vertical;
+  border: 1px solid rgba(132, 91, 31, 0.32);
+  border-radius: 6px;
+  padding: 9px 10px;
+  color: var(--ink);
+  background: rgba(255, 252, 237, 0.78);
+  font: inherit;
+  line-height: 1.55;
+}
+
+.special-mission-end-reflection button {
+  min-height: 42px;
+  border: 1px solid rgba(120, 83, 26, 0.3);
+  border-radius: 6px;
+  color: #fff8e9;
+  background: linear-gradient(180deg, #806130, #5b431f);
+  font-weight: 900;
+}
+
+.special-mission-end-reflection .form-message {
+  min-height: 1em;
+  margin: 0;
+  color: #315f4d;
+  font-size: 0.7rem;
+  font-weight: 850;
 }
 
 .special-reward-ticket-wallet {
@@ -6128,6 +6295,15 @@ h3 {
 
   .special-mission-end-card {
     padding: 18px 14px 17px;
+  }
+
+  .special-mission-end-journey {
+    grid-template-columns: 1fr;
+  }
+
+  .special-mission-end-journey span + span {
+    border-top: 1px solid rgba(151, 105, 34, 0.2);
+    border-left: 0;
   }
 }
 
