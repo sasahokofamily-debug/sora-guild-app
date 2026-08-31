@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260831-report-history518">
+    <link rel="stylesheet" href="styles.css?v=20260901-report-print519">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -707,9 +707,12 @@
           <details class="panel admin-panel app-history-panel">
             <summary>
               <span>更新履歴</span>
-              <small>Version 5.18</small>
+              <small>Version 5.19</small>
             </summary>
             <div class="app-history-content">
+              <p>
+                Version 5.19：冒険報告書を印刷し、スマホやPCからPDFとして保存できるようにしました。
+              </p>
               <p>
                 Version 5.18：過去の特別ミッションを報告書内で切り替え、終了した作戦を複製できるようにしました。
               </p>
@@ -1337,6 +1340,7 @@
               <p class="form-message" data-special-mission-reflection-message aria-live="polite"></p>
             </form>
           </section>
+          <button class="special-mission-report-print" type="button" data-print-special-mission-report><span aria-hidden="true">🖨</span> 保存・印刷</button>
           <button class="special-mission-report-duplicate" type="button" data-duplicate-special-mission-from-report hidden>この作戦を複製</button>
           <button type="button" data-special-mission-end-close>冒険の記録にしまう</button>
         </div>
@@ -1617,6 +1621,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260831-report-history518" defer></script>
+    <script src="app.js?v=20260901-report-print519" defer></script>
   </body>
 </html>

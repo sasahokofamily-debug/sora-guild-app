@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.18";
+const APP_VERSION = "5.19";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "過去の特別ミッションを、冒険報告書から前後に切り替えて見返せるようにしました。",
-  "ホームには最新の記録だけを表示し、記録件数を分かりやすくしました。",
-  "保護者は終了した作戦を報告書から複製し、次の期間用に編集できます。",
+  "冒険報告書をブラウザの標準機能から印刷・PDF保存できるようにしました。",
+  "保存時は操作ボタンや編集欄を除き、報告書だけをきれいに出力します。",
+  "スマホでは印刷画面の共有メニューから、家族への共有やファイル保存ができます。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -8314,6 +8314,25 @@ function duplicateSpecialMissionFromReport(missionId) {
   switchScreen("admin");
 }
 
+function finishSpecialMissionReportPrint() {
+  document.body.classList.remove("is-printing-special-report");
+  const previousTitle = document.body.dataset.previousDocumentTitle;
+  if (previousTitle) {
+    document.title = previousTitle;
+    delete document.body.dataset.previousDocumentTitle;
+  }
+}
+
+function printSpecialMissionReport() {
+  const modal = document.querySelector("[data-special-mission-end-modal]");
+  const mission = getSpecialMissionById(modal?.dataset.missionId || "");
+  if (!modal || modal.hidden || !mission) return;
+  document.body.dataset.previousDocumentTitle = document.title;
+  document.title = `${mission.title} 冒険報告書`;
+  document.body.classList.add("is-printing-special-report");
+  window.print();
+}
+
 function handleSpecialMissionReflectionSubmit(event) {
   const form = event.target.closest("[data-special-mission-reflection-form]");
   if (!form) return;
@@ -11985,6 +12004,12 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  const printSpecialMissionReportButton = event.target.closest("[data-print-special-mission-report]");
+  if (printSpecialMissionReportButton) {
+    printSpecialMissionReport();
+    return;
+  }
+
   const specialMissionEndBackdrop = event.target.closest("[data-special-mission-end-modal]");
   if (specialMissionEndBackdrop && event.target === specialMissionEndBackdrop) {
     closeSpecialMissionEndSummary();
@@ -12471,6 +12496,7 @@ document.querySelector("[data-quest-bulk-edit-form]")?.addEventListener("submit"
 document.querySelector("[data-reward-create-form]")?.addEventListener("submit", handleRewardCreateSubmit);
 document.querySelector("[data-parent-note-form]")?.addEventListener("submit", handleParentNoteSubmit);
 document.querySelector("[data-special-mission-reflection-form]")?.addEventListener("submit", handleSpecialMissionReflectionSubmit);
+window.addEventListener("afterprint", finishSpecialMissionReportPrint);
 document.addEventListener("submit", handleQuestEditSubmit);
 document.addEventListener("submit", handleSpecialMissionEditSubmit);
 document.addEventListener("submit", handleSpecialMissionQuestReportSubmit);
