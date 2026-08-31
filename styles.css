@@ -5966,6 +5966,37 @@ h3 {
   font-weight: 800;
 }
 
+.special-mission-report-nav {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.special-mission-report-nav button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 38px;
+  border: 1px solid rgba(139, 96, 31, 0.34);
+  border-radius: 50%;
+  color: #65461e;
+  background: rgba(255, 248, 219, 0.7);
+  font-size: 1.1rem;
+  font-weight: 950;
+}
+
+.special-mission-report-nav button:disabled {
+  opacity: 0.32;
+}
+
+.special-mission-report-nav strong {
+  color: #795725;
+  font-size: 0.76rem;
+}
+
 .special-mission-end-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -6286,6 +6317,22 @@ h3 {
   box-shadow: 0 6px 0 #4d201e;
   font-size: 0.98rem;
   font-weight: 950;
+}
+
+.special-mission-end-card > button.special-mission-report-duplicate {
+  margin-top: 14px;
+  color: #59411f;
+  background: rgba(255, 248, 220, 0.66);
+  border-color: rgba(128, 86, 27, 0.36);
+  box-shadow: 0 4px 0 rgba(101, 70, 27, 0.48);
+}
+
+.special-mission-end-card > button.special-mission-report-duplicate[hidden] {
+  display: none;
+}
+
+.special-mission-end-card > button.special-mission-report-duplicate + [data-special-mission-end-close] {
+  margin-top: 11px;
 }
 
 @media (max-width: 360px) {
@@ -9372,6 +9419,10 @@ h3 {
 }
 
 .special-mission-archive-card > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
   min-height: 40px;
   border: 1px solid rgba(111, 66, 40, 0.42);
   border-radius: 7px;
@@ -9379,6 +9430,13 @@ h3 {
   background: linear-gradient(180deg, #875247, #63362f);
   box-shadow: 0 4px 0 #46251f;
   font-weight: 900;
+}
+
+.special-mission-archive-card > button small {
+  border-left: 1px solid rgba(255, 248, 231, 0.28);
+  padding-left: 9px;
+  color: rgba(255, 248, 231, 0.82);
+  font-size: 0.7rem;
 }
 
 .special-mission-home-head {

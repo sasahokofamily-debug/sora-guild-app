@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260831-adventure-report517">
+    <link rel="stylesheet" href="styles.css?v=20260831-report-history518">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -215,7 +215,10 @@
               <span><small>獲得</small><strong data-special-mission-archive-xp>0 XP</strong></span>
               <span><small>獲得</small><strong data-special-mission-archive-gold>0 G</strong></span>
             </div>
-            <button type="button" data-open-special-mission-end-summary>冒険の記録を見る</button>
+            <button type="button" data-open-special-mission-end-summary>
+              <span>冒険の記録を見る</span>
+              <small data-special-mission-archive-record-count>1件</small>
+            </button>
           </section>
 
           <div class="stat-grid">
@@ -704,9 +707,12 @@
           <details class="panel admin-panel app-history-panel">
             <summary>
               <span>更新履歴</span>
-              <small>Version 5.17</small>
+              <small>Version 5.18</small>
             </summary>
             <div class="app-history-content">
+              <p>
+                Version 5.18：過去の特別ミッションを報告書内で切り替え、終了した作戦を複製できるようにしました。
+              </p>
               <p>
                 Version 5.17：終了した特別ミッションを、章の進捗や保護者コメント付きの冒険報告書で振り返れるようにしました。
               </p>
@@ -1298,6 +1304,11 @@
           <h3 id="special-mission-end-heading">冒険報告書</h3>
           <strong data-special-mission-end-title>特別ミッション</strong>
           <p data-special-mission-end-period>開催期間</p>
+          <nav class="special-mission-report-nav" aria-label="過去の冒険報告書">
+            <button type="button" data-special-mission-report-nav="newer" aria-label="新しい記録" title="新しい記録">←</button>
+            <strong data-special-mission-report-position>1 / 1</strong>
+            <button type="button" data-special-mission-report-nav="older" aria-label="古い記録" title="古い記録">→</button>
+          </nav>
           <div class="special-mission-end-stats" aria-label="特別ミッションの最終結果">
             <span><small>達成率</small><strong data-special-mission-end-progress>0%</strong></span>
             <span><small>完了クエスト</small><strong data-special-mission-end-count>0 / 0</strong></span>
@@ -1326,6 +1337,7 @@
               <p class="form-message" data-special-mission-reflection-message aria-live="polite"></p>
             </form>
           </section>
+          <button class="special-mission-report-duplicate" type="button" data-duplicate-special-mission-from-report hidden>この作戦を複製</button>
           <button type="button" data-special-mission-end-close>冒険の記録にしまう</button>
         </div>
       </div>
@@ -1605,6 +1617,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260831-adventure-report517" defer></script>
+    <script src="app.js?v=20260831-report-history518" defer></script>
   </body>
 </html>

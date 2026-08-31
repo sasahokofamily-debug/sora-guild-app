@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.17";
+const APP_VERSION = "5.18";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "終了した特別ミッションを、一枚の冒険報告書で振り返れるようにしました。",
-  "章ごとの達成数、攻略日数、早期クリア、獲得した限定報酬をまとめて表示します。",
-  "保護者から冒険報告書へ、振り返りコメントを残せるようにしました。",
+  "過去の特別ミッションを、冒険報告書から前後に切り替えて見返せるようにしました。",
+  "ホームには最新の記録だけを表示し、記録件数を分かりやすくしました。",
+  "保護者は終了した作戦を報告書から複製し、次の期間用に編集できます。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -8191,7 +8191,8 @@ function getSpecialMissionRecordJourney(mission) {
 
 function renderSpecialMissionArchive() {
   const card = document.querySelector("[data-special-mission-archive-card]");
-  const mission = getLatestEndedSpecialMission();
+  const endedMissions = getEndedSpecialMissions();
+  const mission = endedMissions[0] || null;
   if (!card) {
     return;
   }
@@ -8207,6 +8208,15 @@ function renderSpecialMissionArchive() {
   setText("[data-special-mission-archive-count]", `${record.completed} / ${record.total}`);
   setText("[data-special-mission-archive-xp]", `${formatNumber(record.xp)} XP`);
   setText("[data-special-mission-archive-gold]", `${formatNumber(record.gold)} G`);
+  setText("[data-special-mission-archive-record-count]", `${endedMissions.length}件`);
+}
+
+function getSpecialMissionReportMissions(currentMission = null) {
+  const endedMissions = getEndedSpecialMissions();
+  if (!currentMission || endedMissions.some((mission) => mission.id === currentMission.id)) {
+    return endedMissions;
+  }
+  return [currentMission, ...endedMissions];
 }
 
 function showSpecialMissionEndSummary(mission) {
@@ -8216,6 +8226,8 @@ function showSpecialMissionEndSummary(mission) {
   }
   const record = getSpecialMissionEndRecord(mission);
   const journey = getSpecialMissionRecordJourney(mission);
+  const reportMissions = getSpecialMissionReportMissions(mission);
+  const reportIndex = Math.max(0, reportMissions.findIndex((item) => item.id === mission.id));
   modal.dataset.missionId = mission.id;
   setText("[data-special-mission-end-icon]", mission.icon || "🏆");
   setText("[data-special-mission-end-title]", mission.title);
@@ -8227,6 +8239,11 @@ function showSpecialMissionEndSummary(mission) {
   setText("[data-special-mission-end-duration]", journey.durationDays > 0 ? `${journey.durationDays}日` : "未記録");
   setText("[data-special-mission-end-completed-date]", formatSpecialMissionRecordDate(journey.completedDate));
   setText("[data-special-mission-end-early]", journey.earlyLabel);
+  setText("[data-special-mission-report-position]", `${reportIndex + 1} / ${reportMissions.length}`);
+  const newerButton = document.querySelector("[data-special-mission-report-nav='newer']");
+  const olderButton = document.querySelector("[data-special-mission-report-nav='older']");
+  if (newerButton) newerButton.disabled = reportIndex <= 0;
+  if (olderButton) olderButton.disabled = reportIndex >= reportMissions.length - 1;
   const chapterList = document.querySelector("[data-special-mission-end-chapters]");
   if (chapterList) {
     chapterList.innerHTML = mission.chapters.map((chapter) => {
@@ -8263,8 +8280,38 @@ function showSpecialMissionEndSummary(mission) {
     commentForm.hidden = !isParentUnlocked;
     commentForm.dataset.missionId = mission.id;
   }
+  const duplicateButton = document.querySelector("[data-duplicate-special-mission-from-report]");
+  if (duplicateButton) {
+    duplicateButton.hidden = !isParentUnlocked;
+    duplicateButton.dataset.missionId = mission.id;
+  }
   modal.hidden = false;
   requestAnimationFrame(() => modal.classList.add("is-visible"));
+}
+
+function navigateSpecialMissionReport(direction) {
+  const modal = document.querySelector("[data-special-mission-end-modal]");
+  const currentMission = getSpecialMissionById(modal?.dataset.missionId || "");
+  if (!currentMission) return;
+  const reportMissions = getSpecialMissionReportMissions(currentMission);
+  const currentIndex = reportMissions.findIndex((mission) => mission.id === currentMission.id);
+  const nextIndex = direction === "newer" ? currentIndex - 1 : currentIndex + 1;
+  const nextMission = reportMissions[nextIndex];
+  if (!nextMission) return;
+  showSpecialMissionEndSummary(nextMission);
+  modal.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function duplicateSpecialMissionFromReport(missionId) {
+  if (!isParentUnlocked) {
+    showParentAuth();
+    return;
+  }
+  const mission = getSpecialMissionById(missionId);
+  if (!mission || !window.confirm(`「${mission.title}」を次の作戦用に複製しますか？`)) return;
+  duplicateSpecialMission(missionId);
+  closeSpecialMissionEndSummary();
+  switchScreen("admin");
 }
 
 function handleSpecialMissionReflectionSubmit(event) {
@@ -11923,6 +11970,18 @@ document.addEventListener("click", (event) => {
   const specialMissionEndClose = event.target.closest("[data-special-mission-end-close]");
   if (specialMissionEndClose) {
     closeSpecialMissionEndSummary();
+    return;
+  }
+
+  const specialMissionReportNav = event.target.closest("[data-special-mission-report-nav]");
+  if (specialMissionReportNav) {
+    navigateSpecialMissionReport(specialMissionReportNav.dataset.specialMissionReportNav);
+    return;
+  }
+
+  const duplicateSpecialMissionReportButton = event.target.closest("[data-duplicate-special-mission-from-report]");
+  if (duplicateSpecialMissionReportButton) {
+    duplicateSpecialMissionFromReport(duplicateSpecialMissionReportButton.dataset.missionId);
     return;
   }
 
