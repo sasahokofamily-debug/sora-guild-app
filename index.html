@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260831-special-rewards515">
+    <link rel="stylesheet" href="styles.css?v=20260831-special-items516">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -653,6 +653,13 @@
               <h3 id="reward-shop-title">ギルドショップ</h3>
               <p class="reward-shop-lead" data-reward-shop-gold>所持Gold：0G</p>
             </div>
+            <section class="special-reward-ticket-wallet" data-special-reward-ticket-wallet hidden aria-labelledby="special-reward-ticket-title">
+              <div class="mini-section-heading">
+                <p class="section-kicker">Mission Reward</p>
+                <h3 id="special-reward-ticket-title">所持しているご褒美券</h3>
+              </div>
+              <div class="special-reward-ticket-list" data-special-reward-ticket-list></div>
+            </section>
             <div class="reward-shop-list" data-reward-shop-list></div>
           </section>
         </section>
@@ -697,9 +704,12 @@
           <details class="panel admin-panel app-history-panel">
             <summary>
               <span>更新履歴</span>
-              <small>Version 5.15</small>
+              <small>Version 5.16</small>
             </summary>
             <div class="app-history-content">
+              <p>
+                Version 5.16：特別ミッションの限定バッジ・称号・1回券を獲得して使えるようにしました。
+              </p>
               <p>
                 Version 5.15：特別ミッションの早期クリア報酬と最終報酬を、一度だけ自動付与するようにしました。
               </p>
@@ -1291,6 +1301,7 @@
             <span><small>獲得XP</small><strong data-special-mission-end-xp>0 XP</strong></span>
             <span><small>獲得Gold</small><strong data-special-mission-end-gold>0 G</strong></span>
           </div>
+          <div class="special-mission-end-special-rewards" data-special-mission-end-special-rewards hidden></div>
           <button type="button" data-special-mission-end-close>冒険の記録にしまう</button>
         </div>
       </div>
@@ -1570,6 +1581,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260831-special-rewards515" defer></script>
+    <script src="app.js?v=20260831-special-items516" defer></script>
   </body>
 </html>

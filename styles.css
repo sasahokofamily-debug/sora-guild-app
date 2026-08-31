@@ -5994,6 +5994,120 @@ h3 {
   overflow-wrap: anywhere;
 }
 
+.special-mission-end-special-rewards {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.special-mission-end-special-rewards[hidden] {
+  display: none;
+}
+
+.special-mission-end-special-rewards span {
+  border: 1px solid rgba(151, 105, 34, 0.25);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: rgba(255, 248, 222, 0.64);
+  color: #67451a;
+  font-size: 0.78rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.special-reward-ticket-wallet {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(142, 96, 33, 0.25);
+  padding-bottom: 18px;
+}
+
+.special-reward-ticket-wallet[hidden] {
+  display: none;
+}
+
+.special-reward-ticket-list {
+  display: grid;
+  gap: 10px;
+}
+
+.special-reward-ticket {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 10px 12px;
+  align-items: start;
+  border: 1px solid rgba(162, 116, 41, 0.38);
+  border-radius: 7px;
+  padding: 12px;
+  background: rgba(255, 247, 215, 0.72);
+}
+
+.special-reward-ticket.is-active {
+  border-color: rgba(58, 129, 111, 0.55);
+  box-shadow: inset 3px 0 0 #4f9c7f;
+}
+
+.special-reward-ticket.is-used,
+.special-reward-ticket.is-expired {
+  opacity: 0.65;
+}
+
+.special-reward-ticket-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(161, 110, 28, 0.3);
+  border-radius: 50%;
+  background: #fff4c7;
+  font-size: 1.35rem;
+}
+
+.special-reward-ticket h4,
+.special-reward-ticket p,
+.special-reward-ticket small,
+.special-reward-ticket em {
+  margin: 0;
+}
+
+.special-reward-ticket h4 {
+  margin-top: 2px;
+  font-size: 0.98rem;
+  overflow-wrap: anywhere;
+}
+
+.special-reward-ticket small {
+  color: #34745f;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.special-reward-ticket p,
+.special-reward-ticket em {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-style: normal;
+  line-height: 1.55;
+}
+
+.special-reward-ticket button {
+  grid-column: 1 / -1;
+  min-height: 44px;
+  border-radius: 6px;
+  color: #fff8e9;
+  background: linear-gradient(180deg, #a9473d, #762a28);
+  font-weight: 900;
+}
+
+.special-reward-ticket button:disabled {
+  color: #6f6251;
+  background: #d6c8a6;
+}
+
 .special-mission-end-card > button {
   width: 100%;
   min-height: 48px;

@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.15";
+const APP_VERSION = "5.16";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "主要宿題を推奨クリア日までに終えると、早期クリア報酬を一度だけ受け取れるようにしました。",
-  "日記などの継続課題まで完了すると、特別ミッションの最終報酬を一度だけ付与します。",
-  "冒険の記録に、早期クリア報酬と最終報酬のXP・Goldも含めるようにしました。",
+  "特別ミッションで限定バッジと限定称号を獲得できるようにしました。",
+  "獲得したご褒美券をギルドショップで確認し、一度だけ使えるようにしました。",
+  "特別ミッションの冒険記録に、獲得した限定報酬を表示するようにしました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -3561,6 +3561,15 @@ function normalizeSpecialMissionProgress(rawProgress = {}) {
         {
           questProgress,
           chapterBosses: missionProgress?.chapterBosses && typeof missionProgress.chapterBosses === "object" ? { ...missionProgress.chapterBosses } : {},
+          earnedBadges: Array.isArray(missionProgress?.earnedBadges)
+            ? missionProgress.earnedBadges.map(normalizeSpecialMissionCollectible).filter(Boolean)
+            : [],
+          earnedTitles: Array.isArray(missionProgress?.earnedTitles)
+            ? missionProgress.earnedTitles.map(normalizeSpecialMissionCollectible).filter(Boolean)
+            : [],
+          rewardTickets: Array.isArray(missionProgress?.rewardTickets)
+            ? missionProgress.rewardTickets.map(normalizeSpecialMissionRewardTicket).filter(Boolean)
+            : [],
           claimedRewards: normalizeStringList(missionProgress?.claimedRewards),
           earlyCompletionRewarded: Boolean(missionProgress?.earlyCompletionRewarded),
           endSummaryShown: Boolean(missionProgress?.endSummaryShown),
@@ -3571,6 +3580,31 @@ function normalizeSpecialMissionProgress(rawProgress = {}) {
       ];
     }),
   );
+}
+
+function normalizeSpecialMissionCollectible(rawItem = {}) {
+  const id = String(rawItem.id || "").trim();
+  const name = String(rawItem.name || "").trim();
+  if (!id || !name) return null;
+  return {
+    id,
+    name,
+    icon: String(rawItem.icon || "").trim(),
+    description: String(rawItem.description || "").trim(),
+    rewardKey: String(rawItem.rewardKey || "").trim(),
+    earnedAt: String(rawItem.earnedAt || ""),
+  };
+}
+
+function normalizeSpecialMissionRewardTicket(rawItem = {}) {
+  const base = normalizeSpecialMissionCollectible(rawItem);
+  if (!base) return null;
+  return {
+    ...base,
+    grantedAt: String(rawItem.grantedAt || rawItem.earnedAt || ""),
+    expiresAt: String(rawItem.expiresAt || ""),
+    redeemedAt: String(rawItem.redeemedAt || ""),
+  };
 }
 
 function loadSpecialMissionProgress() {
@@ -3696,8 +3730,10 @@ function normalizeRewardHistoryItem(rawItem) {
   return {
     id: String(rawItem.id || `history-${Date.now()}`),
     rewardName,
-    cost: Math.max(1, Math.round(cost)),
+    cost: Math.max(0, Math.round(cost)),
     redeemedAt: typeof rawItem.redeemedAt === "string" ? rawItem.redeemedAt : new Date().toISOString(),
+    sourceType: rawItem.sourceType === "special_mission_ticket" ? "special_mission_ticket" : "gold",
+    ticketId: String(rawItem.ticketId || ""),
   };
 }
 
@@ -5398,7 +5434,33 @@ function getCollectibleTitleProgressText(title, context, unlocked) {
 function getEquippedCollectibleTitle() {
   const unlockedIds = normalizeStringList(progress.unlockedCollectibleTitleIds);
   const equippedId = unlockedIds.includes(progress.equippedCollectibleTitleId) ? progress.equippedCollectibleTitleId : unlockedIds[0];
-  return COLLECTIBLE_TITLES.find((title) => title.id === equippedId) || null;
+  return getCollectibleTitleCatalog().find((title) => title.id === equippedId) || null;
+}
+
+function getSpecialMissionEarnedItems(key) {
+  return Object.values(specialMissionProgress)
+    .flatMap((missionProgress) => Array.isArray(missionProgress?.[key]) ? missionProgress[key] : [])
+    .map(normalizeSpecialMissionCollectible)
+    .filter(Boolean)
+    .filter((item, index, items) => items.findIndex((candidate) => candidate.id === item.id) === index);
+}
+
+function getSpecialMissionEarnedBadges() {
+  return getSpecialMissionEarnedItems("earnedBadges");
+}
+
+function getSpecialMissionEarnedTitles() {
+  return getSpecialMissionEarnedItems("earnedTitles").map((item) => ({
+    ...item,
+    icon: item.icon || "👑",
+    description: item.description || "特別ミッションを攻略して獲得した限定称号。",
+    conditionText: "特別ミッション報酬",
+    isUnlocked: () => true,
+  }));
+}
+
+function getCollectibleTitleCatalog() {
+  return [...COLLECTIBLE_TITLES, ...getSpecialMissionEarnedTitles()];
 }
 
 function checkCollectibleTitles({ showToast = true } = {}) {
@@ -8085,7 +8147,13 @@ function getSpecialMissionEndRecord(mission) {
     earned.xp += mission.rewards.xp;
     earned.gold += mission.rewards.gold;
   }
-  return { ...summary, ...earned };
+  return {
+    ...summary,
+    ...earned,
+    badges: missionProgress.earnedBadges || [],
+    titles: missionProgress.earnedTitles || [],
+    rewardTickets: missionProgress.rewardTickets || [],
+  };
 }
 
 function renderSpecialMissionArchive() {
@@ -8121,6 +8189,16 @@ function showSpecialMissionEndSummary(mission) {
   setText("[data-special-mission-end-count]", `${record.completed} / ${record.total}`);
   setText("[data-special-mission-end-xp]", `${formatNumber(record.xp)} XP`);
   setText("[data-special-mission-end-gold]", `${formatNumber(record.gold)} G`);
+  const specialRewards = document.querySelector("[data-special-mission-end-special-rewards]");
+  if (specialRewards) {
+    const rewardItems = [
+      ...record.badges.map((item) => `🏅 ${item.name}`),
+      ...record.titles.map((item) => `👑 ${item.name}`),
+      ...record.rewardTickets.map((item) => `🎟️ ${item.name}`),
+    ];
+    specialRewards.hidden = rewardItems.length === 0;
+    specialRewards.innerHTML = rewardItems.map((item) => `<span>${escapeHtml(item)}</span>`).join("");
+  }
   modal.hidden = false;
   requestAnimationFrame(() => modal.classList.add("is-visible"));
 }
@@ -8647,6 +8725,68 @@ function applySpecialMissionRewardBundle(rawRewards, completedAt) {
   return { previousLevel, nextLevel, xp: rewards.xp, gold: rewards.gold };
 }
 
+function getSpecialRewardItemId(type, missionId, rewardKey, value) {
+  const safeValue = String(value || "reward").trim().toLowerCase().replace(/[^a-z0-9\u3040-\u30ff\u3400-\u9fff]+/g, "-");
+  return `special-${type}-${missionId}-${rewardKey}-${safeValue}`;
+}
+
+function getSpecialRewardExpiry(grantedAt, expiresInDays) {
+  const days = Math.floor(normalizeNonNegativeNumber(expiresInDays, 0));
+  if (days < 1) return "";
+  const [year, month, day] = getDateKey(new Date(grantedAt)).split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days, 15, 0, 0)).toISOString();
+}
+
+function grantSpecialMissionCollectibles(mission, missionProgress, rawRewards, rewardKey, grantedAt) {
+  const rewards = normalizeRewardBundle(rawRewards || {});
+  const earnedAt = grantedAt instanceof Date ? grantedAt.toISOString() : String(grantedAt || new Date().toISOString());
+  let changed = false;
+  const addCollectibles = (current, values, type, icon) => {
+    const next = [...current];
+    values.forEach((name) => {
+      const id = getSpecialRewardItemId(type, mission.id, "earned", name);
+      if (next.some((item) => item.id === id)) return;
+      next.push({ id, name, icon, description: `${mission.title}を攻略して獲得しました。`, rewardKey, earnedAt });
+      changed = true;
+    });
+    return next;
+  };
+
+  missionProgress.earnedBadges = addCollectibles(missionProgress.earnedBadges || [], rewards.badges, "badge", "🏅");
+  missionProgress.earnedTitles = addCollectibles(missionProgress.earnedTitles || [], rewards.titles, "title", "👑");
+  const titleIds = missionProgress.earnedTitles.map((item) => item.id);
+  const unlockedTitleIds = normalizeStringList(progress.unlockedCollectibleTitleIds);
+  const nextUnlockedTitleIds = [...new Set([...unlockedTitleIds, ...titleIds])];
+  if (nextUnlockedTitleIds.length !== unlockedTitleIds.length) {
+    progress = {
+      ...progress,
+      unlockedCollectibleTitleIds: nextUnlockedTitleIds,
+      equippedCollectibleTitleId: progress.equippedCollectibleTitleId || titleIds[0] || "",
+    };
+    changed = true;
+  }
+
+  const tickets = [...(missionProgress.rewardTickets || [])];
+  rewards.rewardTickets.forEach((ticket, index) => {
+    const id = getSpecialRewardItemId("ticket", mission.id, rewardKey, ticket.id || index + 1);
+    if (tickets.some((item) => item.id === id)) return;
+    tickets.push({
+      id,
+      name: ticket.name,
+      icon: "🎟️",
+      description: ticket.description,
+      rewardKey,
+      earnedAt,
+      grantedAt: earnedAt,
+      expiresAt: getSpecialRewardExpiry(earnedAt, ticket.expiresInDays),
+      redeemedAt: "",
+    });
+    changed = true;
+  });
+  missionProgress.rewardTickets = tickets;
+  return changed;
+}
+
 function settleSpecialMissionRewards(mission, completedAt = new Date()) {
   const missionProgress = getSpecialMissionProgressState(mission.id);
   const completedAtIso = completedAt.toISOString();
@@ -8656,6 +8796,7 @@ function settleSpecialMissionRewards(mission, completedAt = new Date()) {
     xp: 0,
     gold: 0,
     labels: [],
+    changed: false,
   };
 
   if (isSpecialMissionMainCompleted(mission) && !missionProgress.mainCompletedAt) {
@@ -8675,6 +8816,7 @@ function settleSpecialMissionRewards(mission, completedAt = new Date()) {
     result.gold += reward.gold;
     result.nextLevel = reward.nextLevel;
     result.labels.push("早期クリア報酬");
+    result.changed = true;
   }
 
   if (isSpecialMissionFullyCompleted(mission) && !missionProgress.claimedRewards.includes("final")) {
@@ -8685,9 +8827,17 @@ function settleSpecialMissionRewards(mission, completedAt = new Date()) {
     result.gold += reward.gold;
     result.nextLevel = reward.nextLevel;
     result.labels.push("完全攻略報酬");
+    result.changed = true;
   }
 
-  if (result.labels.length > 0) {
+  if (missionProgress.claimedRewards.includes("early")) {
+    result.changed = grantSpecialMissionCollectibles(mission, missionProgress, mission.earlyCompletionRewards, "early", missionProgress.mainCompletedAt || completedAtIso) || result.changed;
+  }
+  if (missionProgress.claimedRewards.includes("final")) {
+    result.changed = grantSpecialMissionCollectibles(mission, missionProgress, mission.rewards, "final", missionProgress.completedAt || completedAtIso) || result.changed;
+  }
+
+  if (result.changed) {
     missionProgress.updatedAt = completedAtIso;
   }
   return result;
@@ -8707,7 +8857,7 @@ function reconcileSpecialMissionRewardClaims() {
   return specialMissions
     .filter((mission) => mission.enabled && mission.isPublished && ["published", "ended"].includes(mission.status))
     .map((mission) => settleSpecialMissionRewards(mission, new Date()))
-    .filter((result) => result.labels.length > 0);
+    .filter((result) => result.changed);
 }
 
 function getSpecialMissionQuestReportUpdate(quest, questProgress, reportValue, maxBatchCount = 1) {
@@ -9295,6 +9445,7 @@ function renderRewardShop() {
   }
 
   setText("[data-reward-shop-gold]", `所持Gold：${formatNumber(progress.gold)}G`);
+  renderSpecialMissionRewardTickets();
   list.innerHTML = "";
 
   if (rewards.length === 0) {
@@ -9333,6 +9484,79 @@ function renderRewardShop() {
       <button type="button" data-exchange-reward="${escapeHtml(reward.id)}" ${canExchange ? "" : "disabled"}>${canExchange ? "交換する" : "Gold不足"}</button>
     `;
     list.append(item);
+  });
+}
+
+function getSpecialMissionRewardTickets() {
+  return Object.values(specialMissionProgress)
+    .flatMap((missionProgress) => missionProgress.rewardTickets || [])
+    .map(normalizeSpecialMissionRewardTicket)
+    .filter(Boolean)
+    .sort((a, b) => (b.grantedAt || "").localeCompare(a.grantedAt || ""));
+}
+
+function isSpecialMissionRewardTicketExpired(ticket, now = new Date()) {
+  if (!ticket.expiresAt) return false;
+  const expiry = new Date(ticket.expiresAt);
+  return !Number.isNaN(expiry.getTime()) && expiry.getTime() < now.getTime();
+}
+
+function formatSpecialMissionTicketExpiry(ticket) {
+  if (!ticket.expiresAt) return "有効期限なし";
+  const date = new Date(ticket.expiresAt);
+  if (Number.isNaN(date.getTime())) return "有効期限なし";
+  return `有効期限 ${date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" })}`;
+}
+
+function renderSpecialMissionRewardTickets() {
+  const section = document.querySelector("[data-special-reward-ticket-wallet]");
+  const list = document.querySelector("[data-special-reward-ticket-list]");
+  if (!section || !list) return;
+  const tickets = getSpecialMissionRewardTickets();
+  section.hidden = tickets.length === 0;
+  list.innerHTML = "";
+  tickets.forEach((ticket) => {
+    const used = Boolean(ticket.redeemedAt);
+    const expired = !used && isSpecialMissionRewardTicketExpired(ticket);
+    const status = used ? "使用済み" : expired ? "期限切れ" : "使用できます";
+    const item = document.createElement("article");
+    item.className = `special-reward-ticket${used ? " is-used" : expired ? " is-expired" : " is-active"}`;
+    item.innerHTML = `
+      <span class="special-reward-ticket-icon" aria-hidden="true">🎟️</span>
+      <div><small>${status}</small><h4>${escapeHtml(ticket.name)}</h4>
+      <p>${escapeHtml(ticket.description || "特別ミッションで獲得した1回券です。")}</p>
+      <em>${escapeHtml(formatSpecialMissionTicketExpiry(ticket))}</em></div>
+      <button type="button" data-use-special-reward-ticket="${escapeHtml(ticket.id)}" ${used || expired ? "disabled" : ""}>${used ? "使用済み" : expired ? "期限切れ" : "この券を使う"}</button>
+    `;
+    list.append(item);
+  });
+}
+
+function useSpecialMissionRewardTicket(ticketId) {
+  const missionEntry = Object.entries(specialMissionProgress).find(([, missionProgress]) =>
+    (missionProgress.rewardTickets || []).some((ticket) => ticket.id === ticketId),
+  );
+  if (!missionEntry) return;
+  const [missionId, missionProgress] = missionEntry;
+  const ticket = missionProgress.rewardTickets.find((item) => item.id === ticketId);
+  if (!ticket || ticket.redeemedAt || isSpecialMissionRewardTicketExpired(ticket)) {
+    showToast("この券は使用できません");
+    return;
+  }
+  if (!window.confirm(`「${ticket.name}」を使いますか？`)) return;
+  const redeemedAt = new Date().toISOString();
+  ticket.redeemedAt = redeemedAt;
+  missionProgress.updatedAt = redeemedAt;
+  specialMissionProgress = { ...specialMissionProgress, [missionId]: missionProgress };
+  const historyItem = { id: `history-${Date.now()}`, rewardName: ticket.name, cost: 0, redeemedAt, sourceType: "special_mission_ticket", ticketId: ticket.id };
+  rewardHistory = [historyItem, ...rewardHistory];
+  saveSpecialMissionProgress();
+  saveRewardHistory();
+  render();
+  playSound("rewardOpen");
+  showRewardExchangeToast({ name: ticket.name });
+  notifyRewardExchange(historyItem).then((notified) => {
+    if (!notified) window.alert("券は使用済みにしました。通知だけ失敗しました。");
   });
 }
 
@@ -9420,7 +9644,7 @@ function renderRewardHistory() {
         <strong>${escapeHtml(historyItem.rewardName)}</strong>
         <span>${dateLabel}</span>
       </div>
-      <span>${historyItem.cost}G</span>
+      <span>${historyItem.sourceType === "special_mission_ticket" ? "券使用" : `${historyItem.cost}G`}</span>
     `;
     list.append(item);
   });
@@ -10552,6 +10776,14 @@ function enqueueToast(toast, { message, duration = TOAST_DURATION, timerName = "
   runToastQueue();
 }
 
+function showToast(message) {
+  const toast = document.querySelector("[data-clear-toast]");
+  enqueueToast(toast, {
+    message: String(message || ""),
+    timerName: "clear",
+  });
+}
+
 function runToastQueue() {
   if (toastQueueActive || toastQueue.length === 0) {
     return;
@@ -11108,9 +11340,10 @@ function renderAchievements() {
   }
 
   const unlockedSet = new Set(unlockedAchievements);
-  const unlockedCount = ACHIEVEMENTS.filter((achievement) => unlockedSet.has(achievement.id)).length;
+  const specialBadges = getSpecialMissionEarnedBadges();
+  const unlockedCount = ACHIEVEMENTS.filter((achievement) => unlockedSet.has(achievement.id)).length + specialBadges.length;
   if (count) {
-    count.textContent = `${unlockedCount} / ${ACHIEVEMENTS.length}`;
+    count.textContent = `${unlockedCount} / ${ACHIEVEMENTS.length + specialBadges.length}`;
   }
 
   const achievementContext = getAchievementContext();
@@ -11167,6 +11400,19 @@ function renderAchievements() {
 
     list.append(group);
   });
+  if (specialBadges.length > 0) {
+    const group = document.createElement("details");
+    group.className = "achievement-category";
+    group.innerHTML = `<summary><span>特別ミッション</span><strong>${specialBadges.length} / ${specialBadges.length}</strong></summary><div class="achievement-category-list"></div>`;
+    const groupList = group.querySelector(".achievement-category-list");
+    specialBadges.forEach((badge) => {
+      const item = document.createElement("article");
+      item.className = "achievement-card is-unlocked";
+      item.innerHTML = `<span class="achievement-icon" aria-hidden="true">${escapeHtml(badge.icon || "🏅")}</span><div><span class="achievement-status">獲得済み</span><h4>${escapeHtml(badge.name)}</h4><p>${escapeHtml(badge.description || "特別ミッションを攻略した証。")}</p><small>条件：特別ミッション報酬</small></div>`;
+      groupList.append(item);
+    });
+    list.append(group);
+  }
 }
 
 function renderGrowthCollectionToggles() {
@@ -11192,12 +11438,13 @@ function renderCollectibleTitles() {
   const equippedTitle = getEquippedCollectibleTitle();
   const unlockedIds = normalizeStringList(progress.unlockedCollectibleTitleIds);
   const unlockedSet = new Set(unlockedIds);
+  const titleCatalog = getCollectibleTitleCatalog();
 
   setText("[data-equipped-title-name]", equippedTitle ? equippedTitle.name : "称号未設定");
   setText("[data-current-collectible-title]", equippedTitle ? equippedTitle.name : "称号未獲得");
   setText("[data-current-collectible-title-desc]", equippedTitle ? equippedTitle.description : "称号を獲得すると、ここに表示されます。");
   if (count) {
-    count.textContent = `${unlockedIds.length} / ${COLLECTIBLE_TITLES.length}`;
+    count.textContent = `${unlockedIds.filter((id) => titleCatalog.some((title) => title.id === id)).length} / ${titleCatalog.length}`;
   }
   if (!list) {
     return;
@@ -11205,7 +11452,7 @@ function renderCollectibleTitles() {
 
   const context = getAchievementContext();
   list.innerHTML = "";
-  COLLECTIBLE_TITLES.forEach((title) => {
+  titleCatalog.forEach((title) => {
     const unlocked = unlockedSet.has(title.id);
     const equipped = equippedTitle?.id === title.id;
     const progressText = getCollectibleTitleProgressText(title, context, unlocked);
@@ -11952,6 +12199,12 @@ document.addEventListener("click", (event) => {
   const exchangeRewardButton = event.target.closest("[data-exchange-reward]");
   if (exchangeRewardButton) {
     exchangeReward(exchangeRewardButton.dataset.exchangeReward);
+    return;
+  }
+
+  const specialRewardTicketButton = event.target.closest("[data-use-special-reward-ticket]");
+  if (specialRewardTicketButton) {
+    useSpecialMissionRewardTicket(specialRewardTicketButton.dataset.useSpecialRewardTicket);
     return;
   }
 
