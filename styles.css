@@ -761,6 +761,7 @@ h1 {
   appearance: none;
   display: inline-flex;
   align-items: center;
+  min-height: 36px;
   margin: 7px 0 0;
   border: 1px solid rgba(241, 210, 122, 0.38);
   border-radius: 999px;
@@ -11153,9 +11154,9 @@ h3 {
   }
 
   .admin-section-toggle {
-    width: 36px;
-    min-width: 36px;
-    min-height: 36px;
+    width: 40px;
+    min-width: 40px;
+    min-height: 40px;
     padding: 0;
   }
 
@@ -11431,6 +11432,11 @@ h3 {
     margin-top: 6px;
     font-size: 0.78rem;
     line-height: 1.45;
+  }
+
+  .character-type-line strong {
+    display: inline-block;
+    white-space: nowrap;
   }
 
   .stat-grid {

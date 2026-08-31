@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.19";
+const APP_VERSION = "5.20";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,9 +65,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   weeklyEnabled: true,
 };
 const VERSION_NOTES = [
-  "冒険報告書をブラウザの標準機能から印刷・PDF保存できるようにしました。",
-  "保存時は操作ボタンや編集欄を除き、報告書だけをきれいに出力します。",
-  "スマホでは印刷画面の共有メニューから、家族への共有やファイル保存ができます。",
+  "小さいスマホでも冒険者タイプが不自然に分かれないよう、表示を整えました。",
+  "バージョン表示と管理画面の開閉ボタンを、指で押しやすい大きさにしました。",
+  "ホームからギルド管理まで、スマホとタブレットで横にはみ出さないことを確認しました。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
