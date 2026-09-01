@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.20";
+const APP_VERSION = "5.21";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -23,6 +23,7 @@ const CHAPTER2_UNLOCKED_KEY = "sora_guild_app_chapter2_unlocked_dev";
 const CHAPTER2_UNLOCK_SHOWN_KEY = "sora_guild_app_chapter2_unlock_shown_dev";
 const APP_SETTINGS_KEY = "sora_guild_app_app_settings_dev";
 const NOTIFICATION_SETTINGS_KEY = "sora_guild_app_notification_settings_dev";
+const APP_NOTIFICATIONS_KEY = "sora_guild_app_notifications_dev";
 const AUDIO_SETTINGS_KEY = "sora_guild_app_audio_settings_dev";
 const BGM_ENABLED_KEY = "sora_guild_app_bgm_enabled_dev";
 const BGM_SRC = "./assets/audio/bgm/bgm_main.mp3";
@@ -63,11 +64,12 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   notificationEmail: "",
   rewardEnabled: true,
   weeklyEnabled: true,
+  approvalDeviceEnabled: true,
 };
 const VERSION_NOTES = [
-  "小さいスマホでも冒険者タイプが不自然に分かれないよう、表示を整えました。",
-  "バージョン表示と管理画面の開閉ボタンを、指で押しやすい大きさにしました。",
-  "ホームからギルド管理まで、スマホとタブレットで横にはみ出さないことを確認しました。",
+  "未読件数が分かる通知センターを追加しました。",
+  "特別ミッションの報告が承認待ちになると、通知一覧へ自動で追加されます。",
+  "許可した端末では、アプリを開いているときも承認待ちを端末通知で受け取れます。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -680,6 +682,7 @@ const BACKUP_STORAGE_KEYS = [
   CHAPTER2_UNLOCK_SHOWN_KEY,
   APP_SETTINGS_KEY,
   NOTIFICATION_SETTINGS_KEY,
+  APP_NOTIFICATIONS_KEY,
   AUDIO_SETTINGS_KEY,
   BGM_ENABLED_KEY,
   SFX_ENABLED_KEY,
@@ -723,6 +726,8 @@ const BACKUP_STORAGE_KEY_ALIASES = {
   appName: APP_SETTINGS_KEY,
   notificationSettings: NOTIFICATION_SETTINGS_KEY,
   notificationEmail: NOTIFICATION_SETTINGS_KEY,
+  appNotifications: APP_NOTIFICATIONS_KEY,
+  notifications: APP_NOTIFICATIONS_KEY,
   audioSettings: AUDIO_SETTINGS_KEY,
   bgmEnabled: BGM_ENABLED_KEY,
   sfxEnabled: SFX_ENABLED_KEY,
@@ -800,6 +805,7 @@ function reloadAppStateFromStorage() {
   allyJoinedDates = loadAllyJoinedDates();
   appSettings = loadAppSettings(progress.name);
   notificationSettings = loadNotificationSettings();
+  appNotifications = loadAppNotifications();
   audioSettings = loadAudioSettings();
   syncProgressNameFromAppSettings();
   if (reconcileDisabledSpecialMissionApprovals()) {
@@ -1561,6 +1567,7 @@ let bossState = loadBossState();
 let allyJoinedDates = loadAllyJoinedDates();
 let appSettings = loadAppSettings(progress.name);
 let notificationSettings = loadNotificationSettings();
+let appNotifications = loadAppNotifications();
 let audioSettings = loadAudioSettings();
 let currentAppDateKey = getDateKey();
 progress = reconcileProgressFromHistory(progress);
@@ -1952,6 +1959,10 @@ function normalizeNotificationSettings(rawSettings = {}) {
     notificationEmail,
     rewardEnabled: typeof rawSettings.rewardEnabled === "boolean" ? rawSettings.rewardEnabled : DEFAULT_NOTIFICATION_SETTINGS.rewardEnabled,
     weeklyEnabled: typeof rawSettings.weeklyEnabled === "boolean" ? rawSettings.weeklyEnabled : DEFAULT_NOTIFICATION_SETTINGS.weeklyEnabled,
+    approvalDeviceEnabled:
+      typeof rawSettings.approvalDeviceEnabled === "boolean"
+        ? rawSettings.approvalDeviceEnabled
+        : DEFAULT_NOTIFICATION_SETTINGS.approvalDeviceEnabled,
   };
 }
 
@@ -1970,6 +1981,242 @@ function saveNotificationSettings() {
 
 function getNotificationEmail() {
   return normalizeNotificationSettings(notificationSettings).notificationEmail;
+}
+
+function normalizeAppNotification(rawItem = {}) {
+  const createdAt = String(rawItem.createdAt || "");
+  const title = String(rawItem.title || "").trim();
+  if (!createdAt || !title) {
+    return null;
+  }
+  return {
+    id: String(rawItem.id || `notice-${createdAt}`),
+    sourceId: String(rawItem.sourceId || ""),
+    type: String(rawItem.type || "info"),
+    title,
+    message: String(rawItem.message || "").trim(),
+    createdAt,
+    readAt: String(rawItem.readAt || ""),
+    action: String(rawItem.action || ""),
+  };
+}
+
+function loadAppNotifications() {
+  try {
+    const stored = localStorage.getItem(APP_NOTIFICATIONS_KEY);
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed.map(normalizeAppNotification).filter(Boolean).slice(0, 50) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveAppNotifications() {
+  appNotifications = appNotifications.map(normalizeAppNotification).filter(Boolean).slice(0, 50);
+  localStorage.setItem(APP_NOTIFICATIONS_KEY, JSON.stringify(appNotifications));
+}
+
+function getUnreadAppNotificationCount() {
+  return appNotifications.filter((item) => !item.readAt).length;
+}
+
+function formatAppNotificationTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  const parts = getJapanDateTimeParts(date);
+  return `${Number(parts.month)}/${Number(parts.day)} ${parts.hour}:${parts.minute}`;
+}
+
+function isIosDevice() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function isStandaloneApp() {
+  return window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function getDeviceNotificationStatus() {
+  if (isIosDevice() && !isStandaloneApp()) {
+    return { key: "install", label: "ホーム画面への追加が必要です" };
+  }
+  if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+    return { key: "unsupported", label: "この端末では利用できません" };
+  }
+  if (Notification.permission === "granted") {
+    return { key: "granted", label: "端末通知 ON" };
+  }
+  if (Notification.permission === "denied") {
+    return { key: "denied", label: "端末設定で通知がOFFです" };
+  }
+  return { key: "default", label: "端末通知は未許可です" };
+}
+
+async function showDeviceNotification(title, message, options = {}) {
+  const settings = normalizeNotificationSettings(notificationSettings);
+  if (!settings.approvalDeviceEnabled || !("Notification" in window) || Notification.permission !== "granted") {
+    return false;
+  }
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    await registration.showNotification(title, {
+      body: message,
+      icon: "./assets/icons/pwa-icon-192.png",
+      badge: "./assets/icons/pwa-icon-192.png",
+      tag: String(options.tag || "sora-quest-notice"),
+      data: { openNotifications: true },
+    });
+    return true;
+  } catch (error) {
+    console.warn("端末通知を表示できませんでした", error);
+    return false;
+  }
+}
+
+function addAppNotification({ sourceId = "", type = "info", title, message = "", action = "", notifyDevice = false } = {}) {
+  if (!title || (sourceId && appNotifications.some((item) => item.sourceId === sourceId))) {
+    return null;
+  }
+  const createdAt = new Date().toISOString();
+  const item = normalizeAppNotification({
+    id: globalThis.crypto?.randomUUID?.() || `notice-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    sourceId,
+    type,
+    title,
+    message,
+    createdAt,
+    action,
+  });
+  if (!item) {
+    return null;
+  }
+  appNotifications = [item, ...appNotifications].slice(0, 50);
+  saveAppNotifications();
+  renderNotificationCenter();
+  if (notifyDevice) {
+    showDeviceNotification(title, message, { tag: sourceId || item.id });
+  }
+  return item;
+}
+
+function markAppNotificationRead(notificationId) {
+  const readAt = new Date().toISOString();
+  appNotifications = appNotifications.map((item) => item.id === notificationId && !item.readAt ? { ...item, readAt } : item);
+  saveAppNotifications();
+  renderNotificationCenter();
+}
+
+function markAllAppNotificationsRead() {
+  const readAt = new Date().toISOString();
+  appNotifications = appNotifications.map((item) => item.readAt ? item : { ...item, readAt });
+  saveAppNotifications();
+  renderNotificationCenter();
+}
+
+function markApprovalNotificationsRead(missionId, questId) {
+  const sourcePrefix = `approval:${missionId}:${questId}:`;
+  const readAt = new Date().toISOString();
+  let changed = false;
+  appNotifications = appNotifications.map((item) => {
+    if (!item.readAt && item.sourceId.startsWith(sourcePrefix)) {
+      changed = true;
+      return { ...item, readAt };
+    }
+    return item;
+  });
+  if (changed) {
+    saveAppNotifications();
+  }
+}
+
+function renderNotificationCenter() {
+  const modal = document.querySelector("[data-notification-center]");
+  const trigger = document.querySelector("[data-notification-center-open]");
+  const badge = document.querySelector("[data-notification-unread-count]");
+  const list = document.querySelector("[data-notification-list]");
+  const empty = document.querySelector("[data-notification-empty]");
+  const status = document.querySelector("[data-device-notification-status]");
+  const permissionButton = document.querySelector("[data-request-device-notifications]");
+  const unreadCount = getUnreadAppNotificationCount();
+
+  if (trigger) {
+    trigger.setAttribute("aria-expanded", String(Boolean(modal && !modal.hidden)));
+    trigger.setAttribute("aria-label", unreadCount > 0 ? `通知 ${unreadCount}件の未読` : "通知");
+  }
+  if (badge) {
+    badge.hidden = unreadCount === 0;
+    badge.textContent = unreadCount > 99 ? "99+" : String(unreadCount);
+  }
+  if (list) {
+    list.innerHTML = appNotifications.map((item) => `
+      <button class="notification-center-item${item.readAt ? "" : " is-unread"}" type="button" data-open-app-notification="${escapeHtml(item.id)}">
+        <span class="notification-center-item-mark" aria-hidden="true"></span>
+        <span>
+          <strong>${escapeHtml(item.title)}</strong>
+          ${item.message ? `<small>${escapeHtml(item.message)}</small>` : ""}
+          <time datetime="${escapeHtml(item.createdAt)}">${escapeHtml(formatAppNotificationTime(item.createdAt))}</time>
+        </span>
+      </button>
+    `).join("");
+  }
+  if (empty) {
+    empty.hidden = appNotifications.length > 0;
+  }
+  const deviceStatus = getDeviceNotificationStatus();
+  if (status) {
+    status.textContent = deviceStatus.label;
+    status.dataset.status = deviceStatus.key;
+  }
+  if (permissionButton) {
+    permissionButton.hidden = deviceStatus.key === "unsupported";
+    permissionButton.disabled = deviceStatus.key === "denied" || deviceStatus.key === "install";
+    permissionButton.textContent = deviceStatus.key === "granted" ? "テスト通知" : deviceStatus.key === "install" ? "ホーム画面に追加してください" : "端末通知を許可";
+  }
+  setText("[data-device-notification-admin-status]", deviceStatus.label);
+}
+
+function openNotificationCenter() {
+  const modal = document.querySelector("[data-notification-center]");
+  if (!modal) return;
+  modal.hidden = false;
+  modal.classList.remove("is-visible");
+  void modal.offsetWidth;
+  modal.classList.add("is-visible");
+  renderNotificationCenter();
+}
+
+function closeNotificationCenter() {
+  const modal = document.querySelector("[data-notification-center]");
+  if (!modal) return;
+  modal.classList.remove("is-visible");
+  window.setTimeout(() => {
+    modal.hidden = true;
+    renderNotificationCenter();
+  }, 180);
+}
+
+async function requestDeviceNotificationPermission() {
+  const status = getDeviceNotificationStatus();
+  if (status.key === "install") {
+    showToast("共有メニューからホーム画面に追加してください");
+    return;
+  }
+  if (!("Notification" in window)) {
+    showToast("この端末では通知を利用できません");
+    return;
+  }
+  if (Notification.permission === "granted") {
+    await showDeviceNotification("そらクエスト", "端末通知は正常に届きます。", { tag: "sora-quest-test" });
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  renderNotificationCenter();
+  if (permission === "granted") {
+    await showDeviceNotification("通知の準備ができました", "承認待ちをこの端末でお知らせします。", { tag: "sora-quest-ready" });
+  } else {
+    showToast("通知は端末の設定からいつでも変更できます");
+  }
 }
 
 function normalizeAudioSettings(rawSettings = {}) {
@@ -2448,6 +2695,12 @@ function registerServiceWorker() {
   } else {
     window.addEventListener("load", register, { once: true });
   }
+
+  navigator.serviceWorker.addEventListener("message", (event) => {
+    if (event.data?.type === "OPEN_NOTIFICATION_CENTER") {
+      openNotificationCenter();
+    }
+  });
 }
 
 function normalizeWeeklyReportHistoryItem(rawItem) {
@@ -6522,6 +6775,10 @@ function renderNotificationSettingsForm() {
   form.elements.notificationEmail.value = settings.notificationEmail;
   form.elements.rewardEnabled.checked = settings.rewardEnabled;
   form.elements.weeklyEnabled.checked = settings.weeklyEnabled;
+  if (form.elements.approvalDeviceEnabled) {
+    form.elements.approvalDeviceEnabled.checked = settings.approvalDeviceEnabled;
+  }
+  renderNotificationCenter();
 }
 
 function handleNotificationSettingsSubmit(event) {
@@ -6535,8 +6792,8 @@ function handleNotificationSettingsSubmit(event) {
   const formData = new FormData(form);
   const notificationEmail = String(formData.get("notificationEmail") || "").trim();
 
-  if (!isValidEmailAddress(notificationEmail)) {
-    setNotificationSettingsMessage("通知先メールアドレスを設定してください", true);
+  if (notificationEmail && !isValidEmailAddress(notificationEmail)) {
+    setNotificationSettingsMessage("通知先メールアドレスの形式を確認してください", true);
     return;
   }
 
@@ -6544,6 +6801,7 @@ function handleNotificationSettingsSubmit(event) {
     notificationEmail,
     rewardEnabled: formData.get("rewardEnabled") === "on",
     weeklyEnabled: formData.get("weeklyEnabled") === "on",
+    approvalDeviceEnabled: formData.get("approvalDeviceEnabled") === "on",
   });
   saveNotificationSettings();
   renderNotificationSettingsForm();
@@ -7459,6 +7717,27 @@ function getPendingSpecialMissionApprovals() {
       }))
       .filter(({ questProgress }) => questProgress.pendingApproval || questProgress.status === "pending_approval"),
   );
+}
+
+function addPendingApprovalNotification(mission, quest, questProgress, { notifyDevice = false } = {}) {
+  const pendingHistory = [...questProgress.completionHistory]
+    .reverse()
+    .find((item) => item.status === "pending_approval");
+  const reportId = pendingHistory?.completedAt || pendingHistory?.dateKey || mission.updatedAt || "pending";
+  return addAppNotification({
+    sourceId: `approval:${mission.id}:${quest.id}:${reportId}`,
+    type: "approval",
+    title: "承認待ちがあります",
+    message: `${quest.title}の報告が届きました。`,
+    action: "approval",
+    notifyDevice,
+  });
+}
+
+function syncPendingApprovalNotifications() {
+  getPendingSpecialMissionApprovals().forEach(({ mission, quest, questProgress }) => {
+    addPendingApprovalNotification(mission, quest, questProgress);
+  });
 }
 
 function renderSpecialMissionApprovalQueue() {
@@ -8382,7 +8661,7 @@ function queueSpecialMissionEndSummaryIfNeeded() {
   window.clearTimeout(specialMissionEndSummaryTimer);
   specialMissionEndSummaryTimer = window.setTimeout(() => {
     const blockingModal = document.querySelector(
-      "[data-setup-modal]:not([hidden]), [data-onboarding-modal]:not([hidden]), [data-version-notes-modal]:not([hidden]), [data-cloud-migration-modal]:not([hidden])",
+      "[data-setup-modal]:not([hidden]), [data-onboarding-modal]:not([hidden]), [data-version-notes-modal]:not([hidden]), [data-cloud-migration-modal]:not([hidden]), [data-notification-center]:not([hidden])",
     );
     const homeIsVisible = document.querySelector("[data-screen='home']")?.classList.contains("is-active");
     if (!homeIsVisible) {
@@ -9116,6 +9395,7 @@ function completeSpecialMissionQuest(missionId, questId, options = {}) {
       [mission.id]: missionProgress,
     };
     saveSpecialMissionProgress();
+    addPendingApprovalNotification(mission, quest, missionProgress.questProgress[quest.id], { notifyDevice: true });
     render();
     showToast(reportUpdate.rewardMultiplier > 1 ? `${reportUpdate.rewardMultiplier}ページを承認待ちにしました` : "承認待ちにしました");
     return;
@@ -9267,6 +9547,7 @@ function approveSpecialMissionQuest(missionId, questId) {
 
   saveProgress();
   saveSpecialMissionProgress();
+  markApprovalNotificationsRead(mission.id, quest.id);
   render();
   playSound("achievement");
   showToast(rewardMultiplier > 1 ? `${rewardMultiplier}ページ分を承認しました` : `${quest.title}を承認しました`);
@@ -9337,6 +9618,7 @@ function rejectSpecialMissionQuest(missionId, questId) {
   };
 
   saveSpecialMissionProgress();
+  markApprovalNotificationsRead(mission.id, quest.id);
   render();
   showToast(`${quest.title}を差し戻しました`);
 }
@@ -10470,6 +10752,7 @@ function handleInitialSetupSubmit(event) {
   applyAppDisplayName();
   renderAppSettingsForm();
   renderNotificationSettingsForm();
+  renderNotificationCenter();
   localStorage.setItem(INITIAL_SETUP_KEY, "true");
   closeInitialSetup();
   if (!showOnboardingIfNeeded()) {
@@ -11918,6 +12201,47 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  const notificationCenterOpen = event.target.closest("[data-notification-center-open]");
+  if (notificationCenterOpen) {
+    openNotificationCenter();
+    return;
+  }
+
+  const notificationCenterClose = event.target.closest("[data-notification-center-close]");
+  if (notificationCenterClose) {
+    closeNotificationCenter();
+    return;
+  }
+
+  const notificationCenterBackdrop = event.target.closest("[data-notification-center]");
+  if (notificationCenterBackdrop && event.target === notificationCenterBackdrop) {
+    closeNotificationCenter();
+    return;
+  }
+
+  const requestDeviceNotifications = event.target.closest("[data-request-device-notifications]");
+  if (requestDeviceNotifications) {
+    requestDeviceNotificationPermission();
+    return;
+  }
+
+  const markNotificationsRead = event.target.closest("[data-mark-notifications-read]");
+  if (markNotificationsRead) {
+    markAllAppNotificationsRead();
+    return;
+  }
+
+  const appNotificationButton = event.target.closest("[data-open-app-notification]");
+  if (appNotificationButton) {
+    const item = appNotifications.find((notification) => notification.id === appNotificationButton.dataset.openAppNotification);
+    markAppNotificationRead(appNotificationButton.dataset.openAppNotification);
+    closeNotificationCenter();
+    if (item?.action === "approval") {
+      showParentAuth();
+    }
+    return;
+  }
+
   const navButton = event.target.closest("[data-nav]");
   if (navButton) {
     if (navButton.dataset.nav === "admin" && !isParentUnlocked) {
@@ -12404,6 +12728,10 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !document.querySelector("[data-notification-center]")?.hidden) {
+    closeNotificationCenter();
+    return;
+  }
   const adminSectionToggle = event.target.closest?.("[data-admin-section-toggle]");
   if (!adminSectionToggle || (event.key !== "Enter" && event.key !== " ")) {
     return;
@@ -12521,6 +12849,11 @@ function startApp() {
   }
   const loginBonusResult = applyLoginBonus();
   render();
+  syncPendingApprovalNotifications();
+  if (new URLSearchParams(window.location.search).has("notifications")) {
+    window.setTimeout(openNotificationCenter, 500);
+    window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
+  }
   window.setInterval(tickAppDateTime, 30000);
   showBackupRestoreMessageIfNeeded();
   initializeBgm();

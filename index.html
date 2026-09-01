@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260901-mobile-polish520">
+    <link rel="stylesheet" href="styles.css?v=20260901-notifications521">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -96,6 +96,10 @@
           <h1 data-app-name>そらクエスト</h1>
           <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 4.5</button>
         </div>
+        <button class="notification-center-trigger" type="button" data-notification-center-open aria-haspopup="dialog" aria-expanded="false" aria-label="通知">
+          <span aria-hidden="true">🔔</span>
+          <strong data-notification-unread-count hidden>0</strong>
+        </button>
         <div class="parent-mode-tools" data-parent-mode-only hidden>
           <span>ギルドマスター管理中</span>
           <button class="parent-mode-exit" type="button" data-parent-mode-exit>解除</button>
@@ -707,9 +711,12 @@
           <details class="panel admin-panel app-history-panel">
             <summary>
               <span>更新履歴</span>
-              <small>Version 5.20</small>
+              <small>Version 5.21</small>
             </summary>
             <div class="app-history-content">
+              <p>
+                Version 5.21：通知センターと、承認待ちの端末通知を追加しました。
+              </p>
               <p>
                 Version 5.20：小さい画面での文字折り返しと、押せるボタンの大きさを整えました。
               </p>
@@ -966,6 +973,10 @@
                   <input type="checkbox" name="weeklyEnabled">
                   <span>週間レポート通知ON</span>
                 </label>
+                <label class="setting-check">
+                  <input type="checkbox" name="approvalDeviceEnabled">
+                  <span>承認待ちの端末通知ON</span>
+                </label>
                 <p class="form-message" data-notification-settings-message aria-live="polite"></p>
                 <button type="submit">通知設定を保存</button>
               </form>
@@ -977,6 +988,10 @@
                 <article>
                   <span>週間レポート通知</span>
                   <strong data-weekly-report-url-label>設定済み</strong>
+                </article>
+                <article>
+                  <span>この端末への通知</span>
+                  <strong data-device-notification-admin-status>未許可</strong>
                 </article>
               </div>
               <p>送信先メールはこの端末に保存されます。</p>
@@ -1398,6 +1413,30 @@
         </div>
       </div>
       <div class="level-up-toast" data-level-up-toast aria-live="polite">レベルアップ！</div>
+      <div class="notification-center-modal" data-notification-center hidden>
+        <section class="notification-center-card" role="dialog" aria-modal="true" aria-labelledby="notification-center-title">
+          <header class="notification-center-heading">
+            <div>
+              <p class="section-kicker">Notice</p>
+              <h3 id="notification-center-title">通知</h3>
+            </div>
+            <button type="button" data-notification-center-close aria-label="通知を閉じる">×</button>
+          </header>
+          <div class="device-notification-permission">
+            <div>
+              <strong>端末通知</strong>
+              <span data-device-notification-status>確認中です</span>
+            </div>
+            <button type="button" data-request-device-notifications>端末通知を許可</button>
+          </div>
+          <div class="notification-center-toolbar">
+            <strong>お知らせ</strong>
+            <button type="button" data-mark-notifications-read>すべて既読</button>
+          </div>
+          <div class="notification-center-list" data-notification-list></div>
+          <p class="notification-center-empty" data-notification-empty>新しい通知はありません。</p>
+        </section>
+      </div>
       <div class="version-notes-modal" data-version-notes-modal hidden>
         <div class="version-notes-card" role="dialog" aria-modal="true" aria-labelledby="version-notes-title">
           <p class="section-kicker">Update</p>
@@ -1624,6 +1663,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260901-mobile-polish520" defer></script>
+    <script src="app.js?v=20260901-notifications521" defer></script>
   </body>
 </html>

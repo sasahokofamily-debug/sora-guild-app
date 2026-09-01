@@ -1,9 +1,9 @@
-const CACHE_NAME = "sora-quest-pwa-v128";
+const CACHE_NAME = "sora-quest-pwa-v129";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=20260901-mobile-polish520",
-  "./app.js?v=20260901-mobile-polish520",
+  "./styles.css?v=20260901-notifications521",
+  "./app.js?v=20260901-notifications521",
   "./firebase-config-auth.js?v=20260706-version18-title-break",
   "./manifest.json",
   "./assets/bg-guild.png",
@@ -118,5 +118,19 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(() => cached);
     })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      const appClient = clientList.find((client) => "focus" in client);
+      if (appClient) {
+        appClient.postMessage({ type: "OPEN_NOTIFICATION_CENTER" });
+        return appClient.focus();
+      }
+      return clients.openWindow("./?notifications=1");
+    }),
   );
 });
