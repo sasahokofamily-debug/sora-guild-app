@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260901-notifications521">
+    <link rel="stylesheet" href="styles.css?v=20260902-daily-reminder522">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -711,9 +711,12 @@
           <details class="panel admin-panel app-history-panel">
             <summary>
               <span>更新履歴</span>
-              <small>Version 5.21</small>
+              <small>Version 5.22</small>
             </summary>
             <div class="app-history-content">
+              <p>
+                Version 5.22：未完了のデイリークエストを、設定時刻に通知できるようにしました。
+              </p>
               <p>
                 Version 5.21：通知センターと、承認待ちの端末通知を追加しました。
               </p>
@@ -959,7 +962,7 @@
               </div>
             </div>
             <section class="future-form notification-settings-panel" aria-labelledby="notification-settings-title">
-              <h3 id="notification-settings-title">GAS通知</h3>
+              <h3 id="notification-settings-title">通知の設定</h3>
               <form class="notification-settings-form" data-notification-settings-form aria-label="通知先設定フォーム">
                 <label>
                   通知先メールアドレス
@@ -977,6 +980,14 @@
                   <input type="checkbox" name="approvalDeviceEnabled">
                   <span>承認待ちの端末通知ON</span>
                 </label>
+                <label class="setting-check">
+                  <input type="checkbox" name="dailyReminderEnabled">
+                  <span>未完了クエスト通知ON</span>
+                </label>
+                <label class="notification-time-setting">
+                  通知時刻
+                  <input type="time" name="dailyReminderTime" value="18:00">
+                </label>
                 <p class="form-message" data-notification-settings-message aria-live="polite"></p>
                 <button type="submit">通知設定を保存</button>
               </form>
@@ -992,6 +1003,10 @@
                 <article>
                   <span>この端末への通知</span>
                   <strong data-device-notification-admin-status>未許可</strong>
+                </article>
+                <article>
+                  <span>未完了クエスト</span>
+                  <strong>1日1回</strong>
                 </article>
               </div>
               <p>送信先メールはこの端末に保存されます。</p>
@@ -1663,6 +1678,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260901-notifications521" defer></script>
+    <script src="app.js?v=20260902-daily-reminder522" defer></script>
   </body>
 </html>

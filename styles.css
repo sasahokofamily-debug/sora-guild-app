@@ -9025,6 +9025,23 @@ h3 {
   gap: 10px;
 }
 
+.notification-time-setting {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 9rem;
+  align-items: center;
+  gap: 12px;
+}
+
+.notification-time-setting input {
+  width: 100%;
+  min-height: 44px;
+  text-align: center;
+}
+
+.notification-time-setting input:disabled {
+  opacity: 0.58;
+}
+
 .notification-setting-list article {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

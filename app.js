@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.21";
+const APP_VERSION = "5.22";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -65,11 +65,13 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   rewardEnabled: true,
   weeklyEnabled: true,
   approvalDeviceEnabled: true,
+  dailyReminderEnabled: true,
+  dailyReminderTime: "18:00",
 };
 const VERSION_NOTES = [
-  "未読件数が分かる通知センターを追加しました。",
-  "特別ミッションの報告が承認待ちになると、通知一覧へ自動で追加されます。",
-  "許可した端末では、アプリを開いているときも承認待ちを端末通知で受け取れます。",
+  "未完了のデイリークエストを、設定した時刻に通知できるようにしました。",
+  "通知には残り件数と、次に取り組むクエスト名を表示します。",
+  "同じ日の通知は1件だけにし、すべて完了すると自動で既読になります。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -1954,6 +1956,9 @@ function isValidEmailAddress(value) {
 
 function normalizeNotificationSettings(rawSettings = {}) {
   const notificationEmail = String(rawSettings.notificationEmail || "").trim();
+  const dailyReminderTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(rawSettings.dailyReminderTime || ""))
+    ? String(rawSettings.dailyReminderTime)
+    : DEFAULT_NOTIFICATION_SETTINGS.dailyReminderTime;
   return {
     ...DEFAULT_NOTIFICATION_SETTINGS,
     notificationEmail,
@@ -1963,6 +1968,11 @@ function normalizeNotificationSettings(rawSettings = {}) {
       typeof rawSettings.approvalDeviceEnabled === "boolean"
         ? rawSettings.approvalDeviceEnabled
         : DEFAULT_NOTIFICATION_SETTINGS.approvalDeviceEnabled,
+    dailyReminderEnabled:
+      typeof rawSettings.dailyReminderEnabled === "boolean"
+        ? rawSettings.dailyReminderEnabled
+        : DEFAULT_NOTIFICATION_SETTINGS.dailyReminderEnabled,
+    dailyReminderTime,
   };
 }
 
@@ -2055,7 +2065,13 @@ function getDeviceNotificationStatus() {
 
 async function showDeviceNotification(title, message, options = {}) {
   const settings = normalizeNotificationSettings(notificationSettings);
-  if (!settings.approvalDeviceEnabled || !("Notification" in window) || Notification.permission !== "granted") {
+  const notificationKind = String(options.kind || "approval");
+  const kindEnabled = notificationKind === "daily"
+    ? settings.dailyReminderEnabled
+    : notificationKind === "test"
+      ? settings.approvalDeviceEnabled || settings.dailyReminderEnabled
+      : settings.approvalDeviceEnabled;
+  if (!kindEnabled || !("Notification" in window) || Notification.permission !== "granted") {
     return false;
   }
   try {
@@ -2074,7 +2090,7 @@ async function showDeviceNotification(title, message, options = {}) {
   }
 }
 
-function addAppNotification({ sourceId = "", type = "info", title, message = "", action = "", notifyDevice = false } = {}) {
+function addAppNotification({ sourceId = "", type = "info", title, message = "", action = "", notifyDevice = false, deviceKind = "approval" } = {}) {
   if (!title || (sourceId && appNotifications.some((item) => item.sourceId === sourceId))) {
     return null;
   }
@@ -2095,7 +2111,7 @@ function addAppNotification({ sourceId = "", type = "info", title, message = "",
   saveAppNotifications();
   renderNotificationCenter();
   if (notifyDevice) {
-    showDeviceNotification(title, message, { tag: sourceId || item.id });
+    showDeviceNotification(title, message, { tag: sourceId || item.id, kind: deviceKind });
   }
   return item;
 }
@@ -2207,13 +2223,13 @@ async function requestDeviceNotificationPermission() {
     return;
   }
   if (Notification.permission === "granted") {
-    await showDeviceNotification("そらクエスト", "端末通知は正常に届きます。", { tag: "sora-quest-test" });
+    await showDeviceNotification("そらクエスト", "端末通知は正常に届きます。", { tag: "sora-quest-test", kind: "test" });
     return;
   }
   const permission = await Notification.requestPermission();
   renderNotificationCenter();
   if (permission === "granted") {
-    await showDeviceNotification("通知の準備ができました", "承認待ちをこの端末でお知らせします。", { tag: "sora-quest-ready" });
+    await showDeviceNotification("通知の準備ができました", "未完了の任務や承認待ちをこの端末でお知らせします。", { tag: "sora-quest-ready", kind: "test" });
   } else {
     showToast("通知は端末の設定からいつでも変更できます");
   }
@@ -2569,6 +2585,7 @@ function handleAudioLifecycleChange() {
   if (bgmEnabled) {
     armBgmStartOnInteraction();
   }
+  checkDailyQuestReminder();
 }
 
 function armBgmStartOnInteraction() {
@@ -2884,6 +2901,7 @@ function tickAppDateTime() {
     currentAppDateKey = nextDateKey;
     render();
   }
+  checkDailyQuestReminder();
 }
 
 function getYearDateKey(year, month, day) {
@@ -4353,6 +4371,69 @@ function getDailyRequiredQuestSummary() {
     progressPercent: totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
     isComplete: totalCount > 0 && completedCount === totalCount,
   };
+}
+
+function getIncompleteDailyRequiredQuests() {
+  return getVisibleQuestsByCategory("daily_required").filter((quest) => !isQuestCompleted(quest));
+}
+
+function getTimeValueInMinutes(value) {
+  const match = String(value || "").match(/^(\d{2}):(\d{2})$/);
+  if (!match) {
+    return 0;
+  }
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+function markDailyReminderNotificationRead(dateKey = getDateKey()) {
+  const sourceId = `daily-reminder:${dateKey}`;
+  const readAt = new Date().toISOString();
+  let changed = false;
+  appNotifications = appNotifications.map((item) => {
+    if (!item.readAt && item.sourceId === sourceId) {
+      changed = true;
+      return { ...item, readAt };
+    }
+    return item;
+  });
+  if (changed) {
+    saveAppNotifications();
+    renderNotificationCenter();
+  }
+}
+
+function checkDailyQuestReminder(date = new Date()) {
+  if (!appStarted || isParentMode) {
+    return false;
+  }
+  const settings = normalizeNotificationSettings(notificationSettings);
+  const dateKey = getDateKey(date);
+  const remainingQuests = getIncompleteDailyRequiredQuests();
+  if (!settings.dailyReminderEnabled || remainingQuests.length === 0) {
+    if (remainingQuests.length === 0) {
+      markDailyReminderNotificationRead(dateKey);
+    }
+    return false;
+  }
+
+  const parts = getJapanDateTimeParts(date);
+  const currentMinutes = Number(parts.hour) * 60 + Number(parts.minute);
+  if (currentMinutes < getTimeValueInMinutes(settings.dailyReminderTime)) {
+    return false;
+  }
+
+  const questNames = remainingQuests.slice(0, 2).map((quest) => quest.title);
+  const moreCount = Math.max(0, remainingQuests.length - questNames.length);
+  const message = `${questNames.join("・")}${moreCount > 0 ? ` ほか${moreCount}件` : ""}`;
+  return Boolean(addAppNotification({
+    sourceId: `daily-reminder:${dateKey}`,
+    type: "daily",
+    title: `今日の任務が${remainingQuests.length}件残っています`,
+    message,
+    action: "daily-quests",
+    notifyDevice: true,
+    deviceKind: "daily",
+  }));
 }
 
 function formatBonusRewardText(xp, gold) {
@@ -6778,6 +6859,13 @@ function renderNotificationSettingsForm() {
   if (form.elements.approvalDeviceEnabled) {
     form.elements.approvalDeviceEnabled.checked = settings.approvalDeviceEnabled;
   }
+  if (form.elements.dailyReminderEnabled) {
+    form.elements.dailyReminderEnabled.checked = settings.dailyReminderEnabled;
+  }
+  if (form.elements.dailyReminderTime) {
+    form.elements.dailyReminderTime.value = settings.dailyReminderTime;
+    form.elements.dailyReminderTime.disabled = !settings.dailyReminderEnabled;
+  }
   renderNotificationCenter();
 }
 
@@ -6802,9 +6890,12 @@ function handleNotificationSettingsSubmit(event) {
     rewardEnabled: formData.get("rewardEnabled") === "on",
     weeklyEnabled: formData.get("weeklyEnabled") === "on",
     approvalDeviceEnabled: formData.get("approvalDeviceEnabled") === "on",
+    dailyReminderEnabled: formData.get("dailyReminderEnabled") === "on",
+    dailyReminderTime: form.elements.dailyReminderTime?.value,
   });
   saveNotificationSettings();
   renderNotificationSettingsForm();
+  checkDailyQuestReminder();
   setNotificationSettingsMessage("通知設定を保存しました");
 }
 
@@ -12238,6 +12329,10 @@ document.addEventListener("click", (event) => {
     closeNotificationCenter();
     if (item?.action === "approval") {
       showParentAuth();
+    } else if (item?.action === "daily-quests") {
+      activeQuestCategory = "daily_required";
+      switchScreen("quests");
+      renderQuests();
     }
     return;
   }
@@ -12747,6 +12842,13 @@ document.addEventListener("input", (event) => {
 });
 
 document.addEventListener("change", (event) => {
+  if (event.target.matches('[data-notification-settings-form] [name="dailyReminderEnabled"]')) {
+    const form = event.target.closest("[data-notification-settings-form]");
+    if (form?.elements.dailyReminderTime) {
+      form.elements.dailyReminderTime.disabled = !event.target.checked;
+    }
+    return;
+  }
   if (event.target.matches('[name="frequency"]')) {
     updateWeekdayPicker(event.target.closest("form"));
     return;
@@ -12860,6 +12962,7 @@ function startApp() {
   const isSetupVisible = showInitialSetupIfNeeded();
   const isOnboardingVisible = !isSetupVisible && showOnboardingIfNeeded();
   if (!isSetupVisible && !isOnboardingVisible) {
+    checkDailyQuestReminder();
     window.setTimeout(showAppReminderToast, loginBonusResult.granted ? 2100 : 450);
     window.setTimeout(showVersionNotesIfNeeded, loginBonusResult.granted ? 2600 : 750);
     pendingSpecialMissionSettlements.forEach((settlement, index) => {
