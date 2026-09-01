@@ -1,9 +1,43 @@
-const CACHE_NAME = "sora-quest-pwa-v130";
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const notificationData = event.notification.data || {};
+  const fcmData = notificationData.FCM_MSG?.data || {};
+  const action = notificationData.action || fcmData.action || "notifications";
+  const openDailyQuests = action === "daily-quests";
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      const appClient = clientList.find((client) => "focus" in client);
+      if (appClient) {
+        appClient.postMessage({ type: openDailyQuests ? "OPEN_DAILY_QUESTS" : "OPEN_NOTIFICATION_CENTER" });
+        return appClient.focus();
+      }
+      return clients.openWindow(openDailyQuests ? "./?daily-quests=1" : "./?notifications=1");
+    }),
+  );
+});
+
+try {
+  importScripts("https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js");
+  importScripts("https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js");
+  firebase.initializeApp({
+    apiKey: "AIzaSyCDw0NL1O1DPLXiVeSPuYlp37TpJaURcuM",
+    authDomain: "sora-quest.firebaseapp.com",
+    projectId: "sora-quest",
+    storageBucket: "sora-quest.firebasestorage.app",
+    messagingSenderId: "170485996766",
+    appId: "1:170485996766:web:b6f6021786e0c27072764f",
+  });
+  firebase.messaging();
+} catch (error) {
+  console.warn("バックグラウンド通知を初期化できませんでした", error);
+}
+
+const CACHE_NAME = "sora-quest-pwa-v131";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=20260902-daily-reminder522",
-  "./app.js?v=20260902-daily-reminder522",
+  "./styles.css?v=20260902-background-push523",
+  "./app.js?v=20260902-background-push523",
   "./firebase-config-auth.js?v=20260706-version18-title-break",
   "./manifest.json",
   "./assets/bg-guild.png",
@@ -118,19 +152,5 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(() => cached);
     })
-  );
-});
-
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-  event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      const appClient = clientList.find((client) => "focus" in client);
-      if (appClient) {
-        appClient.postMessage({ type: "OPEN_NOTIFICATION_CENTER" });
-        return appClient.focus();
-      }
-      return clients.openWindow("./?notifications=1");
-    }),
   );
 });

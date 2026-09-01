@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.22";
+const APP_VERSION = "5.23";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -69,9 +69,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   dailyReminderTime: "18:00",
 };
 const VERSION_NOTES = [
-  "未完了のデイリークエストを、設定した時刻に通知できるようにしました。",
-  "通知には残り件数と、次に取り組むクエスト名を表示します。",
-  "同じ日の通知は1件だけにし、すべて完了すると自動で既読になります。",
+  "アプリを閉じていても、未完了のデイリークエストを通知できる配信基盤を追加しました。",
+  "通知を許可した端末はFirebaseへ安全に登録され、端末ごとに配信されます。",
+  "同じ日の通知は一度だけにし、利用できなくなった端末情報は自動で整理します。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -741,6 +741,10 @@ let firebaseApp = null;
 let firebaseAuth = null;
 let firebaseDb = null;
 let firebaseModules = null;
+let firebaseMessaging = null;
+let firebaseMessagingRegistrationState = "idle";
+let firebaseVapidKey = "";
+let firebaseForegroundMessageUnsubscribe = null;
 let currentFirebaseUser = null;
 let appStarted = false;
 let isRestoringCloudData = false;
@@ -948,6 +952,34 @@ function getUserDataRef(user) {
   return firebaseModules.doc(firebaseDb, "users", user.uid, FIREBASE_APP_DATA_COLLECTION, FIREBASE_APP_DATA_DOC);
 }
 
+function buildCloudDailyReminderState() {
+  const settings = normalizeNotificationSettings(notificationSettings);
+  const quests = getAllQuests()
+    .filter((quest) => quest.category === "daily_required")
+    .map((quest) => ({
+      id: String(quest.id || ""),
+      title: String(quest.title || ""),
+      frequency: String(quest.frequency || "daily"),
+      scheduleDays: normalizeQuestScheduleDays(quest.scheduleDays),
+      availableFrom: normalizeDateKeyInput(quest.availableFrom),
+      availableUntil: normalizeDateKeyInput(quest.availableUntil),
+    }))
+    .filter((quest) => quest.id && quest.title);
+  const questIds = quests.map((quest) => quest.id);
+  const completedQuestIds = progress.completedQuestIds.filter((completionId) =>
+    questIds.some((questId) => completionId === questId || completionId.startsWith(`${questId}:`)),
+  );
+
+  return {
+    enabled: settings.dailyReminderEnabled,
+    time: settings.dailyReminderTime,
+    timeZone: "Asia/Tokyo",
+    quests,
+    completedQuestIds,
+    preparedAt: new Date().toISOString(),
+  };
+}
+
 async function saveCloudDataNow() {
   if (!currentFirebaseUser || !firebaseDb || !firebaseModules || isRestoringCloudData) {
     return false;
@@ -970,6 +1002,7 @@ async function saveCloudDataNow() {
         email: currentFirebaseUser.email || "",
         displayName: currentFirebaseUser.displayName || "",
         storage,
+        pushReminder: buildCloudDailyReminderState(),
         updatedAt: firebaseModules.serverTimestamp(),
       },
       { merge: true },
@@ -1179,10 +1212,11 @@ async function initializeFirebaseAuthGate() {
   setLoginMessage("ログイン状態を確認しています...");
 
   try {
-    const [appModule, authModule, firestoreModule] = await Promise.all([
+    const [appModule, authModule, firestoreModule, messagingModule] = await Promise.all([
       import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-app.js`),
       import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-auth.js`),
       import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-firestore.js`),
+      import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-messaging.js`),
     ]);
 
     firebaseApp = appModule.initializeApp(window.SORA_FIREBASE_CONFIG);
@@ -1198,7 +1232,12 @@ async function initializeFirebaseAuthGate() {
       doc: firestoreModule.doc,
       getDoc: firestoreModule.getDoc,
       setDoc: firestoreModule.setDoc,
+      arrayUnion: firestoreModule.arrayUnion,
       serverTimestamp: firestoreModule.serverTimestamp,
+      getMessaging: messagingModule.getMessaging,
+      getToken: messagingModule.getToken,
+      isMessagingSupported: messagingModule.isSupported,
+      onMessage: messagingModule.onMessage,
     };
 
     await firebaseModules.setPersistence(firebaseAuth, firebaseModules.browserLocalPersistence);
@@ -1229,6 +1268,9 @@ async function initializeFirebaseAuthGate() {
         setAuthUiState({ loading: false, loginRequired: false });
         setLoginMessage("");
         startApp();
+        initializeFirebaseMessagingForUser().catch((error) => {
+          console.warn("バックグラウンド通知を準備できませんでした", error);
+        });
       } catch (error) {
         console.error("Firestoreからの読み込みに失敗しました", error);
         updateCloudSyncUi("error");
@@ -2047,6 +2089,97 @@ function isStandaloneApp() {
   return window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
 
+async function loadFirebaseVapidKey() {
+  if (firebaseVapidKey) {
+    return firebaseVapidKey;
+  }
+  const configuredKey = String(window.SORA_FIREBASE_VAPID_KEY || "").trim();
+  if (configuredKey) {
+    firebaseVapidKey = configuredKey;
+    return firebaseVapidKey;
+  }
+  try {
+    const response = await fetch("/api/push-config", { cache: "no-store" });
+    if (!response.ok) {
+      return "";
+    }
+    const data = await response.json();
+    firebaseVapidKey = String(data.vapidKey || "").trim();
+    return firebaseVapidKey;
+  } catch {
+    return "";
+  }
+}
+
+function handleForegroundPushMessage(payload = {}) {
+  const notification = payload.notification || {};
+  const data = payload.data || {};
+  addAppNotification({
+    sourceId: String(data.sourceId || payload.messageId || `push:${Date.now()}`),
+    type: String(data.type || "daily"),
+    title: String(notification.title || data.title || "そらクエストからのお知らせ"),
+    message: String(notification.body || data.body || ""),
+    action: String(data.action || "daily-quests"),
+  });
+}
+
+async function initializeFirebaseMessagingForUser() {
+  if (!currentFirebaseUser || !firebaseApp || !firebaseModules || !("Notification" in window)) {
+    return false;
+  }
+  if (Notification.permission !== "granted") {
+    firebaseMessagingRegistrationState = "permission";
+    renderNotificationCenter();
+    return false;
+  }
+
+  const supported = await firebaseModules.isMessagingSupported();
+  if (!supported) {
+    firebaseMessagingRegistrationState = "unsupported";
+    renderNotificationCenter();
+    return false;
+  }
+  const vapidKey = await loadFirebaseVapidKey();
+  if (!vapidKey) {
+    firebaseMessagingRegistrationState = "config";
+    renderNotificationCenter();
+    return false;
+  }
+
+  try {
+    firebaseMessagingRegistrationState = "registering";
+    renderNotificationCenter();
+    const serviceWorkerRegistration = await navigator.serviceWorker.ready;
+    firebaseMessaging ||= firebaseModules.getMessaging(firebaseApp);
+    const token = await firebaseModules.getToken(firebaseMessaging, {
+      vapidKey,
+      serviceWorkerRegistration,
+    });
+    if (!token) {
+      firebaseMessagingRegistrationState = "error";
+      renderNotificationCenter();
+      return false;
+    }
+    const ref = getUserDataRef(currentFirebaseUser);
+    await firebaseModules.setDoc(ref, {
+      uid: currentFirebaseUser.uid,
+      pushTokens: firebaseModules.arrayUnion(token),
+      pushTokenUpdatedAt: firebaseModules.serverTimestamp(),
+      pushReminder: buildCloudDailyReminderState(),
+    }, { merge: true });
+    if (!firebaseForegroundMessageUnsubscribe) {
+      firebaseForegroundMessageUnsubscribe = firebaseModules.onMessage(firebaseMessaging, handleForegroundPushMessage);
+    }
+    firebaseMessagingRegistrationState = "ready";
+    renderNotificationCenter();
+    return true;
+  } catch (error) {
+    firebaseMessagingRegistrationState = "error";
+    renderNotificationCenter();
+    throw error;
+  }
+}
+
 function getDeviceNotificationStatus() {
   if (isIosDevice() && !isStandaloneApp()) {
     return { key: "install", label: "ホーム画面への追加が必要です" };
@@ -2055,6 +2188,18 @@ function getDeviceNotificationStatus() {
     return { key: "unsupported", label: "この端末では利用できません" };
   }
   if (Notification.permission === "granted") {
+    if (firebaseMessagingRegistrationState === "ready") {
+      return { key: "granted", label: "バックグラウンド通知 ON" };
+    }
+    if (firebaseMessagingRegistrationState === "config") {
+      return { key: "granted", label: "端末通知 ON（配信設定待ち）" };
+    }
+    if (firebaseMessagingRegistrationState === "error") {
+      return { key: "granted", label: "端末通知 ON（再設定が必要）" };
+    }
+    if (firebaseMessagingRegistrationState === "registering") {
+      return { key: "granted", label: "バックグラウンド通知を準備中" };
+    }
     return { key: "granted", label: "端末通知 ON" };
   }
   if (Notification.permission === "denied") {
@@ -2223,12 +2368,18 @@ async function requestDeviceNotificationPermission() {
     return;
   }
   if (Notification.permission === "granted") {
+    await initializeFirebaseMessagingForUser().catch((error) => {
+      console.warn("バックグラウンド通知を登録できませんでした", error);
+    });
     await showDeviceNotification("そらクエスト", "端末通知は正常に届きます。", { tag: "sora-quest-test", kind: "test" });
     return;
   }
   const permission = await Notification.requestPermission();
   renderNotificationCenter();
   if (permission === "granted") {
+    await initializeFirebaseMessagingForUser().catch((error) => {
+      console.warn("バックグラウンド通知を登録できませんでした", error);
+    });
     await showDeviceNotification("通知の準備ができました", "未完了の任務や承認待ちをこの端末でお知らせします。", { tag: "sora-quest-ready", kind: "test" });
   } else {
     showToast("通知は端末の設定からいつでも変更できます");
@@ -2716,6 +2867,11 @@ function registerServiceWorker() {
   navigator.serviceWorker.addEventListener("message", (event) => {
     if (event.data?.type === "OPEN_NOTIFICATION_CENTER") {
       openNotificationCenter();
+    }
+    if (event.data?.type === "OPEN_DAILY_QUESTS") {
+      activeQuestCategory = "daily_required";
+      switchScreen("quests");
+      renderQuests();
     }
   });
 }
@@ -12952,8 +13108,17 @@ function startApp() {
   const loginBonusResult = applyLoginBonus();
   render();
   syncPendingApprovalNotifications();
-  if (new URLSearchParams(window.location.search).has("notifications")) {
+  const startupParams = new URLSearchParams(window.location.search);
+  if (startupParams.has("notifications")) {
     window.setTimeout(openNotificationCenter, 500);
+    window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
+  }
+  if (startupParams.has("daily-quests")) {
+    window.setTimeout(() => {
+      activeQuestCategory = "daily_required";
+      switchScreen("quests");
+      renderQuests();
+    }, 500);
     window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
   }
   window.setInterval(tickAppDateTime, 30000);

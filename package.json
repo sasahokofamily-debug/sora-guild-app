@@ -1,0 +1,13 @@
+{
+  "name": "sora-guild-app",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "firebase-admin": "14.3.0"
+  }
+}
