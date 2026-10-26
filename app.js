@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.23";
+const APP_VERSION = "5.24";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -69,9 +69,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   dailyReminderTime: "18:00",
 };
 const VERSION_NOTES = [
-  "アプリを閉じていても、未完了のデイリークエストを通知できる配信基盤を追加しました。",
-  "通知を許可した端末はFirebaseへ安全に登録され、端末ごとに配信されます。",
-  "同じ日の通知は一度だけにし、利用できなくなった端末情報は自動で整理します。",
+  "通知の準備状況と、必要な操作が分かるようになりました。",
+  "テスト通知の送信結果を表示し、登録に失敗したときは再試行できます。",
+  "通知設定がOFFでも、テスト通知でこの端末の表示を確認できます。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -743,6 +743,7 @@ let firebaseDb = null;
 let firebaseModules = null;
 let firebaseMessaging = null;
 let firebaseMessagingRegistrationState = "idle";
+let deviceNotificationRequestPending = false;
 let firebaseVapidKey = "";
 let firebaseForegroundMessageUnsubscribe = null;
 let currentFirebaseUser = null;
@@ -2125,6 +2126,8 @@ function handleForegroundPushMessage(payload = {}) {
 
 async function initializeFirebaseMessagingForUser() {
   if (!currentFirebaseUser || !firebaseApp || !firebaseModules || !("Notification" in window)) {
+    firebaseMessagingRegistrationState = "login";
+    renderNotificationCenter();
     return false;
   }
   if (Notification.permission !== "granted") {
@@ -2133,20 +2136,20 @@ async function initializeFirebaseMessagingForUser() {
     return false;
   }
 
-  const supported = await firebaseModules.isMessagingSupported();
-  if (!supported) {
-    firebaseMessagingRegistrationState = "unsupported";
-    renderNotificationCenter();
-    return false;
-  }
-  const vapidKey = await loadFirebaseVapidKey();
-  if (!vapidKey) {
-    firebaseMessagingRegistrationState = "config";
-    renderNotificationCenter();
-    return false;
-  }
-
   try {
+    const supported = await firebaseModules.isMessagingSupported();
+    if (!supported) {
+      firebaseMessagingRegistrationState = "unsupported";
+      renderNotificationCenter();
+      return false;
+    }
+    const vapidKey = await loadFirebaseVapidKey();
+    if (!vapidKey) {
+      firebaseMessagingRegistrationState = "config";
+      renderNotificationCenter();
+      return false;
+    }
+
     firebaseMessagingRegistrationState = "registering";
     renderNotificationCenter();
     const serviceWorkerRegistration = await navigator.serviceWorker.ready;
@@ -2188,6 +2191,9 @@ function getDeviceNotificationStatus() {
     return { key: "unsupported", label: "この端末では利用できません" };
   }
   if (Notification.permission === "granted") {
+    if (!currentFirebaseUser || firebaseMessagingRegistrationState === "login") {
+      return { key: "granted", label: "バックグラウンド通知にはログインが必要です" };
+    }
     if (firebaseMessagingRegistrationState === "ready") {
       return { key: "granted", label: "バックグラウンド通知 ON" };
     }
@@ -2200,6 +2206,9 @@ function getDeviceNotificationStatus() {
     if (firebaseMessagingRegistrationState === "registering") {
       return { key: "granted", label: "バックグラウンド通知を準備中" };
     }
+    if (firebaseMessagingRegistrationState === "unsupported") {
+      return { key: "unsupported", label: "この端末ではバックグラウンド通知を利用できません" };
+    }
     return { key: "granted", label: "端末通知 ON" };
   }
   if (Notification.permission === "denied") {
@@ -2208,13 +2217,24 @@ function getDeviceNotificationStatus() {
   return { key: "default", label: "端末通知は未許可です" };
 }
 
+function getDeviceNotificationHint(status) {
+  if (status.key === "install") return "Safariの共有メニューからホーム画面に追加し、追加したアイコンから開いてください。";
+  if (status.key === "denied") return "端末またはブラウザの設定で、そらクエストの通知を許可してください。";
+  if (status.key === "unsupported") return "通知に対応した端末・ブラウザから開いてください。";
+  if (status.key !== "granted") return "この端末でお知らせを受け取るには、通知を許可してください。";
+  if (!currentFirebaseUser) return "ログイン後、もう一度テスト通知を押してください。";
+  if (firebaseMessagingRegistrationState === "config") return "配信の準備が整うまでお待ちください。端末での通知表示はテストできます。";
+  if (firebaseMessagingRegistrationState === "error") return "通信状態を確認し、もう一度テスト通知を押してください。";
+  return "未完了クエストの通知は通知設定でONにできます。アプリを閉じているときは毎日18時台に届きます。";
+}
+
 async function showDeviceNotification(title, message, options = {}) {
   const settings = normalizeNotificationSettings(notificationSettings);
   const notificationKind = String(options.kind || "approval");
   const kindEnabled = notificationKind === "daily"
     ? settings.dailyReminderEnabled
     : notificationKind === "test"
-      ? settings.approvalDeviceEnabled || settings.dailyReminderEnabled
+      ? true
       : settings.approvalDeviceEnabled;
   if (!kindEnabled || !("Notification" in window) || Notification.permission !== "granted") {
     return false;
@@ -2331,9 +2351,10 @@ function renderNotificationCenter() {
   }
   if (permissionButton) {
     permissionButton.hidden = deviceStatus.key === "unsupported";
-    permissionButton.disabled = deviceStatus.key === "denied" || deviceStatus.key === "install";
-    permissionButton.textContent = deviceStatus.key === "granted" ? "テスト通知" : deviceStatus.key === "install" ? "ホーム画面に追加してください" : "端末通知を許可";
+    permissionButton.disabled = deviceNotificationRequestPending || deviceStatus.key === "denied" || deviceStatus.key === "install";
+    permissionButton.textContent = deviceNotificationRequestPending ? "確認中…" : deviceStatus.key === "granted" ? "テスト通知" : deviceStatus.key === "install" ? "ホーム画面に追加してください" : "端末通知を許可";
   }
+  setText("[data-device-notification-hint]", getDeviceNotificationHint(deviceStatus));
   setText("[data-device-notification-admin-status]", deviceStatus.label);
 }
 
@@ -2358,6 +2379,7 @@ function closeNotificationCenter() {
 }
 
 async function requestDeviceNotificationPermission() {
+  if (deviceNotificationRequestPending) return;
   const status = getDeviceNotificationStatus();
   if (status.key === "install") {
     showToast("共有メニューからホーム画面に追加してください");
@@ -2367,22 +2389,31 @@ async function requestDeviceNotificationPermission() {
     showToast("この端末では通知を利用できません");
     return;
   }
-  if (Notification.permission === "granted") {
-    await initializeFirebaseMessagingForUser().catch((error) => {
-      console.warn("バックグラウンド通知を登録できませんでした", error);
-    });
-    await showDeviceNotification("そらクエスト", "端末通知は正常に届きます。", { tag: "sora-quest-test", kind: "test" });
-    return;
-  }
-  const permission = await Notification.requestPermission();
+  deviceNotificationRequestPending = true;
   renderNotificationCenter();
-  if (permission === "granted") {
-    await initializeFirebaseMessagingForUser().catch((error) => {
+  try {
+    const permission = Notification.permission === "granted"
+      ? "granted" : await Notification.requestPermission();
+    if (permission !== "granted") {
+      showToast("通知は端末の設定からいつでも変更できます");
+      return;
+    }
+    const registered = await initializeFirebaseMessagingForUser().catch((error) => {
       console.warn("バックグラウンド通知を登録できませんでした", error);
+      return false;
     });
-    await showDeviceNotification("通知の準備ができました", "未完了の任務や承認待ちをこの端末でお知らせします。", { tag: "sora-quest-ready", kind: "test" });
-  } else {
-    showToast("通知は端末の設定からいつでも変更できます");
+    const displayed = await showDeviceNotification("そらクエストのテスト通知", "この端末での通知表示を確認してください。", { tag: "sora-quest-test", kind: "test" });
+    showToast(!displayed
+      ? "通知を表示できませんでした。端末の通知設定を確認してください"
+      : registered
+        ? "テスト通知を表示しました。バックグラウンド通知の登録も完了しました"
+        : "テスト通知を表示しました。バックグラウンド通知の準備状況を確認してください");
+  } catch (error) {
+    console.warn("通知を確認できませんでした", error);
+    showToast("通知を確認できませんでした。もう一度お試しください");
+  } finally {
+    deviceNotificationRequestPending = false;
+    renderNotificationCenter();
   }
 }
 

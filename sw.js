@@ -32,7 +32,7 @@ try {
   console.warn("バックグラウンド通知を初期化できませんでした", error);
 }
 
-const CACHE_NAME = "sora-quest-pwa-v131";
+const CACHE_NAME = "sora-quest-pwa-v132";
 const APP_SHELL = [
   "./",
   "./index.html",
