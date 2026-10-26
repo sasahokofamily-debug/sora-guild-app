@@ -32,12 +32,13 @@ try {
   console.warn("バックグラウンド通知を初期化できませんでした", error);
 }
 
-const CACHE_NAME = "sora-quest-pwa-v132";
+const CACHE_NAME = "sora-quest-pwa-v133";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css?v=20260902-background-push523",
-  "./app.js?v=20260902-background-push523",
+  "./app-ui.css?v=5.25",
+  "./app.js?v=5.25",
   "./firebase-config-auth.js?v=20260706-version18-title-break",
   "./manifest.json",
   "./assets/bg-guild.png",

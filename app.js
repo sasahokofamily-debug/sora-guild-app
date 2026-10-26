@@ -1,5 +1,5 @@
 const STORAGE_KEY = "sora_guild_app_dev";
-const APP_VERSION = "5.24";
+const APP_VERSION = "5.25";
 const APP_VERSION_LABEL = `Version ${APP_VERSION}`;
 const VERSION_NOTES_SEEN_KEY = "sora_guild_app_version_notes_seen_dev";
 const QUESTS_KEY = "sora_guild_app_quests_dev";
@@ -69,9 +69,9 @@ const DEFAULT_NOTIFICATION_SETTINGS = {
   dailyReminderTime: "18:00",
 };
 const VERSION_NOTES = [
-  "通知の準備状況と、必要な操作が分かるようになりました。",
-  "テスト通知の送信結果を表示し、登録に失敗したときは再試行できます。",
-  "通知設定がOFFでも、テスト通知でこの端末の表示を確認できます。",
+  "ホーム上部から今日のクエストへ、すぐに進めるようになりました。",
+  "冒険者の詳しい情報を開閉できるようにし、画面をすっきり整えました。",
+  "タブごとに見ていた位置を保ち、同じタブをもう一度押すと先頭へ戻ります。",
 ];
 const WORLD_AREAS = [
   "はじまりの村",
@@ -7111,8 +7111,14 @@ function devLevelUp() {
   }
 }
 
+const screenScrollPositions = new Map();
+
 function switchScreen(screenId) {
+  if (!document.querySelector(`[data-screen="${screenId}"]`)) return;
   const currentScreen = document.querySelector(".screen.is-active")?.dataset.screen || "";
+  if (currentScreen && currentScreen !== screenId) {
+    screenScrollPositions.set(currentScreen, window.scrollY);
+  }
   document.querySelectorAll("[data-screen]").forEach((screen) => {
     screen.classList.toggle("is-active", screen.dataset.screen === screenId);
   });
@@ -7120,7 +7126,14 @@ function switchScreen(screenId) {
   const activeNavId = screenId === "admin-auth" ? "admin" : screenId;
   document.querySelectorAll("[data-nav]").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.nav === activeNavId);
+    if (button.dataset.nav === activeNavId) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
   });
+  const screenTitles = { home: "ホーム", quests: "クエスト", growth: "成長記録", rewards: "ご褒美", admin: "ギルド", "admin-auth": "保護者ログイン" };
+  setText("[data-current-screen-title]", screenTitles[screenId] || "そらクエスト");
+  if (currentScreen !== screenId) {
+    window.scrollTo({ top: screenScrollPositions.get(screenId) || 0, behavior: "instant" });
+  }
 
   if (screenId === "home" && pendingXpAnimationStart !== null) {
     animateXpBarFrom(pendingXpAnimationStart);
@@ -10626,6 +10639,7 @@ function renderHomeDailyMission() {
   const bar = document.querySelector("[data-home-daily-bar]");
   const message = document.querySelector("[data-home-daily-message]");
   const action = document.querySelector("[data-home-daily-mission] [data-open-guild]");
+  const questAction = document.querySelector("[data-open-today-quests]");
 
   if (count) {
     count.textContent = `${completedCount} / ${totalCount}`;
@@ -10644,6 +10658,10 @@ function renderHomeDailyMission() {
   }
   if (action) {
     action.hidden = totalCount !== 0;
+  }
+  if (questAction) {
+    questAction.hidden = totalCount === 0;
+    questAction.textContent = isComplete ? "今日の達成を見る" : "今日のクエストへ";
   }
 
   card.classList.toggle("is-complete", isComplete);
@@ -12524,8 +12542,22 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  const todayQuestsButton = event.target.closest("[data-open-today-quests]");
+  if (todayQuestsButton) {
+    activeQuestCategory = "daily_required";
+    switchScreen("quests");
+    renderQuests();
+    window.scrollTo({ top: 0, behavior: "instant" });
+    return;
+  }
+
   const navButton = event.target.closest("[data-nav]");
   if (navButton) {
+    const selectedScreen = document.querySelector(".screen.is-active")?.dataset.screen;
+    if (selectedScreen === navButton.dataset.nav) {
+      window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+      return;
+    }
     if (navButton.dataset.nav === "admin" && !isParentUnlocked) {
       showParentAuth();
       return;

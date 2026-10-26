@@ -18,6 +18,7 @@
     <link rel="icon" type="image/png" sizes="512x512" href="./assets/icons/pwa-icon-512.png">
     <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/pwa-icon-192.png">
     <link rel="stylesheet" href="styles.css?v=20260902-background-push523">
+    <link rel="stylesheet" href="app-ui.css?v=5.25">
     <style>
       body.is-auth-loading .app-shell,
       body.is-login-required .app-shell {
@@ -92,9 +93,9 @@
     <div class="app-shell">
       <header class="app-header">
         <div class="app-brand-block">
-          <p class="eyebrow">Fantasy Guild Log</p>
+          <p class="eyebrow app-screen-label" data-current-screen-title>ホーム</p>
           <h1 data-app-name>そらクエスト</h1>
-          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 4.5</button>
+          <button class="app-version" type="button" data-app-version data-version-notes-open aria-haspopup="dialog">Version 5.25</button>
         </div>
         <button class="notification-center-trigger" type="button" data-notification-center-open aria-haspopup="dialog" aria-expanded="false" aria-label="通知">
           <span aria-hidden="true">🔔</span>
@@ -137,15 +138,32 @@
               <p class="section-kicker">称号</p>
               <h2 id="home-title" data-title-name>一歩目の見習い</h2>
               <p class="adventurer-name-line">冒険者：<strong data-child-name>そら</strong></p>
+              <p class="daily-word" data-title-desc>はじめての挑戦をした</p>
+              <details class="adventurer-details">
+                <summary>冒険者の情報</summary>
               <p class="equipped-title-line">現在の称号：<strong data-equipped-title-name>称号未設定</strong></p>
               <p class="sub-title-line">サブ称号：<strong data-sub-title-name>バランスの冒険者</strong></p>
               <p class="character-type-line">現在タイプ：<strong data-character-type>勇者タイプ</strong></p>
               <p class="character-type-desc" data-character-type-desc>行動力で道を切りひらく冒険者。</p>
               <p class="character-evolution-line">進化段階：<strong data-character-stage>stage1 見習い</strong></p>
               <p class="character-evolution-line">次の進化：<strong data-character-next-stage>あと14Lv</strong></p>
-              <p class="daily-word" data-title-desc>はじめての挑戦をした</p>
+              </details>
             </div>
           </div>
+
+          <section class="daily-mission-card" data-home-daily-mission aria-labelledby="home-daily-mission-title">
+            <div class="daily-mission-head">
+              <div>
+                <p class="section-kicker">Daily Quest</p>
+                <h3 id="home-daily-mission-title">今日の任務</h3>
+              </div>
+              <strong data-home-daily-count>0 / 0</strong>
+            </div>
+            <div class="daily-mission-track" aria-hidden="true"><span data-home-daily-bar></span></div>
+            <p data-home-daily-message>今日やる分を確認しましょう。</p>
+            <button class="daily-mission-action" type="button" data-open-today-quests>今日のクエストへ</button>
+            <button class="daily-mission-action" type="button" data-open-guild hidden>ギルドへ行く</button>
+          </section>
 
           <div class="xp-panel" data-level-panel>
             <div class="xp-label-row">
@@ -333,21 +351,6 @@
                 </div>
               </article>
             </div>
-          </section>
-
-          <section class="daily-mission-card" data-home-daily-mission aria-labelledby="home-daily-mission-title">
-            <div class="daily-mission-head">
-              <div>
-                <p class="section-kicker">Mission</p>
-                <h3 id="home-daily-mission-title">今日の任務</h3>
-              </div>
-              <strong data-home-daily-count>0 / 0</strong>
-            </div>
-            <div class="daily-mission-track" aria-hidden="true">
-              <span data-home-daily-bar></span>
-            </div>
-            <p data-home-daily-message>今日やる分を確認しましょう。</p>
-            <button class="daily-mission-action" type="button" data-open-guild hidden>ギルドへ行く</button>
           </section>
 
           <div class="app-reminder-card" data-home-reminder>
@@ -711,9 +714,10 @@
           <details class="panel admin-panel app-history-panel">
             <summary>
               <span>更新履歴</span>
-              <small>Version 5.24</small>
+              <small>Version 5.25</small>
             </summary>
             <div class="app-history-content">
+              <p>Version 5.25：今日のクエストへの導線と、画面ごとのスクロール位置、冒険者情報の開閉を整えました。</p>
               <p>
                 Version 5.24：通知の準備状況とテスト結果を分かりやすく表示します。
               </p>
@@ -1600,7 +1604,7 @@
       </div>
 
       <nav class="bottom-nav" aria-label="主要画面">
-        <button class="nav-item is-active" type="button" data-nav="home" aria-controls="home">
+        <button class="nav-item is-active" type="button" data-nav="home" aria-controls="home" aria-current="page">
           <span class="nav-icon">
             <img class="nav-icon-image icon-home" src="assets/icons/nav-home.png" alt="" data-nav-icon-image>
             <span class="nav-icon-fallback">家</span>
@@ -1683,6 +1687,6 @@
       })();
     </script>
     <script src="firebase-config-auth.js?v=20260706-version18-title-break"></script>
-    <script src="app.js?v=20260902-background-push523" defer></script>
+    <script src="app.js?v=5.25" defer></script>
   </body>
 </html>

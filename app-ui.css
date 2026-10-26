@@ -1,0 +1,174 @@
+/* Application shell and the daily home workflow. */
+@supports (overflow: clip) {
+  html, body { overflow-x: clip; }
+}
+
+.app-shell {
+  padding-top: 0;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  min-height: 68px;
+  margin: 0 -14px 12px;
+  padding: calc(8px + env(safe-area-inset-top)) 68px 8px 16px;
+  border-bottom: 1px solid rgba(241, 210, 122, 0.22);
+  background: rgba(31, 28, 28, 0.96);
+  backdrop-filter: blur(18px);
+}
+
+.app-brand-block {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 10px;
+}
+
+.app-header .app-screen-label {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0;
+  color: #dccb9d;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.3;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.app-header .app-version {
+  margin: 0;
+  min-height: 32px;
+  padding: 4px 0 4px 8px;
+  border: 0;
+  border-radius: 0;
+  color: #dccb9d;
+  background: none;
+  box-shadow: none;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.app-header .notification-center-trigger {
+  top: calc(12px + env(safe-area-inset-top));
+  right: 14px;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.app-header .player-status-bar {
+  display: none;
+}
+
+.app-time-card {
+  margin-bottom: 12px;
+  border: 0;
+  padding: 0 2px;
+  color: var(--cream);
+  background: none;
+  box-shadow: none;
+}
+
+.app-time-card::before { display: none; }
+.app-time-values { font-size: 12px; }
+.app-time-values strong, .app-time-values span { font-size: 12px; }
+
+#home > .hero-panel {
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: start;
+  padding: 14px;
+  gap: 14px;
+  border-radius: 8px;
+}
+
+#home .character-frame { width: 88px; }
+#home .character-orb { width: 64px; }
+#home .adventurer-copy { min-width: 0; padding: 0; background: none; box-shadow: none; }
+#home .adventurer-copy h2 { font-size: 19px; line-height: 1.4; margin: 0; letter-spacing: 0; }
+#home .adventurer-copy > .section-kicker { margin: 0 0 3px; font-size: 10px; }
+#home .adventurer-name-line { font-size: 12px; margin: 4px 0; }
+#home .adventurer-copy > .daily-word { font-size: 12px; line-height: 1.5; margin: 6px 0; }
+
+#home > .xp-panel { margin-top: 0; padding: 12px 14px; border-radius: 8px; }
+#home .xp-label-row { display: flex; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 8px; font-size: 11px; }
+#home .xp-label-row strong { font-size: 11px; }
+#home .xp-track { height: 10px; }
+
+.adventurer-details { margin-top: 6px; border-top: 1px solid rgba(101, 77, 34, 0.2); }
+.adventurer-details summary {
+  min-height: 44px;
+  padding: 12px 0;
+  color: #59452a;
+  font-size: 12px;
+  line-height: 20px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.adventurer-details p { font-size: 12px; line-height: 1.6; margin: 6px 0; overflow-wrap: anywhere; }
+
+#home > .daily-mission-card {
+  padding: 12px;
+  border-radius: 8px;
+}
+.daily-mission-head h3 { font-size: 20px; letter-spacing: 0; }
+.daily-mission-head .section-kicker { font-size: 10px; }
+.daily-mission-card [data-home-daily-message] { font-size: 13px; line-height: 1.6; }
+.daily-mission-card .daily-mission-action {
+  width: 100%;
+  min-height: 46px;
+  margin: 12px 0 2px;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 15px;
+  line-height: 1.4;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 3px 0 #642f2b;
+}
+.daily-mission-card button[hidden] { display: none; }
+
+.bottom-nav {
+  gap: 2px;
+  padding-top: 5px;
+  padding-bottom: calc(5px + env(safe-area-inset-bottom));
+  border-top-color: rgba(241,210,122,0.24);
+}
+.bottom-nav .nav-item { min-height: 60px; grid-template-rows: 30px auto; gap: 3px; font-size: 11px; }
+.bottom-nav .nav-icon { width: 30px; height: 30px; }
+.bottom-nav .nav-item.is-active {
+  border-color: rgba(241,210,122,0.46);
+  background: rgba(142,47,42,0.46);
+  box-shadow: inset 0 2px 0 #e1bd70;
+}
+.bottom-nav .nav-badge { top: 1px; }
+.app-header button:focus-visible, .adventurer-details summary:focus-visible, .bottom-nav button:focus-visible, .daily-mission-action:focus-visible {
+  outline: 3px solid #f5cb68;
+  outline-offset: 3px;
+}
+
+.screen.is-active { animation: appScreenEnter 160ms ease-out; }
+@keyframes appScreenEnter { from { opacity: 0.5; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .screen.is-active { animation: none; }
+  .bottom-nav .nav-item { transition: none; }
+}
+@media (max-width: 360px) {
+  .app-shell { padding-top: 0; }
+  .app-header { margin-right: -10px; margin-left: -10px; padding-left: 12px; }
+  .app-brand-block { gap: 3px 5px; }
+  .app-header h1 { font-size: 19px; }
+  .app-header .app-version { font-size: 9px; }
+  #home > .hero-panel { grid-template-columns: 76px minmax(0, 1fr); gap: 12px; padding: 12px; }
+  #home .character-frame { width: 76px; }
+  #home .adventurer-copy h2 { font-size: 17px; }
+}
+@media (min-width: 600px) {
+  #home > .hero-panel { grid-template-columns: 108px minmax(0,1fr); gap: 20px; }
+  #home .character-frame { width: 108px; }
+  #home .adventurer-copy h2 { font-size: 23px; }
+}
